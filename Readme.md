@@ -10,6 +10,12 @@ __jstriptool__ is a reimplementation of StripTool in Java.
 
 
 
+# Binaries
+
+Releases can be downloaded from: https://github.com/paulscherrerinstitute/jstriptool/releases
+
+
+
 # Building
 
 The JAR file jstriptool-<version>-fat.jar can be built executing:
