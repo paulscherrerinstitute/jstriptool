@@ -1,0 +1,97 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+version = '1.0.0' 
+group = 'ch.psi'
+ext.timestamp = new Date().format("yyMMddHHmm")
+sourceCompatibility = '1.8'
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+if (!hasProperty('mainClass')) {
+    ext.mainClass = 'ch.psi.jstriptool.App'
+}
+
+if (!hasProperty('runArgs')) {
+    ext.arguments = ''
+} else {
+    ext.arguments = runArgs.split (" ")
+} 
+
+task(debug, dependsOn: 'classes', type: JavaExec) {      
+    main = mainClass
+    classpath = sourceSets.main.runtimeClasspath
+    args arguments
+    ignoreExitValue = true
+    debug true
+}
+
+task(run, dependsOn: 'classes', type: JavaExec) {      
+    main = mainClass
+    classpath = sourceSets.main.runtimeClasspath
+    args arguments 
+    ignoreExitValue = true
+    debug false
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task fatJar(type: Jar, dependsOn: jar) {
+    classifier 'fat'
+    duplicatesStrategy = 'exclude'  
+    manifest {
+        attributes (
+            'Main-Class': mainClass,
+            'Implementation-Version': version,
+            'Build-Time': timestamp,
+            //,'Class-Path': configurations.compile.collect { it.getName() }.join(' ')
+        )
+    }    
+    doFirst {
+        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } } 
+    }
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'     
+        
+    with jar
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.epics:ca:1.2.1'
+    compile 'org.jfree:jfreechart:1.0.19'
+    compile 'org.clojars.nakkaya:darcula:1.0.0' 
+    testCompile group: 'junit', name: 'junit', version: '4.10'
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+    archives fatJar
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            setUniqueVersion(true)
+            repository(url: artifactoryUrlRel){
+            	authentication(userName: artifactoryUser, password: artifactoryPwd)
+            }
+            snapshotRepository(url: artifactoryUrlRel){
+            	authentication(userName: artifactoryUser, password: artifactoryPwd)
+            }
+            pom.groupId = project.group
+            pom.artifactId =  project.name
+            pom.version = version
+        }
+    }
+}
