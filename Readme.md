@@ -38,7 +38,8 @@ Launch the application typing:
  * If <file name> is not provided, the configuration window is opened.
 
 
-# Startup Options:
+
+# Startup Options
 
 The most relevant options are:
 
@@ -59,4 +60,12 @@ One can override epics configuration providing parameters in command line:
  * `-EPICS_CA_MAX_ARRAY_BYTES=<value>`
 
 
+
+# Environment Variables
+
+The following environment variables are supported, as described in 
+https://epics.anl.gov/EpicsDocumentation/ExtensionsManuals/StripTool/StripTool.html:
+ 
+ * `STRIP_SITE_DEFAULTS`
+ * `STRIP_FILE_SEARCH_PATH`
 
