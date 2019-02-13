@@ -35,16 +35,26 @@ After executing the build command, the file jstriptool-<version>-fat.jar is loca
 
 
 ## RPM
-To build the rpm java is required to be installed on your build machine (as the compilation of the java code is not done inside the docker container). To build the RPM, generate the fat jar first:
+To build the RPM Java is required to be installed on your build machine (as the compilation of the Java code is not done inside the docker build container). 
+
+To build the RPM, generate the fat jar first:
  ```
  ./gradlew clean build
  ```
 
-And run the docker rpm build container as follows:
+Afterwards run the docker rpm build container as follows (for RHEL7):
 ```
 docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/data paulscherrerinstitute/centos_build_rpm:7 package jstriptool.spec
 ```
+
 The resulting rpm will be placed in the `rpm` folder.
+
+For SL6 use following command to build the RPM:
+
+```
+docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/data paulscherrerinstitute/centos_build_rpm:6 package jstriptool.spec
+```
+
 
 # Launching
 
