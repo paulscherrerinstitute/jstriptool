@@ -1,9 +1,10 @@
-.classpath
-.idea/
-.project
-.settings/
-bin/
-build/
+/.classpath
+/.idea
+/.project
+/.settings
+/bin
+/build
+/rpm
 /.gradle/
 /*.stp
 /.nb-gradle-properties
