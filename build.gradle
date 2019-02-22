@@ -82,7 +82,7 @@ artifacts {
 uploadArchives {
     repositories {
         mavenDeployer {
-            setUniqueVersion(true)
+            //setUniqueVersion(true)
             repository(url: artifactoryUrlRel){
             	authentication(userName: artifactoryUser, password: artifactoryPwd)
             }
