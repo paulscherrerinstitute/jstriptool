@@ -18,6 +18,14 @@ Releases can be downloaded from: https://github.com/paulscherrerinstitute/jstrip
 
 # Building
 
+Before being able to use gradle either comment the uploadArchives task in the build.gradle or create a ~/.gradle/gradle.properties file with following contents:
+```
+artifactoryUser=xxx
+artifactoryPwd=xxx
+artifactoryUrlRel=xxx
+artifactoryUrlLibSnap=xxx
+```
+
 The JAR file jstriptool-<version>-fat.jar can be built executing:
  ```
  ./gradlew build
@@ -25,6 +33,27 @@ The JAR file jstriptool-<version>-fat.jar can be built executing:
 
 After executing the build command, the file jstriptool-<version>-fat.jar is located in the folder  ./build/libs. 
 
+
+## RPM
+To build the RPM Java is required to be installed on your build machine (as the compilation of the Java code is not done inside the docker build container). 
+
+To build the RPM, generate the fat jar first:
+ ```
+ ./gradlew clean build
+ ```
+
+Afterwards run the docker rpm build container as follows (for RHEL7):
+```
+docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/data paulscherrerinstitute/centos_build_rpm:7 package jstriptool.spec
+```
+
+The resulting rpm will be placed in the `rpm` folder.
+
+For SL6 use following command to build the RPM:
+
+```
+docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/data paulscherrerinstitute/centos_build_rpm:6 package jstriptool.spec
+```
 
 
 # Launching
