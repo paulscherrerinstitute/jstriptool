@@ -283,7 +283,7 @@ public class PlotFrame extends javax.swing.JFrame {
             if (!getPlot().isStarted()) {
                 return;
             }
-            long nanos = System.nanoTime();
+            long millis = System.currentTimeMillis();
             int series = getSeriesCount();
             double[] values = new double[series];
             if (App.isSimulated()) {
@@ -305,7 +305,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 }
             }
 
-            Timestamped<double[]> tv = toTimestamped(values, nanos);
+            Timestamped<double[]> tv = toTimestamped(values, millis);
 
             synchronized (valueList) {
                 valueList.add(tv);
@@ -317,13 +317,13 @@ public class PlotFrame extends javax.swing.JFrame {
         }
     }
 
-    Timestamped toTimestamped(Object obj, Long nanos) {
+    Timestamped toTimestamped(Object obj, Long millis) {
         Timestamped tv = new Timestamped();
         //Timestamped<Timestamped<Double>[]> tv = new Timestamped<>(); //Retain IOC time
         tv.setValue(obj);
-        if (nanos != null) {
-            tv.setSeconds((long) (nanos / 1e9));
-            tv.setNanos((int) (nanos % 1e9));
+        if (millis != null) {
+            tv.setSeconds((long) (millis / 1e3));
+            tv.setNanos((int) ((millis % 1e3) * 1e6));
         }
         return tv;
     }
