@@ -22,6 +22,7 @@ import javax.swing.Timer;
 import org.epics.ca.Channel;
 import org.epics.ca.Context;
 import org.epics.ca.Monitor;
+import org.epics.ca.data.AlarmSeverity;
 import org.epics.ca.data.Timestamped;
 
 /**
@@ -323,8 +324,11 @@ public class PlotFrame extends javax.swing.JFrame {
 
     Timestamped toTimestamped(Object obj, Long millis) {
         Timestamped tv = new Timestamped();
-        //Timestamped<Timestamped<Double>[]> tv = new Timestamped<>(); //Retain IOC time
+        //Timestamped<Timestamped<Double>[]> tv = new Timestamped<>(); //Retain IOC time}
         tv.setValue(obj);
+        if (obj != null){
+            tv.setAlarmSeverity(AlarmSeverity.NO_ALARM);
+        }
         if (millis != null) {
             tv.setSeconds((long) (millis / 1e3));
             tv.setNanos((int) ((millis % 1e3) * 1e6));
