@@ -68,25 +68,29 @@ public class PlotFrame extends javax.swing.JFrame {
         repaint();
 
         if (!App.isSimulated()) {
-            Channel<Double> channel = context.createChannel(c.name, Double.class);
-            cache.put(channel, toTimestamped(Double.NaN, null));
-            //channel.connect();
-            channel.connectAsync().handle((ret, ex) -> {
-                System.out.println("Connected to channel: " + c.name);
-                if (!blocking) {
-                    Monitor<Timestamped<Double>> monitor = channel.addMonitor(Timestamped.class, timestampedValue -> {
-                        if (timestampedValue != null) {
-                            if (c.plotStatus) {
-                                cache.put(channel, timestampedValue);
-                                if (config.sampleInterval <= 0) {
-                                    addValue();
+            Channel<Double> channel = ((c.name!=null) && (!c.name.isEmpty())) ? context.createChannel(c.name, Double.class) : null;
+            if (channel!=null){
+                //channel.connect();
+                channel.connectAsync().handle((ret, ex) -> {
+                    System.out.println("Connected to channel: " + c.name);
+                    if (!blocking) {
+                        Monitor<Timestamped<Double>> monitor = channel.addMonitor(Timestamped.class, timestampedValue -> {
+                            if (timestampedValue != null) {
+                                if (c.isEnabled()) {
+                                    cache.put(channel, timestampedValue);
+                                    if (config.sampleInterval <= 0) {
+                                        addValue();
+                                    }
                                 }
                             }
-                        }
-                    });
-                }
-                return ret;
-            });
+                        });
+                    }
+                    return ret;
+                });
+            }
+            cache.put(channel, toTimestamped(Double.NaN, null));
+            //channel.connect();
+
             synchronized (channels) {
                 channels.add(channel);
             }
@@ -583,7 +587,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 }
                 Curve c = App.configFrame.config.insertCurve(index);
                 c.name = channelName;
-                c.plotStatus = enabled;
+                    c.plotStatus = enabled;
                 c.scale = log ? Scale.logarithmic : Scale.linear;
                 c.precision = precision;
                 c.min = min;

@@ -72,7 +72,7 @@ public class Config {
         double min;
         double max;
         Scale scale;
-        boolean plotStatus;
+        Boolean plotStatus;
 
         @Override
         public Curve clone() {
@@ -86,6 +86,10 @@ public class Config {
             ret.scale = scale;
             ret.plotStatus = plotStatus;
             return ret;
+        }
+        
+        public boolean isEnabled(){
+            return  (name!=null) && (plotStatus!=null) && (plotStatus);
         }
     }
 
@@ -368,13 +372,13 @@ public class Config {
 
             List<Integer> curvesIndexes = getCurvesIndexes();
             for (Integer i : curvesIndexes) {
-                write(out, "Strip.Curve." + i + ".Name", curves[i].name);
+                if (curves[i].name!=null) write(out, "Strip.Curve." + i + ".Name", curves[i].name);
             }
             for (Integer i : curvesIndexes) {
-                write(out, "Strip.Curve." + i + ".Units", curves[i].units);
+                if (curves[i].units!=null) write(out, "Strip.Curve." + i + ".Units", curves[i].units);
             }
             for (Integer i : curvesIndexes) {
-                write(out, "Strip.Curve." + i + ".Comment", curves[i].comment);
+                if (curves[i].comment!=null) write(out, "Strip.Curve." + i + ".Comment", curves[i].comment);
             }
             for (Integer i : curvesIndexes) {
                 write(out, "Strip.Curve." + i + ".Precision", curves[i].precision);
@@ -387,10 +391,10 @@ public class Config {
                 write(out, "Strip.Curve." + i + ".Max", curves[i].max);
             }
             for (Integer i : curvesIndexes) {
-                write(out, "Strip.Curve." + i + ".Scale", curves[i].scale.ordinal());
+                if (curves[i].scale!=null) write(out, "Strip.Curve." + i + ".Scale", curves[i].scale.ordinal());
             }
             for (Integer i : curvesIndexes) {
-                write(out, "Strip.Curve." + i + ".PlotStatus ", curves[i].plotStatus ? 1 : 0);
+                if (curves[i].plotStatus!=null)  write(out, "Strip.Curve." + i + ".PlotStatus ", curves[i].plotStatus ? 1 : 0);
             }
         }
     }

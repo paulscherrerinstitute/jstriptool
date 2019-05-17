@@ -285,7 +285,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         for (int i = 0; i < config.getNumberCurves(); i++) {
             Curve c = config.curves[i];
             modelSeries.setValueAt(c.name, i, COLUMN_NAME);
-            modelSeries.setValueAt(c.plotStatus, i, COLUMN_ENABLED);
+            modelSeries.setValueAt((c.plotStatus == null) || (c.plotStatus), i, COLUMN_ENABLED);
             modelSeries.setValueAt(c.scale == Scale.logarithmic, i, COLUMN_LOG);
             modelSeries.setValueAt(c.precision, i, COLUMN_PREC);
             modelSeries.setValueAt(c.min, i, COLUMN_MIN);
