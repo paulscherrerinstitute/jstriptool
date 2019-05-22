@@ -102,7 +102,7 @@ public class SeriesPanel extends javax.swing.JPanel {
 
     String getDisplayValue(double value) {
         if (Double.isNaN(value)) {
-            return "Invalid";
+            return "";
         }
         return series.toString(value, true, true);
     }

@@ -143,6 +143,14 @@ public class App {
         return App.hasArgument("sync");
     }
 
+    public static boolean isDebug(){
+        return App.hasArgument("debug");
+    }
+          
+    public static boolean getHideInvalid(){
+        return App.hasArgument("hide_invalid");
+    }
+    
     public static File resolveFile(String name) throws FileNotFoundException {
         name = name.trim();
         File file = new File(expandUserHome(name));
@@ -187,7 +195,7 @@ public class App {
     }
 
     static void printStartupMessage() {
-        System.out.println("JStripChart");
+        System.out.println("JStripTool");
         String version = getApplicationVersion();
         if (version != null) {
             System.out.println("Version " + version);
@@ -205,6 +213,8 @@ public class App {
         System.out.println("\t-laf=<name>\tSupported values: nimbus, metal, dark or system");
         System.out.println("\t-aa=false\tDisable anti-aliasing");
         System.out.println("\t-xrm='<name>:<val>'\tSet graphical resources");
+        System.out.println("\t-debug\tShow debug information");
+        System.out.println("\t-hide_invalid\tDo not display invalid values");
         System.out.println("EPICS CA arguments: ");
         for (Context.Configuration cfg : Context.Configuration.values()) {
             System.out.println("\t-" + cfg.toString() + "=<value>");
@@ -217,7 +227,7 @@ public class App {
 
     public static void main(String args[]) throws Exception {
         arguments = args;
-
+    
         printStartupMessage();
         if (hasArgument("h")) {
             printHelpMessage();
@@ -231,6 +241,11 @@ public class App {
                 caProperties.setProperty(cfg.toString(), val);
             }
         }
+        
+        if (isDebug()) {
+            caProperties.setProperty("CA_DEBUG", "1");
+        }     
+
         String lastArg = args.length > 0 ? args[args.length - 1].trim() : null;
         String startupFile = (lastArg != null) && !lastArg.isEmpty() && !lastArg.startsWith("-") && !lastArg.startsWith("#")
                 ? lastArg : null;
@@ -273,9 +288,11 @@ public class App {
         }
         simulated = hasArgument("simulated");
 
-        System.out.println("Home folder: " + getHome());
-        System.out.println("Startup file: " + startupFile);
-
+        if (isDebug()){
+            System.out.println("Home folder: " + getHome());
+            System.out.println("Startup file: " + startupFile);
+        }
+    
         //Builds the search path
         path.add(".");
         path.add(expandUserHome("~"));

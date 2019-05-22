@@ -75,35 +75,37 @@ public class ConfigFrame extends javax.swing.JFrame {
         public void tableChanged(TableModelEvent e) {
             if (isPlotting()) {
                 try {
-                    if (e.getFirstRow() == e.getLastRow()) {
+                    if ((e.getType() == TableModelEvent.UPDATE) && (e.getFirstRow() == e.getLastRow())) {
                         int col = e.getColumn();
                         int index = e.getFirstRow();
-                        Object value = modelSeries.getValueAt(index, col);
+                        if (modelSeries.getRowCount() > 0) {
+                            Object value = modelSeries.getValueAt(index, col);
 
-                        switch (col) {
-                            case COLUMN_ENABLED:
-                                App.plotFrame.setEnabled(index, (value == null) ? false : (Boolean) value);
-                                break;
-                            case COLUMN_LOG:
-                                App.plotFrame.setLog(index, (value == null) ? false : (Boolean) value);
-                                break;
-                            case COLUMN_PREC:
-                                App.plotFrame.setPrec(index, (value == null) ? 0 : (Integer) value);
-                                break;
-                            case COLUMN_MIN:
-                                App.plotFrame.setMin(index, (value == null) ? Double.NaN : (Double) value);
-                                break;
-                            case COLUMN_MAX:
-                                App.plotFrame.setMax(index, (value == null) ? Double.NaN : (Double) value);
-                                break;
-                            case COLUMN_UNITS:
-                                App.plotFrame.setUnits(index, (value == null) ? "" : (String) value);
-                                break;
-                            case COLUMN_DESC:
-                                App.plotFrame.setDesc(index, (value == null) ? "" : (String) value);
-                                break;
-                            case COLUMN_COLORS:
-                                App.plotFrame.setColor(index, (value == null) ? Color.BLACK : Config.getColorFromString((String) value));
+                            switch (col) {
+                                case COLUMN_ENABLED:
+                                    App.plotFrame.setEnabled(index, (value == null) ? false : (Boolean) value);
+                                    break;
+                                case COLUMN_LOG:
+                                    App.plotFrame.setLog(index, (value == null) ? false : (Boolean) value);
+                                    break;
+                                case COLUMN_PREC:
+                                    App.plotFrame.setPrec(index, (value == null) ? 0 : (Integer) value);
+                                    break;
+                                    case COLUMN_MIN:
+                                        App.plotFrame.setMin(index, (value == null) ? Double.NaN : (Double) value);
+                                        break;
+                                    case COLUMN_MAX:
+                                        App.plotFrame.setMax(index, (value == null) ? Double.NaN : (Double) value);
+                                        break;
+                                    case COLUMN_UNITS:
+                                        App.plotFrame.setUnits(index, (value == null) ? "" : (String) value);
+                                        break;
+                                    case COLUMN_DESC:
+                                        App.plotFrame.setDesc(index, (value == null) ? "" : (String) value);
+                                        break;
+                                    case COLUMN_COLORS:
+                                        App.plotFrame.setColor(index, (value == null) ? Color.BLACK : Config.getColorFromString((String) value));
+                                }
                         }
                     }
                 } catch (Exception ex) {
@@ -1021,6 +1023,10 @@ public class ConfigFrame extends javax.swing.JFrame {
                     modelSeries.fireTableDataChanged();
                     updateButtons();
                     updateColors();
+                    if (!App.plotFrame.isStarted()){
+                        App.plotFrame.start();
+                    }
+            
                     App.plotFrame.addChannel(index, channelName, true, false, precision, min, max, units, desc);
                 } catch (Exception ex) {
                     SwingUtils.showException(this, ex);

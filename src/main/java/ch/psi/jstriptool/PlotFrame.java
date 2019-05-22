@@ -32,6 +32,7 @@ public class PlotFrame extends javax.swing.JFrame {
 
     static PlotFrame instance;
     final boolean blocking;
+    final boolean hideInvalid;
 
     /**
      * Creates new form MainFrame
@@ -50,6 +51,7 @@ public class PlotFrame extends javax.swing.JFrame {
         plotPanel.setSparse(false);//Values are appended together for all series
 
         blocking = App.isBlocking();
+        hideInvalid = App.getHideInvalid();
     }
 
     PlotPanel getPlot() {
@@ -75,6 +77,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 channel.connectAsync().handle((ret, ex) -> {
                     System.out.println("Connected to channel: " + c.name);
                     if (!blocking) {
+                        updateAsync(channel);
                         Monitor<Timestamped<Double>> monitor = channel.addMonitor(Timestamped.class, timestampedValue -> {
                             if (timestampedValue != null) {
                                 if (c.isEnabled()) {
@@ -91,7 +94,7 @@ public class PlotFrame extends javax.swing.JFrame {
             }
             cache.put(channel, toTimestamped(Double.NaN, null));
             //channel.connect();
-
+            
             synchronized (channels) {
                 channels.add(channel);
             }
@@ -302,7 +305,8 @@ public class PlotFrame extends javax.swing.JFrame {
                         if (blocking) {
                             values[i] = channels.get(i).getAsync().get(1, TimeUnit.SECONDS);
                         } else {
-                            values[i] = cache.get(channels.get(i)).getValue();
+                            Timestamped<Double> t = cache.get(channels.get(i));
+                            values[i] = (hideInvalid && (t.getAlarmSeverity() == AlarmSeverity.INVALID_ALARM)) ? Double.NaN: t.getValue();
                         }
                     } catch (Exception ex) {
                         values[i] = Double.NaN;
@@ -414,18 +418,22 @@ public class PlotFrame extends javax.swing.JFrame {
     boolean isStarted() {
         return (config != null) && (getSeriesCount() > 0);
     }
+    
+    void updateAsync(Channel channel){
+        channel.getAsync(Timestamped.class).handle((value, ex) -> {
+            if (ex == null) {
+                cache.put(channel, (Timestamped)value);
+            }
+            return value;
+        });    
+   }
 
     public void setEnabled(int index, boolean value) {
         if (isStarted() && index < config.getNumberCurves()) {
             config.curves[index].plotStatus = value;
             synchronized (channels) {
                 if (value) {
-                    channels.get(index).getAsync().handle((ret, ex) -> {
-                        if (ex == null) {
-                            cache.put(channels.get(index), toTimestamped(ret, null));
-                        }
-                        return ret;
-                    });
+                    updateAsync(channels.get(index));
                 } else {
                     Timestamped<Double> tv = new Timestamped<>();
                     tv.setValue(Double.NaN);
