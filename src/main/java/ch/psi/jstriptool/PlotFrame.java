@@ -6,10 +6,8 @@ import ch.psi.jstriptool.Config.GridVisibility;
 import ch.psi.jstriptool.Config.LabelColorAxisY;
 import ch.psi.jstriptool.Config.Scale;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,8 +64,7 @@ public class PlotFrame extends javax.swing.JFrame {
         plotPanel.setLineWidth(plotPanel.getNumberOfSeries() - 1, config.graphLineWidth);
         plotPanel.setNotify(plotPanel.getNumberOfSeries() - 1, false);
         plotPanel.setMaximumItemCount(plotPanel.getNumberOfSeries() - 1, config.numSamples);
-        panelSeriesSet.add(new SeriesPanel(series));
-        panelSeriesSet.updateUI();
+        panelSeriesSet.addSeries(series);
         repaint();
 
         if (!App.isSimulated()) {
@@ -107,8 +104,7 @@ public class PlotFrame extends javax.swing.JFrame {
         }
         numberOfSeries--;
         plotPanel.removeSeries(index);
-        panelSeriesSet.remove(index);
-        panelSeriesSet.updateUI();
+        panelSeriesSet.removeSeries(index);
         repaint();
         if (!App.isSimulated()) {
             Channel channel = null;
@@ -122,37 +118,11 @@ public class PlotFrame extends javax.swing.JFrame {
             }
         }
     }
-
-    SeriesPanel[] getSeriesPanels() {
-        return Arrays.asList(panelSeriesSet.getComponents()).toArray(new SeriesPanel[0]);
-    }
-
-    SeriesPanel getSeriesPanels(PlotSeries series) {
-        for (SeriesPanel panel : getSeriesPanels()) {
-            if (panel.series == series) {
-                return panel;
-            }
-        }
-        return null;
-    }
-
-    PlotSeries getActiveSeries() {
-        for (Component c : panelSeriesSet.getComponents()) {
-            if ((((SeriesPanel) c).series).isActive()) {
-                return ((SeriesPanel) c).series;
-            }
-        }
-        return null;
-    }
-
+    
     public void setActive(PlotSeries series) {
         if (!series.isActive()) {
             series.setActive();
-            SeriesPanel panel = getSeriesPanels(series);
-            if (panel != null) {
-                panel.setActive();
-            }
-            //panelSeriesSet.repaint();
+            panelSeriesSet.setSeriesActive(series);
             updateAxisColor();
         }
     }
@@ -160,7 +130,7 @@ public class PlotFrame extends javax.swing.JFrame {
     void updateAxisColor() {
 
         if (config != null) {
-            PlotSeries active = getActiveSeries();
+            PlotSeries active = panelSeriesSet.getActiveSeries();
             if ((active != null) && (config.axisYcolorStat == LabelColorAxisY.selectedCurve)) {
                 plotPanel.setRangeAxisColor(plotPanel.getActiveSeriesIndex(), active.getColor());
             } else {
@@ -175,23 +145,10 @@ public class PlotFrame extends javax.swing.JFrame {
 
     public void clear() {
         plotPanel.removeAllSeries();
-        panelSeriesSet.removeAll();
-        SeriesPanel.active = null;
+        panelSeriesSet.clear();
         updateAxisColor();
         repaint();
 
-    }
-
-    void updatePanelSeriesSet() {
-
-        if (panelSeriesSet.isShowing()) {
-            try {
-                for (Component c : panelSeriesSet.getComponents()) {
-                    ((SeriesPanel) c).update();
-                }
-            } catch (Exception ex) {
-            }
-        }
     }
 
     Timer redrawTimer;
@@ -232,6 +189,9 @@ public class PlotFrame extends javax.swing.JFrame {
             setActive(plotPanel.getPlotSeries(0));
         }
         updateAxisColor();
+        if (SwingUtilities.isEventDispatchThread()){
+            panelSeriesSet.update();
+        }
     }
 
     void startRedrawTimer(boolean triggerImmediately) {
@@ -372,7 +332,7 @@ public class PlotFrame extends javax.swing.JFrame {
         }
         counterSample++;
         if ((config.refreshInterval <= 0) || (config.refreshInterval * counterSample >= 0.5)) {
-            updatePanelSeriesSet();
+            panelSeriesSet.update();
             counterSample = 0;
         }
     }
@@ -447,7 +407,7 @@ public class PlotFrame extends javax.swing.JFrame {
         if (isStarted() && index < config.getNumberCurves()) {
             config.curves[index].scale = value ? Scale.logarithmic : Scale.linear;
             plotPanel.series.get(index).plotSeries.setLogaritimic(value);
-            getSeriesPanels()[index].initialize();
+            panelSeriesSet.updateSeries(index);
         }
     }
 
@@ -455,7 +415,7 @@ public class PlotFrame extends javax.swing.JFrame {
         if (isStarted() && index < config.getNumberCurves()) {
             config.curves[index].precision = value;
             plotPanel.series.get(index).plotSeries.setPrecision(value);
-            getSeriesPanels()[index].initialize();
+            panelSeriesSet.updateSeries(index);
         }
     }
 
@@ -463,7 +423,7 @@ public class PlotFrame extends javax.swing.JFrame {
         if (isStarted() && index < config.getNumberCurves()) {
             config.curves[index].min = value;
             plotPanel.series.get(index).plotSeries.setRangeMin(value);
-            getSeriesPanels()[index].initialize();
+            panelSeriesSet.updateSeries(index);
         }
     }
 
@@ -471,7 +431,7 @@ public class PlotFrame extends javax.swing.JFrame {
         if (isStarted() && index < config.getNumberCurves()) {
             config.curves[index].max = value;
             plotPanel.series.get(index).plotSeries.setRangeMax(value);
-            getSeriesPanels()[index].initialize();
+            panelSeriesSet.updateSeries(index);
         }
     }
 
@@ -479,7 +439,7 @@ public class PlotFrame extends javax.swing.JFrame {
         if (isStarted() && index < config.getNumberCurves()) {
             config.curves[index].units = value;
             plotPanel.series.get(index).plotSeries.setUnits(value);
-            getSeriesPanels()[index].initialize();
+            panelSeriesSet.updateSeries(index);
         }
     }
 
@@ -487,7 +447,7 @@ public class PlotFrame extends javax.swing.JFrame {
         if (isStarted() && index < config.getNumberCurves()) {
             config.curves[index].comment = value;
             plotPanel.series.get(index).plotSeries.setDesc(value);
-            getSeriesPanels()[index].initialize();
+            panelSeriesSet.updateSeries(index);
         }
     }
 
@@ -495,9 +455,8 @@ public class PlotFrame extends javax.swing.JFrame {
         if (isStarted() && index < config.getNumberCurves()) {
             config.colors[index] = new DeepColor(value);
             plotPanel.series.get(index).plotSeries.setColor(value);
-            getSeriesPanels()[index].initialize();
+            panelSeriesSet.updateSeries(index);
         }
-
     }
 
     public void setBackgroundColor(Color value) {
@@ -643,32 +602,39 @@ public class PlotFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         plotPanel = new ch.psi.jstriptool.PlotPanel();
-        panelSeriesSet = new javax.swing.JPanel();
+        panelSeriesSet = new ch.psi.jstriptool.SeriesSetPanel();
 
-        panelSeriesSet.setBorder(javax.swing.BorderFactory.createTitledBorder("Series"));
-        panelSeriesSet.setLayout(new javax.swing.BoxLayout(panelSeriesSet, javax.swing.BoxLayout.PAGE_AXIS));
+        javax.swing.GroupLayout panelSeriesSetLayout = new javax.swing.GroupLayout(panelSeriesSet);
+        panelSeriesSet.setLayout(panelSeriesSetLayout);
+        panelSeriesSetLayout.setHorizontalGroup(
+            panelSeriesSetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 301, Short.MAX_VALUE)
+        );
+        panelSeriesSetLayout.setVerticalGroup(
+            panelSeriesSetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(plotPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 550, Short.MAX_VALUE)
+                .addComponent(plotPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 539, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
-                .addComponent(panelSeriesSet, javax.swing.GroupLayout.PREFERRED_SIZE, 296, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0))
+                .addComponent(panelSeriesSet, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(plotPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 486, Short.MAX_VALUE)
-            .addComponent(panelSeriesSet, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(panelSeriesSet, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel panelSeriesSet;
+    private ch.psi.jstriptool.SeriesSetPanel panelSeriesSet;
     private ch.psi.jstriptool.PlotPanel plotPanel;
     // End of variables declaration//GEN-END:variables
 }

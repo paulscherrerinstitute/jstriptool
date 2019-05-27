@@ -3,6 +3,8 @@ package ch.psi.jstriptool;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.BorderFactory;
+import static javax.swing.border.TitledBorder.DEFAULT_POSITION;
+import static javax.swing.border.TitledBorder.LEADING;
 
 /**
  *
@@ -13,67 +15,68 @@ public class SeriesPanel extends javax.swing.JPanel {
     final Color textBackground;
     final Color panelBackground;
     String currentDisplayValue;
-    static SeriesPanel active;
 
-    /**
-     * Creates new form SeriesPanel
-     */
     public SeriesPanel(PlotSeries series) {
         initComponents();
         this.series = series;
-        textBackground = textName.getBackground();
+        textBackground = textInfo.getBackground();
         panelBackground = getBackground();
         initialize();
-        Font f = textName.getFont().deriveFont(11.0f);
+        Font f = textInfo.getFont().deriveFont(11.0f);
 
-        textName.setFont(f);
-        textRange.setFont(f);
-        textValue.setFont(f);
-        textDesc.setFont(f);
-        /*
-       Insets margin = new Insets(0,0,0,0);
-        textName.setMargin(margin);
-        textRange.setMargin(margin);
-        textValue.setMargin(margin);
-        textDesc.setMargin(margin);
-         */
+        textInfo.setFont(f);
+
     }
+    String range;
+    String desc;
+    String name;
 
-    void updateBorder() {
-        if (this == active) {
-            setBorder(BorderFactory.createLineBorder(series.getColor(), 2));
+    public PlotSeries getSeries(){
+        return series;
+    }
+    
+    public void updateBorder() {
+        if (this == SeriesSetPanel.active) {
+            setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(series.getColor(), 2), name, LEADING, DEFAULT_POSITION, null, series.getColor()));
         } else {
-            setBorder(BorderFactory.createLineBorder(panelBackground, 2));
+            setBorder(BorderFactory.createTitledBorder(null, name, LEADING, DEFAULT_POSITION, null, series.getColor()));
         }
     }
 
     public void initialize() {
-        textName.setText(series.getName());
-        if (series.isFixedRange()) {
-            textRange.setText(String.format(("%s, %s"),
-                    getDisplayRange(series.getRangeMin()),
-                    getDisplayRange(series.getRangeMax())));
-        } else {
-            textRange.setText("");
+        name = series.getName();
+        if ((name == null) || (name.trim().isEmpty())){
+            setVisible(false);
+        } else  {
+            setVisible(true);
+            if (series.isFixedRange()) {
+                range = String.format(("(%s, %s)"),
+                        getDisplayRange(series.getRangeMin()),
+                        getDisplayRange(series.getRangeMax()));
+            } else {
+                range = "";
+            }
+            desc = series.desc == null ? "" : series.desc;
+            textInfo.setForeground(series.getColor());
         }
-        textDesc.setText(series.desc == null ? "" : series.desc);
-        textName.setForeground(series.getColor());
-        textRange.setForeground(series.getColor());
-        textValue.setForeground(series.getColor());
-        textDesc.setForeground(series.getColor());
         updateBorder();
     }
 
-    void setActive() {
-        if (this != active) {
-            SeriesPanel former = active;
-            active = this;
+    public void setActive() {
+        if (!isActive()) {
+            SeriesPanel former = SeriesSetPanel.active;
+            SeriesSetPanel.active = this;
             if ((former != null) && former.isShowing()) {
                 former.updateBorder();
             }
             updateBorder();
         }
     }
+    
+    
+    public boolean isActive(){
+        return (this == SeriesSetPanel.active);
+    }    
 
     public void update() {
         try {
@@ -85,7 +88,8 @@ public class SeriesPanel extends javax.swing.JPanel {
                 displayValue = getDisplayValue(tval.getValue().doubleValue());
             }
             if (!displayValue.equals(currentDisplayValue)) {
-                textValue.setText(displayValue);
+                String text = String.format("<html><div style='text-align: center;'>%s<br>%s<br>%s</div></html>", displayValue, range, desc );
+                textInfo.setText(text);
                 currentDisplayValue = displayValue;
             }
         } catch (Exception ex) {
@@ -97,14 +101,14 @@ public class SeriesPanel extends javax.swing.JPanel {
         if ((value == null) || Double.isNaN(value)) {
             return "";
         }
-        return series.toString(value, true, false);
+        return series.toString(value, true, false, true);
     }
 
     String getDisplayValue(double value) {
         if (Double.isNaN(value)) {
             return "";
         }
-        return series.toString(value, true, true);
+        return series.toString(value, true, true, false);
     }
 
     /**
@@ -116,10 +120,7 @@ public class SeriesPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        textName = new javax.swing.JTextField();
-        textRange = new javax.swing.JTextField();
-        textValue = new javax.swing.JTextField();
-        textDesc = new javax.swing.JTextField();
+        textInfo = new javax.swing.JLabel();
 
         addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
@@ -127,33 +128,10 @@ public class SeriesPanel extends javax.swing.JPanel {
             }
         });
 
-        textName.setEditable(false);
-        textName.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        textName.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                formMousePressed(evt);
-            }
-        });
-
-        textRange.setEditable(false);
-        textRange.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        textRange.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                formMousePressed(evt);
-            }
-        });
-
-        textValue.setEditable(false);
-        textValue.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        textValue.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                formMousePressed(evt);
-            }
-        });
-
-        textDesc.setEditable(false);
-        textDesc.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        textDesc.addMouseListener(new java.awt.event.MouseAdapter() {
+        textInfo.setBackground(new java.awt.Color(255, 255, 255));
+        textInfo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        textInfo.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        textInfo.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 formMousePressed(evt);
             }
@@ -163,25 +141,11 @@ public class SeriesPanel extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(textName)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(textRange, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(textValue, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE))
-            .addComponent(textDesc)
+            .addComponent(textInfo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 219, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(textName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(textRange, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(textValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 0, 0)
-                .addComponent(textDesc, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(textInfo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -191,9 +155,6 @@ public class SeriesPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_formMousePressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField textDesc;
-    private javax.swing.JTextField textName;
-    private javax.swing.JTextField textRange;
-    private javax.swing.JTextField textValue;
+    private javax.swing.JLabel textInfo;
     // End of variables declaration//GEN-END:variables
 }

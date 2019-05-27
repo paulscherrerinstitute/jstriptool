@@ -16,6 +16,7 @@ public final class PlotSeries {
     String units = "";
     String desc = "";
     String format = "";
+    String truncatedFormat = "%s";
     String expFormat = "";
 
     int precision;
@@ -197,8 +198,9 @@ public final class PlotSeries {
         return PlotFrame.instance.getPlot();
     }
 
-    String toString(double value, boolean allowExponential, boolean showUnits) {
-        String ret = String.format(format, value);
+    String toString(double value, boolean allowExponential, boolean showUnits, boolean truncate) {
+        
+        String ret = String.format(truncate ? truncatedFormat : format, value);
         if (allowExponential && (ret.length() > 10)) {
             ret = String.format(expFormat, value);
         }

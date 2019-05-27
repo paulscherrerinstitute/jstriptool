@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'maven'
 
-version = '1.0.4' 
+version = '1.1.0' 
 group = 'ch.psi'
 ext.timestamp = new Date().format("yyMMddHHmm")
 sourceCompatibility = '1.8'

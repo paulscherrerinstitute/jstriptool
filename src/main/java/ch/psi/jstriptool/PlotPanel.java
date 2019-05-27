@@ -449,7 +449,7 @@ public class PlotPanel extends javax.swing.JPanel {
                     str.append(new SimpleDateFormat("dd/MM/YY HH:mm:ss.SSS").format(values.get(0).get(i).getTimestamp()));
                     str.append(FIELD_SEPARATOR);
                     for (int j = 0; j < record.length; j++) {
-                        str.append(series.get(j).plotSeries.toString(record[j], false, false)).append(FIELD_SEPARATOR);
+                        str.append(series.get(j).plotSeries.toString(record[j], false, false, false)).append(FIELD_SEPARATOR);
                     }
                     str.append(LINE_SEPARATOR);
                 }
