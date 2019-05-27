@@ -3,6 +3,8 @@ package ch.psi.jstriptool;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.BorderFactory;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import static javax.swing.border.TitledBorder.DEFAULT_POSITION;
 import static javax.swing.border.TitledBorder.LEADING;
 
@@ -25,7 +27,6 @@ public class SeriesPanel extends javax.swing.JPanel {
         Font f = textInfo.getFont().deriveFont(11.0f);
 
         textInfo.setFont(f);
-
     }
     String range;
     String desc;
@@ -58,8 +59,9 @@ public class SeriesPanel extends javax.swing.JPanel {
             }
             desc = series.desc == null ? "" : series.desc;
             textInfo.setForeground(series.getColor());
+            setToolTipText(name);
+            updateBorder();            
         }
-        updateBorder();
     }
 
     public void setActive() {
