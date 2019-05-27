@@ -191,7 +191,7 @@ public class App {
     }
 
     public static boolean isAntiAliasing() {
-        return !String.valueOf(getArgumentValue("aa")).equalsIgnoreCase("false");
+        return hasArgument("aa");
     }
 
     static void printStartupMessage() {
@@ -211,7 +211,7 @@ public class App {
         System.out.println("\t-home=<dir>\tSet home folder");
         System.out.println("\t-default=<dir>\tSet default configuration file");
         System.out.println("\t-laf=<name>\tSupported values: nimbus, metal, dark or system");
-        System.out.println("\t-aa=false\tDisable anti-aliasing");
+        System.out.println("\t-aa\tEnable anti-aliasing");
         System.out.println("\t-xrm='<name>:<val>'\tSet graphical resources");
         System.out.println("\t-debug\tShow debug information");
         System.out.println("\t-hide_invalid\tDo not display invalid values");

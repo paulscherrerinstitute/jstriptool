@@ -74,7 +74,9 @@ public class PlotFrame extends javax.swing.JFrame {
                 channel.connectAsync().handle((ret, ex) -> {
                     System.out.println("Connected to channel: " + c.name);
                     if (!blocking) {
-                        updateAsync(channel);
+                        if (c.isEnabled()) {
+                            updateAsync(channel);
+                        }
                         Monitor<Timestamped<Double>> monitor = channel.addMonitor(Timestamped.class, timestampedValue -> {
                             if (timestampedValue != null) {
                                 if (c.isEnabled()) {
@@ -263,7 +265,11 @@ public class PlotFrame extends javax.swing.JFrame {
                 for (int i = 0; i < series; i++) {
                     try {
                         if (blocking) {
-                            values[i] = channels.get(i).getAsync().get(1, TimeUnit.SECONDS);
+                            if (config.curves[i].isEnabled()){
+                                values[i] = channels.get(i).getAsync().get(1, TimeUnit.SECONDS);
+                            } else {
+                                values[i] = Double.NaN;
+                            }
                         } else {
                             Timestamped<Double> t = cache.get(channels.get(i));
                             values[i] = (hideInvalid && (t.getAlarmSeverity() == AlarmSeverity.INVALID_ALARM)) ? Double.NaN: t.getValue();
@@ -382,11 +388,11 @@ public class PlotFrame extends javax.swing.JFrame {
     void updateAsync(Channel channel){
         channel.getAsync(Timestamped.class).handle((value, ex) -> {
             if (ex == null) {
-                cache.put(channel, (Timestamped)value);
-            }
+                    cache.put(channel, (Timestamped)value);
+                }
             return value;
         });    
-   }
+    }
 
     public void setEnabled(int index, boolean value) {
         if (isStarted() && index < config.getNumberCurves()) {
@@ -558,7 +564,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 }
                 Curve c = App.configFrame.config.insertCurve(index);
                 c.name = channelName;
-                    c.plotStatus = enabled;
+                c.plotStatus = enabled;
                 c.scale = log ? Scale.logarithmic : Scale.linear;
                 c.precision = precision;
                 c.min = min;

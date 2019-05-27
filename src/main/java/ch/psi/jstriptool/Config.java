@@ -89,7 +89,7 @@ public class Config {
         }
         
         public boolean isEnabled(){
-            return  (name!=null) && (plotStatus!=null) && (plotStatus);
+            return  (name!=null) && ((plotStatus==null) || (plotStatus));
         }
     }
 
