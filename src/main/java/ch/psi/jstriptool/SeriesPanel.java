@@ -58,9 +58,13 @@ public class SeriesPanel extends javax.swing.JPanel {
                 range = "";
             }
             desc = series.desc == null ? "" : series.desc;
+            if (desc.isEmpty()){
+                 desc = Config.getChannelDesc(App.plotFrame.context, name);
+            }
             textInfo.setForeground(series.getColor());
             setToolTipText(name);
-            updateBorder();            
+            updateBorder();   
+            update();
         }
     }
 

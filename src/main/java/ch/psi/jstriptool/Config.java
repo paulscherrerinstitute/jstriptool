@@ -7,8 +7,11 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
+import org.epics.ca.Channel;
+import org.epics.ca.Context;
 
 /**
  *
@@ -440,7 +443,18 @@ public class Config {
         }
         return config;
     }
-
+    
+    public static String getChannelDesc(Context context, String channelName){
+        String desc = "";
+        try {
+            Channel<String> channelDesc = context.createChannel(channelName + ".DESC", String.class);
+            channelDesc.connectAsync().get(2, TimeUnit.SECONDS);
+            desc = channelDesc.get();
+        } catch (Exception ex) {
+        }
+        return desc;
+    }
+                    
     public static void main(String[] args) throws IOException {
         Config config = new Config();
         config.open(new File("./test.stp"));

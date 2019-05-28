@@ -1001,14 +1001,9 @@ public class ConfigFrame extends javax.swing.JFrame {
                     if (max <= min) {
                         max = min + 1;
                     }
-
-                    String desc = "";
-                    try {
-                        Channel<String> channelDesc = context.createChannel(channelName + ".DESC", String.class);
-                        channelDesc.connectAsync().get(2, TimeUnit.SECONDS);
-                        desc = channelDesc.get();
-                    } catch (Exception ex) {
-                    }
+                    //String desc = ""Config.getChannelDesc(context, channelName);
+                    //Resolve description dinamically 
+                    String desc = ""; 
 
                     Object[] data = new Object[]{channelName, Boolean.TRUE, Boolean.FALSE,
                         precision, min, max, units, desc,
