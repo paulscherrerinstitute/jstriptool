@@ -248,8 +248,10 @@ public class Config {
                                 grid = c;
                                 break;
                             default:
-                                index = Integer.valueOf(code[2].substring(5));
-                                colors[index - 1] = c;
+                                if (code[2].startsWith("Color")){
+                                    index = Integer.valueOf(code[2].substring(5));
+                                    colors[index - 1] = c;
+                                }
                                 break;
                         }
                         break;
@@ -333,7 +335,11 @@ public class Config {
 
     public void open(File file) throws IOException {
         try (Stream<String> lines = Files.lines(file.toPath())) {
-            lines.forEachOrdered(line -> parse(line));
+            try{
+                lines.forEachOrdered(line -> parse(line));
+            } catch (Exception ex){
+                ex.printStackTrace();
+            }
         }
     }
 
