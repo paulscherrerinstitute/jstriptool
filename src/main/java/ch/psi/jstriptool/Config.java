@@ -4,6 +4,10 @@ import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+import java.nio.charset.Charset;
+import java.nio.charset.MalformedInputException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -334,11 +338,20 @@ public class Config {
     }
 
     public void open(File file) throws IOException {
-        try (Stream<String> lines = Files.lines(file.toPath())) {
-            try{
-                lines.forEachOrdered(line -> parse(line));
-            } catch (Exception ex){
-                ex.printStackTrace();
+        //for (Charset cs : Charset.availableCharsets().values()){
+        for (Charset cs :  new Charset[]{StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1}){
+            try (Stream<String> lines = Files.lines(file.toPath(), cs)) {
+                try{
+                    lines.forEachOrdered(line -> parse(line));
+                    return;
+                } catch (Exception ex){
+                    if ((ex instanceof UncheckedIOException) && (ex.getCause() instanceof MalformedInputException)){
+                        System.err.println("Cannot open file using charset: " + cs);
+                    } else {
+                        ex.printStackTrace();
+                        return;
+                    }
+                }
             }
         }
     }
