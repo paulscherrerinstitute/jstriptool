@@ -1,13 +1,19 @@
 package ch.psi.jstriptool;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.Arrays;
+import javafx.scene.layout.Border;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 /**
  *
  */
 public class SeriesSetPanel extends javax.swing.JPanel {
     static SeriesPanel active;
+    JScrollPane scrollPane;
+    JPanel scrollPanel;
     
     public SeriesSetPanel() {
         initComponents();
@@ -16,9 +22,15 @@ public class SeriesSetPanel extends javax.swing.JPanel {
 
     public void addSeries(PlotSeries series){
         if (getComponents().length == 0){
-            setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.PAGE_AXIS));
+            scrollPane = new javax.swing.JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            scrollPanel = new JPanel();
+            scrollPane.setBorder(null);
+            scrollPane.setViewportView(scrollPanel);
+            setLayout(new BorderLayout());
+            add(scrollPane);
+            scrollPanel.setLayout(new javax.swing.BoxLayout(scrollPanel, javax.swing.BoxLayout.PAGE_AXIS));
         }
-        add(new SeriesPanel(series));
+        scrollPanel.add(new SeriesPanel(series));
         updateUI();
     }
     
@@ -63,7 +75,7 @@ public class SeriesSetPanel extends javax.swing.JPanel {
     }
     
     SeriesPanel[] getSeriesPanels() {
-        return Arrays.asList(getComponents()).toArray(new SeriesPanel[0]);
+        return Arrays.asList(scrollPanel.getComponents()).toArray(new SeriesPanel[0]);
     }
 
     SeriesPanel getSeriesPanels(PlotSeries series) {

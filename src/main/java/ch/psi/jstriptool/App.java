@@ -386,6 +386,7 @@ public class App {
                     try {
                         configFrame.open(resolveFile(startupFile));
                     } catch (Exception ex) {
+                        ex.printStackTrace();
                         Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
                         forceConfig = true;
                     }

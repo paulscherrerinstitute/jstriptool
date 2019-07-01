@@ -50,6 +50,10 @@ public class PlotFrame extends javax.swing.JFrame {
 
         blocking = App.isBlocking();
         hideInvalid = App.getHideInvalid();
+        
+        //Not implemented
+        buttonRedraw.setVisible(false);
+        buttonMode.setVisible(false);
     }
 
     PlotPanel getPlot() {
@@ -597,7 +601,7 @@ public class PlotFrame extends javax.swing.JFrame {
             }
         }
     }
-
+      
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -607,8 +611,34 @@ public class PlotFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        plotPanel = new ch.psi.jstriptool.PlotPanel();
+        jToolBar1 = new javax.swing.JToolBar();
+        jToolBar2 = new javax.swing.JToolBar();
+        panelMain = new javax.swing.JPanel();
         panelSeriesSet = new ch.psi.jstriptool.SeriesSetPanel();
+        plotPanel = new ch.psi.jstriptool.PlotPanel();
+        toolBar = new javax.swing.JToolBar();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
+        buttonPanLeft = new javax.swing.JButton();
+        buttonPanRight = new javax.swing.JButton();
+        buttonPanUp = new javax.swing.JButton();
+        buttonPanDown = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
+        buttonZoomInX = new javax.swing.JButton();
+        buttonZoomOutX = new javax.swing.JButton();
+        buttonZoomInY = new javax.swing.JButton();
+        buttonZoomOutY = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        buttonResetGraph = new javax.swing.JButton();
+        buttonRedraw = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        buttonAutoScale = new javax.swing.JToggleButton();
+        buttonMode = new javax.swing.JToggleButton();
+
+        jToolBar1.setRollover(true);
+
+        jToolBar2.setRollover(true);
+
+        panelMain.setPreferredSize(new java.awt.Dimension(828, 100));
 
         javax.swing.GroupLayout panelSeriesSetLayout = new javax.swing.GroupLayout(panelSeriesSet);
         panelSeriesSet.setLayout(panelSeriesSetLayout);
@@ -621,26 +651,302 @@ public class PlotFrame extends javax.swing.JFrame {
             .addGap(0, 0, Short.MAX_VALUE)
         );
 
+        plotPanel.setPreferredSize(new java.awt.Dimension(300, 100));
+
+        javax.swing.GroupLayout panelMainLayout = new javax.swing.GroupLayout(panelMain);
+        panelMain.setLayout(panelMainLayout);
+        panelMainLayout.setHorizontalGroup(
+            panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelMainLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(plotPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 529, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
+                .addComponent(panelSeriesSet, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        panelMainLayout.setVerticalGroup(
+            panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelMainLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(plotPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
+                    .addComponent(panelSeriesSet, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE))
+                .addGap(0, 0, 0))
+        );
+
+        toolBar.setFloatable(false);
+        toolBar.setPreferredSize(new java.awt.Dimension(405, 25));
+        toolBar.add(jSeparator5);
+
+        buttonPanLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/PanLeft.png"))); // NOI18N
+        buttonPanLeft.setText(" ");
+        buttonPanLeft.setToolTipText("Pan Left");
+        buttonPanLeft.setFocusable(false);
+        buttonPanLeft.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonPanLeft.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonPanLeftActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonPanLeft);
+
+        buttonPanRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/PanRight.png"))); // NOI18N
+        buttonPanRight.setText(" ");
+        buttonPanRight.setToolTipText("Pan Right");
+        buttonPanRight.setFocusable(false);
+        buttonPanRight.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonPanRight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonPanRightActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonPanRight);
+
+        buttonPanUp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/PanUp.png"))); // NOI18N
+        buttonPanUp.setText(" ");
+        buttonPanUp.setToolTipText("Pan Up");
+        buttonPanUp.setFocusable(false);
+        buttonPanUp.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonPanUp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonPanUpActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonPanUp);
+
+        buttonPanDown.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/PanDown.png"))); // NOI18N
+        buttonPanDown.setText(" ");
+        buttonPanDown.setToolTipText("Pan Down");
+        buttonPanDown.setFocusable(false);
+        buttonPanDown.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonPanDown.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonPanDownActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonPanDown);
+        toolBar.add(jSeparator1);
+
+        buttonZoomInX.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/ZoomInX.png"))); // NOI18N
+        buttonZoomInX.setText(" ");
+        buttonZoomInX.setToolTipText("Zoom In X");
+        buttonZoomInX.setFocusable(false);
+        buttonZoomInX.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonZoomInX.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonZoomInXActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonZoomInX);
+
+        buttonZoomOutX.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/ZoomOutX.png"))); // NOI18N
+        buttonZoomOutX.setText(" ");
+        buttonZoomOutX.setToolTipText("Zoom Out X");
+        buttonZoomOutX.setFocusable(false);
+        buttonZoomOutX.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonZoomOutX.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonZoomOutXActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonZoomOutX);
+
+        buttonZoomInY.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/ZoomInY.png"))); // NOI18N
+        buttonZoomInY.setText(" ");
+        buttonZoomInY.setToolTipText("Zoom In Y");
+        buttonZoomInY.setFocusable(false);
+        buttonZoomInY.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonZoomInY.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonZoomInYActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonZoomInY);
+
+        buttonZoomOutY.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/ZoomOutY.png"))); // NOI18N
+        buttonZoomOutY.setText(" ");
+        buttonZoomOutY.setToolTipText("Zoom Out Y");
+        buttonZoomOutY.setFocusable(false);
+        buttonZoomOutY.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonZoomOutY.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonZoomOutYActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonZoomOutY);
+        toolBar.add(jSeparator2);
+
+        buttonResetGraph.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/Reset.png"))); // NOI18N
+        buttonResetGraph.setText(" ");
+        buttonResetGraph.setToolTipText("ResetGraph");
+        buttonResetGraph.setFocusable(false);
+        buttonResetGraph.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonResetGraph.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonResetGraphActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonResetGraph);
+
+        buttonRedraw.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/Redraw.png"))); // NOI18N
+        buttonRedraw.setText(" ");
+        buttonRedraw.setToolTipText("ResetGraph");
+        buttonRedraw.setFocusable(false);
+        buttonRedraw.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonRedraw.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRedrawActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonRedraw);
+        toolBar.add(jSeparator3);
+
+        buttonAutoScale.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/AutoScaleOff.png"))); // NOI18N
+        buttonAutoScale.setFocusable(false);
+        buttonAutoScale.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonAutoScale.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonAutoScale.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonAutoScaleActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonAutoScale);
+
+        buttonMode.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/ScrollingMode.png"))); // NOI18N
+        buttonMode.setFocusable(false);
+        buttonMode.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonMode.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        toolBar.add(buttonMode);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(plotPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 539, Short.MAX_VALUE)
-                .addGap(0, 0, 0)
-                .addComponent(panelSeriesSet, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(panelMain, javax.swing.GroupLayout.DEFAULT_SIZE, 830, Short.MAX_VALUE)
+            .addComponent(toolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(plotPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 486, Short.MAX_VALUE)
-            .addComponent(panelSeriesSet, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(panelMain, javax.swing.GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
+                .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void buttonPanLeftActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPanLeftActionPerformed
+        try{
+            plotPanel.panLeft();
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonPanLeftActionPerformed
+
+    private void buttonPanRightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPanRightActionPerformed
+        try{
+            plotPanel.panRight();
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonPanRightActionPerformed
+
+    private void buttonPanUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPanUpActionPerformed
+        try{
+            plotPanel.panUp();
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonPanUpActionPerformed
+
+    private void buttonPanDownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPanDownActionPerformed
+        try{
+           plotPanel.panDown();
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonPanDownActionPerformed
+
+    private void buttonZoomOutXActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonZoomOutXActionPerformed
+        try{
+            plotPanel.zoomOutX();
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonZoomOutXActionPerformed
+
+    private void buttonZoomInXActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonZoomInXActionPerformed
+        try{
+            plotPanel.zoomInX();
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonZoomInXActionPerformed
+
+    private void buttonZoomOutYActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonZoomOutYActionPerformed
+        try{
+            plotPanel.zoomOutY();
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonZoomOutYActionPerformed
+
+    private void buttonZoomInYActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonZoomInYActionPerformed
+        try{
+            plotPanel.zoomInY();
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonZoomInYActionPerformed
+
+    private void buttonResetGraphActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonResetGraphActionPerformed
+        try{
+            plotPanel.resetZoom();
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonResetGraphActionPerformed
+
+    private void buttonRedrawActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRedrawActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_buttonRedrawActionPerformed
+
+    private void buttonAutoScaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAutoScaleActionPerformed
+        try{
+            if (buttonAutoScale.isSelected()){
+                buttonAutoScale.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/AutoScaleOn.png")));
+                plotPanel.setAutoScale(true);
+            } else {
+                buttonAutoScale.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/AutoScaleOff.png")));
+                plotPanel.setAutoScale(false);
+            }
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonAutoScaleActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JToggleButton buttonAutoScale;
+    private javax.swing.JToggleButton buttonMode;
+    private javax.swing.JButton buttonPanDown;
+    private javax.swing.JButton buttonPanLeft;
+    private javax.swing.JButton buttonPanRight;
+    private javax.swing.JButton buttonPanUp;
+    private javax.swing.JButton buttonRedraw;
+    private javax.swing.JButton buttonResetGraph;
+    private javax.swing.JButton buttonZoomInX;
+    private javax.swing.JButton buttonZoomInY;
+    private javax.swing.JButton buttonZoomOutX;
+    private javax.swing.JButton buttonZoomOutY;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JPanel panelMain;
     private ch.psi.jstriptool.SeriesSetPanel panelSeriesSet;
     private ch.psi.jstriptool.PlotPanel plotPanel;
+    private javax.swing.JToolBar toolBar;
     // End of variables declaration//GEN-END:variables
 }

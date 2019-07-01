@@ -34,6 +34,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -46,6 +47,7 @@ import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.time.TimeSeriesDataItem;
+import org.jfree.data.xy.XYDataItem;
 import org.jfree.ui.RectangleInsets;
 
 public class PlotPanel extends javax.swing.JPanel {
@@ -60,6 +62,7 @@ public class PlotPanel extends javax.swing.JPanel {
 
     final JFreeChart chart;
     final ChartPanel chartPanel;
+    boolean autoScale = false;
 
     class SeriesInfo {
 
@@ -204,7 +207,111 @@ public class PlotPanel extends javax.swing.JPanel {
         systemAxisLinePaint = chart.getXYPlot().getDomainAxis().getAxisLinePaint();
 
     }
+    
+    XYPlot getPlot(){
+        return chart.getXYPlot();
+    }
+    
+    void moverOverPlot(XYDataItem translationVector, int index) {
+        double translatedDomainIntervalMin = chart.getXYPlot().getDomainAxis().getRange().getLowerBound() + translationVector.getX().doubleValue();
+        double translatedDomainIntervalMax = chart.getXYPlot().getDomainAxis().getRange().getUpperBound() + translationVector.getX().doubleValue();
+        double translatedRangeIntervalMin = chart.getXYPlot().getRangeAxis(index).getRange().getLowerBound() + translationVector.getY().doubleValue();
+        double translatedRangeIntervalMax = chart.getXYPlot().getRangeAxis(index).getRange().getUpperBound() + translationVector.getY().doubleValue();
 
+        Range domainAxisRange = new Range(translatedDomainIntervalMin, translatedDomainIntervalMax);
+        Range rangeAxisRange = new Range(translatedRangeIntervalMin, translatedRangeIntervalMax);
+        //We set notify to false in the first call..
+        chart.getXYPlot().getDomainAxis().setRange(domainAxisRange, true, false);
+        //...and true in the last
+        chart.getXYPlot().getRangeAxis(index).setRange(rangeAxisRange, true, true);
+
+    }  
+    
+    void moveY(double offset, int index) {
+        XYDataItem translationVector = new XYDataItem(0.0, offset);
+        double translatedRangeIntervalMin = chart.getXYPlot().getRangeAxis(index).getRange().getLowerBound() + translationVector.getY().doubleValue();
+        double translatedRangeIntervalMax = chart.getXYPlot().getRangeAxis(index).getRange().getUpperBound() + translationVector.getY().doubleValue();
+        Range rangeAxisRange = new Range(translatedRangeIntervalMin, translatedRangeIntervalMax);
+        chart.getXYPlot().getRangeAxis(index).setRange(rangeAxisRange, true, true);
+    }    
+    
+    void moveX(double offset) {
+        XYDataItem translationVector = new XYDataItem(offset, 0.0);
+        double translatedDomainIntervalMin = chart.getXYPlot().getDomainAxis().getRange().getLowerBound() + translationVector.getX().doubleValue();
+        double translatedDomainIntervalMax = chart.getXYPlot().getDomainAxis().getRange().getUpperBound() + translationVector.getX().doubleValue();
+        Range domainAxisRange = new Range(translatedDomainIntervalMin, translatedDomainIntervalMax);
+        chart.getXYPlot().getDomainAxis().setRange(domainAxisRange, true, false);
+    }      
+
+    void zoomOutX() {                                               
+        getPlot().zoomDomainAxes(2.0, null, null);
+    }                                              
+
+    void zoomInX() {                                              
+        getPlot().zoomDomainAxes(0.5, null, null);
+    }                                             
+
+    void zoomOutY() {                                               
+        getPlot().zoomRangeAxes(2.0, null, null);
+    }                                              
+
+    void zoomInY() {                                              
+        getPlot().zoomRangeAxes(0.5, null, null);
+    }       
+
+    void panLeft(){                                       
+        try{
+            //getPlot().panDomainAxes(-50.0, null, null);
+            moveX(-((DateAxis) chart.getXYPlot().getDomainAxis()).getTickUnit().getSize());
+
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }                                             
+
+    void panRight(){                                                   
+        try{
+            //getPlot().panDomainAxes(50.0, null, null);
+           moveX(((DateAxis) chart.getXYPlot().getDomainAxis()).getTickUnit().getSize());
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }                                              
+
+    void panUp(){                                                  
+        try{
+            //plotPanel.getPlot().panRangeAxes(50.0, null, null);
+            for (int i = 0; i < chart.getXYPlot().getRangeAxisCount(); i++) {
+                moveY(((NumberAxis) chart.getXYPlot().getRangeAxis(i)).getTickUnit().getSize(),i);
+            }
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }                                           
+
+    void panDown(){                                              
+        try{
+            //plotPanel.getPlot().panRangeAxes(-50.0, null, null);
+            for (int i = 0; i < chart.getXYPlot().getRangeAxisCount(); i++) {
+                moveY(-((NumberAxis) chart.getXYPlot().getRangeAxis(i)).getTickUnit().getSize(),i);
+            }
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }
+    }   
+    
+    
+    void resetZoom(){
+        chartPanel.restoreAutoBounds();
+    }
+    
+    void setAutoScale(boolean value){
+        autoScale = value;
+        for (SeriesInfo s : series) {
+            applyRange(s.index, s.getRange());
+        }
+    }
+    
     public int getNumberOfSeries() {
         return series.size();
     }
@@ -644,7 +751,7 @@ public class PlotPanel extends javax.swing.JPanel {
     }
 
     void applyRange(int index, Range range) {
-        if (range == null) {
+        if ((range == null) || autoScale) {
             setAxisAutoScale(index);
         } else {
             setAxisScale(index, range);
