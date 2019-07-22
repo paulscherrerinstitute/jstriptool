@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.epics.ca.Channel;
 import org.epics.ca.Context;
+import org.epics.ca.data.Graphic;
 
 /**
  *
@@ -94,9 +95,9 @@ public class Config {
             ret.plotStatus = plotStatus;
             return ret;
         }
-        
-        public boolean isEnabled(){
-            return  (name!=null) && ((plotStatus==null) || (plotStatus));
+
+        public boolean isEnabled() {
+            return (name != null) && ((plotStatus == null) || (plotStatus));
         }
     }
 
@@ -252,7 +253,7 @@ public class Config {
                                 grid = c;
                                 break;
                             default:
-                                if (code[2].startsWith("Color")){
+                                if (code[2].startsWith("Color")) {
                                     index = Integer.valueOf(code[2].substring(5));
                                     colors[index - 1] = c;
                                 }
@@ -339,18 +340,50 @@ public class Config {
 
     public void open(File file) throws IOException {
         //for (Charset cs : Charset.availableCharsets().values()){
-        for (Charset cs :  new Charset[]{StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1}){
+        for (Charset cs : new Charset[]{StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1}) {
             try (Stream<String> lines = Files.lines(file.toPath(), cs)) {
-                try{
+                try {
                     lines.forEachOrdered(line -> parse(line));
                     return;
-                } catch (Exception ex){
-                    if ((ex instanceof UncheckedIOException) && (ex.getCause() instanceof MalformedInputException)){
+                } catch (Exception ex) {
+                    if ((ex instanceof UncheckedIOException) && (ex.getCause() instanceof MalformedInputException)) {
                         System.err.println("Cannot open file using charset: " + cs);
                     } else {
                         ex.printStackTrace();
                         return;
                     }
+                }
+            }
+        }
+    }
+
+    public void load(String[] channels) throws Exception {
+        timespan = 20 * 60;
+        try (Context context = new Context(App.getCaProperties())) {
+            for (int i = 0; i < channels.length; i++) {
+                curves[i] = new Curve();
+                String channelName = channels[i];
+                curves[i].name = channelName;
+                try {
+                    Channel<Double> channel = context.createChannel(channelName, Double.class);
+                    channel.connectAsync().get(2, TimeUnit.SECONDS);
+                    Graphic g = channel.get(Graphic.class);
+                    String units = g.getUnits() == null ? "" : g.getUnits();
+                    Integer precision = ((Number) g.getPrecision()).intValue();
+                    Double min = ((Number) g.getLowerDisplay()).doubleValue();
+                    Double max = ((Number) g.getUpperDisplay()).doubleValue();
+                    if (max <= min) {
+                        max = min + 1;
+                    }
+
+                    curves[i].min = min;
+                    curves[i].max = max;
+                    curves[i].comment = "";
+                    curves[i].precision = precision;
+                    curves[i].units = units;
+                    curves[i].plotStatus = true;
+                } catch (Exception ex) {
+                    curves[i].plotStatus = false;
                 }
             }
         }
@@ -394,13 +427,19 @@ public class Config {
 
             List<Integer> curvesIndexes = getCurvesIndexes();
             for (Integer i : curvesIndexes) {
-                if (curves[i].name!=null) write(out, "Strip.Curve." + i + ".Name", curves[i].name);
+                if (curves[i].name != null) {
+                    write(out, "Strip.Curve." + i + ".Name", curves[i].name);
+                }
             }
             for (Integer i : curvesIndexes) {
-                if (curves[i].units!=null) write(out, "Strip.Curve." + i + ".Units", curves[i].units);
+                if (curves[i].units != null) {
+                    write(out, "Strip.Curve." + i + ".Units", curves[i].units);
+                }
             }
             for (Integer i : curvesIndexes) {
-                if (curves[i].comment!=null) write(out, "Strip.Curve." + i + ".Comment", curves[i].comment);
+                if (curves[i].comment != null) {
+                    write(out, "Strip.Curve." + i + ".Comment", curves[i].comment);
+                }
             }
             for (Integer i : curvesIndexes) {
                 write(out, "Strip.Curve." + i + ".Precision", curves[i].precision);
@@ -413,10 +452,14 @@ public class Config {
                 write(out, "Strip.Curve." + i + ".Max", curves[i].max);
             }
             for (Integer i : curvesIndexes) {
-                if (curves[i].scale!=null) write(out, "Strip.Curve." + i + ".Scale", curves[i].scale.ordinal());
+                if (curves[i].scale != null) {
+                    write(out, "Strip.Curve." + i + ".Scale", curves[i].scale.ordinal());
+                }
             }
             for (Integer i : curvesIndexes) {
-                if (curves[i].plotStatus!=null)  write(out, "Strip.Curve." + i + ".PlotStatus ", curves[i].plotStatus ? 1 : 0);
+                if (curves[i].plotStatus != null) {
+                    write(out, "Strip.Curve." + i + ".PlotStatus ", curves[i].plotStatus ? 1 : 0);
+                }
             }
         }
     }
@@ -462,8 +505,8 @@ public class Config {
         }
         return config;
     }
-    
-    public static String getChannelDesc(Context context, String channelName){
+
+    public static String getChannelDesc(Context context, String channelName) {
         String desc = "";
         try {
             Channel<String> channelDesc = context.createChannel(channelName + ".DESC", String.class);
@@ -473,7 +516,7 @@ public class Config {
         }
         return desc;
     }
-                    
+
     public static void main(String[] args) throws IOException {
         Config config = new Config();
         config.open(new File("./test.stp"));

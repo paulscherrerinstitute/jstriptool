@@ -206,6 +206,7 @@ public class App {
     static void printHelpMessage() {
         System.out.println("Usage: jstriptool [-arg[=value]] filename");
         System.out.println("Arguments: ");
+        System.out.println("\t-l\t\tProvide channel list instead of fileneme: \"[CHANNEL 1] [CHANNEL 2] ...\"");
         System.out.println("\t-?\t\tPrint this help message");
         System.out.println("\t-config\t\tShow config dialog even if filename is provided");
         System.out.println("\t-home=<dir>\tSet home folder");
@@ -245,10 +246,26 @@ public class App {
         if (isDebug()) {
             caProperties.setProperty("CA_DEBUG", "1");
         }     
-
-        String lastArg = args.length > 0 ? args[args.length - 1].trim() : null;
-        String startupFile = (lastArg != null) && !lastArg.isEmpty() && !lastArg.startsWith("-") && !lastArg.startsWith("#")
+        
+        //Split ignoting quotes
+        String lastArg = null;
+        if (args.length > 0){
+            String[] tokens =  String.join(" ", args).split(" (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+            lastArg = tokens[tokens.length-1].trim();
+            if ((lastArg.length()>1) && (lastArg.startsWith("\""))&& (lastArg.endsWith("\""))){
+                //On macos the command line splits entries in quotes containing spaces
+                lastArg = lastArg.substring(1, lastArg.length()-1);
+            } else {
+                //On linux not, and the quotes are removed
+                lastArg = args[args.length - 1].trim();
+            }
+        }
+        String startup = (lastArg != null) && !lastArg.isEmpty() && !lastArg.startsWith("-") && !lastArg.startsWith("#")
                 ? lastArg : null;
+        
+        boolean isChannelList =  hasArgument("l");
+        String startupFile = isChannelList ? null : startup;
+        String[] startupChannels = (isChannelList  && (startup!=null)) ? startup.split(" ") : null;
 
         String laf = getArgumentValue("laf");
         if (laf != null) {
@@ -290,7 +307,7 @@ public class App {
 
         if (isDebug()){
             System.out.println("Home folder: " + getHome());
-            System.out.println("Startup file: " + startupFile);
+            System.out.println("Startup: " + startup);
         }
     
         //Builds the search path
@@ -381,18 +398,26 @@ public class App {
                 }
 
                 boolean forceConfig = hasArgument("config");
-                if (startupFile != null) {
+                if (startup != null) {
                     plotFrame.setVisible(true);
                     try {
-                        configFrame.open(resolveFile(startupFile));
+                        if (startupFile != null){
+                            configFrame.open(resolveFile(startupFile));
+                        } else if (startupChannels != null) {
+                            configFrame.load(startupChannels);
+                        }
                     } catch (Exception ex) {
                         ex.printStackTrace();
                         Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-                        forceConfig = true;
+                        if (startupFile != null){
+                            forceConfig = true;
+                        }
                     }
+                } else if (startupChannels != null) {
+                    
                 }
 
-                if ((forceConfig) || (startupFile == null)) {
+                if ((forceConfig) || (startup == null)) {
                     configFrame.setVisible(true);
                     configFrame.setLocationRelativeTo(null);
                 }

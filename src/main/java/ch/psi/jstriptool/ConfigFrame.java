@@ -245,10 +245,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         this.config = config;
         this.setTitle(file.getName());
         updateWindow();
-        App.plotFrame.setVisible(true);
-        App.plotFrame.setTitle(file.getName());
-        App.plotFrame.setVisible(true);
-        App.plotFrame.start();
+        showPlotFrame();
     }
 
     void save(File file) throws IOException {
@@ -256,7 +253,25 @@ public class ConfigFrame extends javax.swing.JFrame {
         config.save(file);
         this.file = file;
         this.setTitle(file.getName());
-        App.plotFrame.setTitle(file.getName());
+        App.plotFrame.setTitle(getTitle());
+    }
+    
+    void load(String[] channels) throws Exception {
+        clear();
+        Config config = App.defaultConfig == null ? new Config() : App.defaultConfig.clone();
+        config.load(channels);
+        this.file = null;
+        this.config = config;
+        this.setTitle("Channels");
+        updateWindow();
+        showPlotFrame();
+    }
+    
+    void showPlotFrame(){
+        App.plotFrame.setVisible(true);
+        App.plotFrame.setTitle(getTitle());
+        App.plotFrame.setVisible(true);
+        App.plotFrame.start();
     }
 
     void updateColors() {
