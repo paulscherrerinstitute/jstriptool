@@ -754,7 +754,12 @@ public class PlotPanel extends javax.swing.JPanel {
         if ((range == null) || autoScale) {
             setAxisAutoScale(index);
         } else {
-            setAxisScale(index, range);
+            try{
+                setAxisScale(index, range);
+            } catch (IllegalArgumentException ex){
+                logger.warning("Invalid range for series " + index + ": setting auto-scale");
+                setAxisAutoScale(index);
+            }
         }
     }
 
