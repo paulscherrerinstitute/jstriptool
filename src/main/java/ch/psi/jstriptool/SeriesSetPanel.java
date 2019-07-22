@@ -45,7 +45,7 @@ public class SeriesSetPanel extends javax.swing.JPanel {
     }
     
     public void setSeriesActive(PlotSeries series){          
-        SeriesPanel panel = getSeriesPanels(series);
+        SeriesPanel panel = SeriesSetPanel.this.getSeriesPanel(series);
         if (panel != null) {
             panel.setActive();
         }    
@@ -60,11 +60,11 @@ public class SeriesSetPanel extends javax.swing.JPanel {
     public void update() {
 
         if (isShowing()) {
-            try {
-                for (Component c : getComponents()) {
+            for (Component c : getSeriesPanels()) {
+                try {
                     ((SeriesPanel) c).update();
-                }
-            } catch (Exception ex) {
+                } catch (Exception ex) {
+                }                    
             }
         }
     }
@@ -78,7 +78,7 @@ public class SeriesSetPanel extends javax.swing.JPanel {
         return Arrays.asList(scrollPanel.getComponents()).toArray(new SeriesPanel[0]);
     }
 
-    SeriesPanel getSeriesPanels(PlotSeries series) {
+    SeriesPanel getSeriesPanel(PlotSeries series) {
         for (SeriesPanel panel : getSeriesPanels()) {
             if (panel.getSeries() == series) {
                 return panel;

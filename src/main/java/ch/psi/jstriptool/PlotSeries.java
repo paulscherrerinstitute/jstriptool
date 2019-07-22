@@ -176,6 +176,10 @@ public final class PlotSeries {
     public TimestampedValue getLastValue() {
         return getPlot().getLastItem(getIndex());
     }
+    
+    public int getItemCount() {
+        return getPlot().getItemCount(getIndex());
+    }    
 
     public void setActive() {
         if (getIndex() >= 0) {
@@ -192,6 +196,17 @@ public final class PlotSeries {
         }
         return false;
     }
+    
+    
+    private boolean connected;
+    public void setConnected() {
+       connected = true;
+    }
+    
+    public boolean isConnected() {
+        return connected;
+    }
+    
 
     PlotPanel getPlot() {
         //TODO

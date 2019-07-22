@@ -87,11 +87,15 @@ public class SeriesPanel extends javax.swing.JPanel {
     public void update() {
         try {
             String displayValue;
-            TimestampedValue tval = series.getLastValue();
-            if ((tval == null) || (tval.getValue() == null)) {
-                displayValue = "";
+            if (!series.isConnected()){
+                displayValue = "Not connected";
             } else {
-                displayValue = getDisplayValue(tval.getValue().doubleValue());
+                TimestampedValue tval = series.getLastValue();
+                if ((tval == null) || (tval.getValue() == null)) {
+                    displayValue = "";
+                } else {
+                    displayValue = getDisplayValue(tval.getValue().doubleValue());
+                }
             }
             if (!displayValue.equals(currentDisplayValue)) {
                 String text = String.format("<html><div style='text-align: center;'>%s<br>%s<br>%s</div></html>", displayValue, range, desc );

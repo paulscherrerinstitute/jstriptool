@@ -77,6 +77,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 //channel.connect();
                 channel.connectAsync().handle((ret, ex) -> {
                     System.out.println("Connected to channel: " + c.name);
+                    series.setConnected();
                     if (!blocking) {
                         if (c.isEnabled()) {
                             updateAsync(channel);
