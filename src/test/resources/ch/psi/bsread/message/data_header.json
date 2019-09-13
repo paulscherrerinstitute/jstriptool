@@ -1,0 +1,30 @@
+{
+  "channels": [
+    {
+      "type": "float64",
+      "name": "CHANNEL-0"
+    },
+    {
+      "type": "float64",
+      "name": "CHANNEL-1"
+    },
+    {
+      "type": "float64",
+      "name": "CHANNEL-2"
+    },
+    {
+      "type": "float64",
+      "name": "CHANNEL-3"
+    },
+    {
+      "type": "string",
+      "name": "CHANNEL-STRING"
+    },
+    {
+      "shape": [2],
+      "type": "int32",
+      "name": "CHANNEL-ARRAY_1"
+    }
+  ],
+  "htype": "bsr_d-1.0"
+}

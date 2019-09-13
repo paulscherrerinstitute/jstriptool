@@ -1,0 +1,12 @@
+{"channels":[
+{
+"name":"BSREAD-TEST:TEST_1",
+"offset":0,
+"modulo":1
+}, 
+{
+"name":"BSREAD-TEST:TEST_2",
+"offset":2,
+"modulo":10
+}
+]}

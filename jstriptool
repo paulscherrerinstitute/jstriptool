@@ -1,3 +1,0 @@
-#!/bin/bash
-
-java -jar /opt/jstriptool/lib/jstriptool-fat.jar "$@"
