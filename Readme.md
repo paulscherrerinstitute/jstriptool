@@ -26,12 +26,12 @@ artifactoryUrlRel=xxx
 artifactoryUrlLibSnap=xxx
 ```
 
-The JAR file jstriptool-&#x3C;version&#x3E;-fat.jar can be built executing:
+The JAR file jstriptool-<version>-fat.jar can be built executing:
  ```
  ./gradlew build
  ```  
 
-After executing the build command, the file jstriptool-&#x3C;version&#x3E;-fat.jar is located in the folder  ./build/libs. 
+After executing the build command, the file jstriptool-<version>-fat.jar is located in the folder  ./build/libs. 
 
 
 ## RPM
@@ -60,11 +60,11 @@ docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/data paulscherrerinstitute/ce
 
 Launch the application typing:
  ```
- java -jar jstriptool-&#x3C;version&#x3E;-fat.jar &#x3C;startup options...&#x3E; &#x3C;file name&#x3E;
+ java -jar jstriptool-<version>-fat.jar <startup options...> <file name>
  ```  
 
- * If &#x3C;file name&#x3E; is provided, the plot window is opened.
- * If &#x3C;file name&#x3E; is not provided, the configuration window is opened.
+ * If <file name> is provided, the plot window is opened.
+ * If <file name> is not provided, the configuration window is opened.
 
 
 
@@ -73,20 +73,20 @@ Launch the application typing:
 The most relevant options are:
 
  * `-config : Show configuration dialog too when filename is provided`
- * `-home=&#x3C;dir&#x3E; : Set home folder`
- * `-default=&#x3C;dir&#x3E; : Set default configuration file`
- * `-laf=&#x3C;name&#x3E; :  Set the look and feel: nimbus, metal, dark, system, or LAF class name`
+ * `-home=<dir> : Set home folder`
+ * `-default=<dir> : Set default configuration file`
+ * `-laf=<name> :  Set the look and feel: nimbus, metal, dark, system, or LAF class name`
  * `-aa=false : Disable anti-aliasing`
 
 One can override epics configuration providing parameters in command line:
 
- * `-EPICS_CA_ADDR_LIST=&#x3C;value&#x3E;`
- * `-EPICS_CA_AUTO_ADDR_LIST=&#x3C;value&#x3E;`
- * `-EPICS_CA_CONN_TMO=&#x3C;value&#x3E;`
- * `-EPICS_CA_BEACON_PERIOD=&#x3C;value&#x3E;`
- * `-EPICS_CA_REPEATER_PORT=&#x3C;value&#x3E;`
- * `-EPICS_CA_SERVER_PORT=&#x3C;value&#x3E;`
- * `-EPICS_CA_MAX_ARRAY_BYTES=&#x3C;value&#x3E;`
+ * `-EPICS_CA_ADDR_LIST=<value>`
+ * `-EPICS_CA_AUTO_ADDR_LIST=<value>`
+ * `-EPICS_CA_CONN_TMO=<value>`
+ * `-EPICS_CA_BEACON_PERIOD=<value>`
+ * `-EPICS_CA_REPEATER_PORT=<value>`
+ * `-EPICS_CA_SERVER_PORT=<value>`
+ * `-EPICS_CA_MAX_ARRAY_BYTES=<value>`
 
 
 
