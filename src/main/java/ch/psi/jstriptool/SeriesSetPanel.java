@@ -3,7 +3,6 @@ package ch.psi.jstriptool;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.Arrays;
-import javafx.scene.layout.Border;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -35,7 +34,7 @@ public class SeriesSetPanel extends javax.swing.JPanel {
     }
     
     public void removeSeries(int index){
-        remove(index);
+        scrollPanel.remove(index);
         updateUI();
     }    
     
