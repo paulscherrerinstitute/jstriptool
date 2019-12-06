@@ -193,7 +193,12 @@ public class PlotFrame extends javax.swing.JFrame {
             }
             startSampleTimer(true);
             startRedrawTimer(true);
-            setActive(plotPanel.getPlotSeries(0));
+            plotPanel.repaint();
+             SwingUtilities.invokeLater(() -> {
+                 
+                    setActive(plotPanel.getPlotSeries(0));
+             });
+           
         }
         updateAxisColor();
         if (SwingUtilities.isEventDispatchThread()){

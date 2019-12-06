@@ -54,6 +54,7 @@ public class PlotPanel extends javax.swing.JPanel {
 
     static final Logger logger = Logger.getLogger(PlotPanel.class.getName());
     static final double AUTO_RANGE_MINIMUM_SIZE = 1e-12; //TODO: if smaller there are plot repainting problem in scans in JFreeChart > 1.0.18
+    static final double AUTO_RANGE_LOG_MINIMUM_SIZE = 1e-32;
     static final int PREFERRED_WIDTH = 600;
     static final int PREFERRED_HEIGHT = 400;
     protected static final String LINE_SEPARATOR = System.lineSeparator();
@@ -678,8 +679,7 @@ public class PlotPanel extends javax.swing.JPanel {
         plot.setRenderer(index, renderer);
         plot.setDataset(index, data);
         plot.mapDatasetToRangeAxis(index, index);
-        setAxisSize(axisSize);
-        setAxisMargin(index, AXIS_MARGIN);
+        setAxisSize(axisSize);      
         SeriesInfo seriesInfo = new SeriesInfo(index, plotSeries, timeSeries, data);
         applyRange(index, seriesInfo.getRange());
         series.add(seriesInfo);
@@ -731,13 +731,18 @@ public class PlotPanel extends javax.swing.JPanel {
         NumberAxis axis;
         if (logarithmic) {
             axis = new LogarithmicAxis(null);
-            ((LogarithmicAxis) axis).setAllowNegativesFlag(true);
+            ((LogarithmicAxis)axis).setAllowNegativesFlag(false);
+            ((LogarithmicAxis)axis).setStrictValuesFlag(false);
+            ((LogarithmicAxis)axis).setLog10TickLabelsFlag(true); //TODO: only used to axis Y
+            ((LogarithmicAxis)axis).setAutoRangeMinimumSize(AUTO_RANGE_LOG_MINIMUM_SIZE);
+            setAxisMargin(axis, 0);
         } else {
             axis = new NumberAxis();
+            axis.setAutoRangeMinimumSize(AUTO_RANGE_MINIMUM_SIZE);
+            setAxisMargin(axis, AXIS_MARGIN);
         }
         axis.setAutoRangeIncludesZero(false);
 
-        axis.setAutoRangeMinimumSize(AUTO_RANGE_MINIMUM_SIZE);
         axis.setLabelFont(labelFont);
         axis.setLabel(label);
         axis.setLabelInsets(RectangleInsets.ZERO_INSETS);
@@ -902,6 +907,16 @@ public class PlotPanel extends javax.swing.JPanel {
             }
         }
     }
+    
+    void updateLog(int index){
+        ValueAxis cur = chart.getXYPlot().getRangeAxis(index);
+        if (cur != null) {
+            boolean visible = cur.isVisible();
+            createAxis(index, cur.getLabel(), isLogarithmic(index), visible);
+            applyRange(index, cur.isAutoRange() ? null : cur.getRange());
+        }
+        
+    }
 
     XYItemRenderer selectedRenderer;
     int selectedIndex = -1;
@@ -936,6 +951,7 @@ public class PlotPanel extends javax.swing.JPanel {
                 selectedRenderer.setSeriesPaint(0, selected.plotSeries.getColor());
             }
         }
+        updateLog(index);
         selectedIndex = index;
     }
 
@@ -994,10 +1010,13 @@ public class PlotPanel extends javax.swing.JPanel {
     
     public void setAxisMargin(int index, double margin) {
         ValueAxis axis = chart.getXYPlot().getRangeAxis(index);
+        setAxisMargin(axis, margin);
+    }  
+    
+    void setAxisMargin(ValueAxis axis, double margin) {
         axis.setLowerMargin(margin);
         axis.setUpperMargin(margin);
     }    
-
     
     public void setTimeAxisLabel(String label) {
         final XYPlot plot = chart.getXYPlot();

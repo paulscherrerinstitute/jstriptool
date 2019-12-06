@@ -24,6 +24,16 @@ import javax.swing.border.Border;
 
 public class SwingUtils {
 
+    public static void invokeDelayed(final Runnable runnable, final int delayMillis) {
+        new Thread(() -> {
+            try {
+                Thread.sleep(delayMillis);
+                SwingUtilities.invokeLater(runnable);
+            } catch (Exception ex) {
+            }
+        }).start();
+    }
+    
     public static String getStackTrace(final Throwable throwable) {
         final StringWriter sw = new StringWriter();
         final PrintWriter pw = new PrintWriter(sw, true);
