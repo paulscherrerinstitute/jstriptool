@@ -64,6 +64,7 @@ public class PlotPanel extends javax.swing.JPanel {
     final JFreeChart chart;
     final ChartPanel chartPanel;
     boolean autoScale = false;
+    boolean scrollMode = true;
 
     class SeriesInfo {
 
@@ -185,6 +186,7 @@ public class PlotPanel extends javax.swing.JPanel {
                         axis.setAutoRange(true);
                     }
                 }
+                chart.getXYPlot().getDomainAxis().setAutoRange(scrollMode);
             }
         };
 
@@ -301,6 +303,16 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }   
     
+    void setScrollMode(boolean value){
+        scrollMode = value;
+        if (!value){
+            if (chart.getXYPlot().getDomainAxis().isAutoRange()){
+                chart.getXYPlot().getDomainAxis().setAutoRange(value);
+                
+            }
+        }
+        
+    }
     
     void resetZoom(){
         chartPanel.restoreAutoBounds();
@@ -1149,9 +1161,17 @@ public class PlotPanel extends javax.swing.JPanel {
     public void add(long time, double[] values) {
         if (isStarted()) {
             if ((values != null) && (getNumberOfSeries() == values.length)) {
+                if (scrollMode){
+                    if (!chart.getXYPlot().getDomainAxis().isAutoRange()){
+                        TimestampedValue<Double> last = getItem(0, -1);
+                        if (last!=null){
+                            moveX(time-last.getTimestamp());
+                        }
+                    }
+                }
                 for (int i = 0; i < values.length; i++) {
                     addDataPoint(i, time, values[i]);
-                }
+                }               
             }
         }
     }

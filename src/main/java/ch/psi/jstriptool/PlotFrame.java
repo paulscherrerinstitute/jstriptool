@@ -53,7 +53,7 @@ public class PlotFrame extends javax.swing.JFrame {
         
         //Not implemented
         buttonRedraw.setVisible(false);
-        buttonMode.setVisible(false);
+        //buttonMode.setVisible(false);
     }
 
     PlotPanel getPlot() {
@@ -675,7 +675,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 .addGap(0, 0, 0)
                 .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(plotPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
-                    .addComponent(panelSeriesSet, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE))
+                    .addComponent(panelSeriesSet, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(0, 0, 0))
         );
 
@@ -807,6 +807,7 @@ public class PlotFrame extends javax.swing.JFrame {
         toolBar.add(jSeparator3);
 
         buttonAutoScale.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/AutoScaleOff.png"))); // NOI18N
+        buttonAutoScale.setToolTipText("AutoScale");
         buttonAutoScale.setFocusable(false);
         buttonAutoScale.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         buttonAutoScale.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -818,9 +819,15 @@ public class PlotFrame extends javax.swing.JFrame {
         toolBar.add(buttonAutoScale);
 
         buttonMode.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/ScrollingMode.png"))); // NOI18N
+        buttonMode.setToolTipText("ScrollingMode");
         buttonMode.setFocusable(false);
         buttonMode.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         buttonMode.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonMode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonModeActionPerformed(evt);
+            }
+        });
         toolBar.add(buttonMode);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -930,6 +937,19 @@ public class PlotFrame extends javax.swing.JFrame {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonAutoScaleActionPerformed
+
+    private void buttonModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonModeActionPerformed
+        try{
+            plotPanel.setScrollMode(!buttonMode.isSelected());
+            if (buttonMode.isSelected()){
+                buttonMode.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/PanningMode.png")));
+            } else {
+                buttonMode.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/ScrollingMode.png")));
+            }
+        } catch (Exception ex){
+            SwingUtils.showException(this, ex);
+        }        
+    }//GEN-LAST:event_buttonModeActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JToggleButton buttonAutoScale;
