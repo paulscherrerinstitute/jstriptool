@@ -1,5 +1,12 @@
+
+plugins {
+  id "nebula.ospackage" version "8.1.0"
+} 
+
+
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'nebula.ospackage'
 
 version = '1.1.2' 
 group = 'ch.psi'
@@ -95,3 +102,8 @@ uploadArchives {
         }
     }
 }
+
+buildRpm {
+    //arch = I386
+}
+
