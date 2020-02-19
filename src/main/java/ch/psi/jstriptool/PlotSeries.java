@@ -18,6 +18,8 @@ public final class PlotSeries {
     String format = "";
     String truncatedFormat = "%s";
     String expFormat = "";
+    int lineWidth = 1;
+    int numSamples=7200;
 
     int precision;
     boolean logarithmic;
@@ -47,14 +49,16 @@ public final class PlotSeries {
         this.desc = desc;
     }
 
-    public PlotSeries(String name, Color color, int precision, double min, double max, String units, String desc, boolean logarithmic) {
+    public PlotSeries(String name, Color color, int precision, double min, double max, String units, String desc, boolean logarithmic, int lineWidth, int numSamples) {
         this(name, color, precision, min, max, units, desc);
         this.logarithmic = logarithmic;
+        this.lineWidth = lineWidth;
+        this.numSamples = numSamples;
     }
 
-    public static PlotSeries create(Curve c, Color color) {
+    public static PlotSeries create(Curve c, Color color, int lineWidth, int numSamples) {
         return new PlotSeries(c.name, color,
-                c.precision, c.min, c.max, c.units, c.comment, c.scale == Config.Scale.logarithmic);
+                c.precision, c.min, c.max, c.units, c.comment, c.scale == Config.Scale.logarithmic, lineWidth, numSamples);
     }
 
     public String getName() {

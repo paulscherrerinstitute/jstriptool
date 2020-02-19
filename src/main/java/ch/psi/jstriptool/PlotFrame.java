@@ -62,12 +62,9 @@ public class PlotFrame extends javax.swing.JFrame {
 
     void addSeries(Curve c, Color color, int index) {
         numberOfSeries++;
-        PlotSeries series = PlotSeries.create(c, color);
+        PlotSeries series = PlotSeries.create(c, color, config.graphLineWidth, config.numSamples);
         series.setActive();
         plotPanel.addSeries(series);
-        plotPanel.setLineWidth(plotPanel.getNumberOfSeries() - 1, config.graphLineWidth);
-        plotPanel.setNotify(plotPanel.getNumberOfSeries() - 1, false);
-        plotPanel.setMaximumItemCount(plotPanel.getNumberOfSeries() - 1, config.numSamples);
         panelSeriesSet.addSeries(series);
         repaint();
 

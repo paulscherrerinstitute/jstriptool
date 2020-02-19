@@ -702,6 +702,10 @@ public class PlotPanel extends javax.swing.JPanel {
         if (seriesInfo.plotSeries.getColor() != null) {
             seriesInfo.getRenderer().setSeriesPaint(0, seriesInfo.plotSeries.getColor());
         }
+        setLineWidth(getNumberOfSeries() - 1, plotSeries.lineWidth);
+        setNotify(getNumberOfSeries() - 1, false);        
+        setMaximumItemCount(getNumberOfSeries() - 1, plotSeries.numSamples);
+        
         return seriesInfo;
     }
 
@@ -988,6 +992,8 @@ public class PlotPanel extends javax.swing.JPanel {
     }
 
     void checkSeriesDuration() {
+        // Time-to-live based only in number of samples, not in time.
+        /*
         int duration = getDurationMillis();
         if (isStarted() && (duration > 0)) {
             for (SeriesInfo s : series) {
@@ -999,6 +1005,7 @@ public class PlotPanel extends javax.swing.JPanel {
                 s.timeSeries.setMaximumItemAge(Long.MAX_VALUE);
             }
         }
+        */
     }
 
     public void setAxisAutoScale(int index) {
