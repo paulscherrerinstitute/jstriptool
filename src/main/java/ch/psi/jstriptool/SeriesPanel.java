@@ -3,8 +3,6 @@ package ch.psi.jstriptool;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.BorderFactory;
-import javax.swing.border.LineBorder;
-import javax.swing.border.TitledBorder;
 import static javax.swing.border.TitledBorder.DEFAULT_POSITION;
 import static javax.swing.border.TitledBorder.LEADING;
 
@@ -25,7 +23,6 @@ public class SeriesPanel extends javax.swing.JPanel {
         panelBackground = getBackground();
         initialize();
         Font f = textInfo.getFont().deriveFont(11.0f);
-
         textInfo.setFont(f);
     }
     String range;
@@ -98,12 +95,32 @@ public class SeriesPanel extends javax.swing.JPanel {
                 }
             }
             if (!displayValue.equals(currentDisplayValue)) {
-                String text = String.format("<html><div style='text-align: center;'>%s<br>%s<br>%s</div></html>", displayValue, range, desc );
+                String text = "";
+                switch(visibleRows){
+                    case 1:
+                        text= String.format("<html><div style='text-align: center;'>%s</div></html>", displayValue );
+                        break;
+                    case 2:
+                        text= String.format("<html><div style='text-align: center;'>%s<br>%s</div></html>", displayValue, range );
+                        break;
+                    case 3:
+                        text= String.format("<html><div style='text-align: center;'>%s<br>%s<br>%s</div></html>", displayValue, range, desc );
+                        break;
+                }                
                 textInfo.setText(text);
                 currentDisplayValue = displayValue;
             }
         } catch (Exception ex) {
 
+        }
+    }
+    
+    int visibleRows = 3;
+    void setVisibleRows(int rows){
+        if (visibleRows != rows){
+            visibleRows = rows;
+            currentDisplayValue = null;
+            update();
         }
     }
 
@@ -155,7 +172,7 @@ public class SeriesPanel extends javax.swing.JPanel {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(textInfo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 10, Short.MAX_VALUE)
+            .addComponent(textInfo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
