@@ -245,13 +245,19 @@ public class PlotPanel extends javax.swing.JPanel {
         Range domainAxisRange = new Range(translatedDomainIntervalMin, translatedDomainIntervalMax);
         chart.getXYPlot().getDomainAxis().setRange(domainAxisRange, true, false);
     }      
-
+    
     void zoomOutX() {                                               
+        if (scrollMode){
+            moveX(-chart.getXYPlot().getDomainAxis().getRange().getLength()/2);
+        }        
         getPlot().zoomDomainAxes(2.0, null, null);
     }                                              
 
     void zoomInX() {                                              
         getPlot().zoomDomainAxes(0.5, null, null);
+        if (scrollMode){
+            moveX(chart.getXYPlot().getDomainAxis().getRange().getLength()/2);
+        }
     }                                             
 
     void zoomOutY() {                                               
