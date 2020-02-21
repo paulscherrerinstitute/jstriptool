@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -73,7 +75,7 @@ public class PlotFrame extends javax.swing.JFrame {
             if (channel!=null){
                 //channel.connect();
                 channel.connectAsync().handle((ret, ex) -> {
-                    System.out.println("Connected to channel: " + c.name);
+                    Logger.getLogger(App.class.getName()).fine("Connected to channel: " + c.name);
                     series.setConnected();
                     if (!blocking) {
                         if (c.isEnabled()) {
@@ -117,7 +119,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 channels.remove(index);
             }
             if (channel != null) {
-                System.out.println("Disconnected channel: " + channel.getName());
+                Logger.getLogger(App.class.getName()).fine("Disconnected channel: " + channel.getName());
                 channel.close();
             }
         }
@@ -169,7 +171,7 @@ public class PlotFrame extends javax.swing.JFrame {
     void start() {
         stop();
         if (!App.isSimulated()) {
-            System.out.println("Creating EPICS context");
+            Logger.getLogger(App.class.getName()).fine("Creating EPICS context");
             context = new Context(App.getCaProperties());
         }
         config = App.configFrame.config;
@@ -370,7 +372,7 @@ public class PlotFrame extends javax.swing.JFrame {
         }
         if (context != null) {
             context.close();
-            System.out.println("Closed EPICS context");
+            Logger.getLogger(App.class.getName()).fine("Closed EPICS context");
         }
         synchronized (channels) {
             channels.clear();

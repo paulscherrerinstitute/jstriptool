@@ -1,33 +1,39 @@
 package ch.psi.jstriptool;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Insets;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+import java.awt.font.LineMetrics;
+import java.util.ArrayList;
 import java.util.Arrays;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.border.Border;
 
 /**
  *
  */
 public class SeriesSetPanel extends javax.swing.JPanel {
+    final boolean ADAPT_SERIES_PANEL_LINES = true;
+    
     static SeriesPanel active;
     JScrollPane scrollPane;
     JPanel scrollPanel;
+    int visiblePanels;
+    int lineHeight;
+    int borderHeight;
     
     public SeriesSetPanel() {
         initComponents();
-        this.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                verifySeriesPanelsVisibleRows();
-            }
-        });        
+        if (ADAPT_SERIES_PANEL_LINES){
+            this.addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    verifySeriesPanelsVisibleRows();
+                }
+            });        
+        }
     }
     
    
@@ -43,12 +49,30 @@ public class SeriesSetPanel extends javax.swing.JPanel {
         }
         scrollPanel.add(new SeriesPanel(series));
         updateUI();
-        verifySeriesPanelsVisibleRows();
+        
+        if (borderHeight==0){
+            SeriesPanel sp = (SeriesPanel) scrollPanel.getComponents()[0];
+            borderHeight = sp.getInsets().bottom + sp.getInsets().top;            
+            Font f = sp.getFont();
+            FontMetrics fm = sp .getGraphics().getFontMetrics(f);
+            LineMetrics km =f.getLineMetrics("<html><div style='text-align: center;'>1.0</div></html>", fm.getFontRenderContext());
+            float height = km.getHeight();                
+            lineHeight = Math.round(height) +1;                                
+        }
+        
+        visiblePanels = getVisiblePanels().length;
+        if (ADAPT_SERIES_PANEL_LINES){
+            verifySeriesPanelsVisibleRows();
+        }
     }
     
     public void removeSeries(int index){
         scrollPanel.remove(index);
         updateUI();
+        visiblePanels = getVisiblePanels().length;
+        if (ADAPT_SERIES_PANEL_LINES){
+            verifySeriesPanelsVisibleRows();
+        }        
     }    
     
     
@@ -68,13 +92,11 @@ public class SeriesSetPanel extends javax.swing.JPanel {
         return (active != null) ? active.getSeries() : null;
     }        
         
-    void verifySeriesPanelsVisibleRows(){        
-        int panels = scrollPanel.getComponentCount();
-        if (panels>0){
-            int lineHeight = 20;
-            int borderHeight = 18;            
-            int seriesAvailableHeight = getHeight()/panels - borderHeight;   
-            setSeriesPanelsVisibleRows(seriesAvailableHeight/lineHeight);
+    void verifySeriesPanelsVisibleRows(){    
+        if (visiblePanels>0){
+            int seriesAvailableHeight = getHeight()/visiblePanels - borderHeight;   
+            int rows = seriesAvailableHeight/lineHeight;
+            setSeriesPanelsVisibleRows(rows);                                
         }
     }
     
@@ -112,6 +134,16 @@ public class SeriesSetPanel extends javax.swing.JPanel {
         return Arrays.asList(scrollPanel.getComponents()).toArray(new SeriesPanel[0]);
     }
 
+    SeriesPanel[] getVisiblePanels() {
+        ArrayList<SeriesPanel> ret = new ArrayList<>();
+        for (SeriesPanel pn : getSeriesPanels()){
+            if (pn.isVisible()){
+                ret.add(pn);
+            }
+        }
+        return ret.toArray(new SeriesPanel[0]);
+    }
+    
     SeriesPanel getSeriesPanel(PlotSeries series) {
         for (SeriesPanel panel : getSeriesPanels()) {
             if (panel.getSeries() == series) {

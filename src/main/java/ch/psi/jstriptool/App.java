@@ -16,6 +16,8 @@ import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -212,6 +214,7 @@ public class App {
         System.out.println("\t-home=<dir>\tSet home folder");
         System.out.println("\t-default=<dir>\tSet default configuration file");
         System.out.println("\t-laf=<name>\tSupported values: nimbus, metal, dark or system");
+        System.out.println("\t-clog=<level>\tSet the console logging level");
         System.out.println("\t-aa\tEnable anti-aliasing");
         System.out.println("\t-xrm='<name>:<val>'\tSet graphical resources");
         System.out.println("\t-debug\tShow debug information");
@@ -234,6 +237,18 @@ public class App {
             printHelpMessage();
             System.exit(0);
         };
+        
+        //Console log level is warning, unless otherwise specified
+        Level consoleLogLevel = Level.WARNING;        
+        try{
+            consoleLogLevel = Level.parse(getArgumentValue("clog"));
+        } catch (Exception ex){            
+        }
+        for (Handler handler : Logger.getLogger("").getHandlers()) {
+            if (handler instanceof ConsoleHandler) {
+                handler.setLevel(consoleLogLevel);
+            }
+        }     
 
         caProperties = new Properties();
         for (Context.Configuration cfg : Context.Configuration.values()) {

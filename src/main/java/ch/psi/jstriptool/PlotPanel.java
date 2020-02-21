@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +27,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -38,6 +38,8 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.entity.StandardEntityCollection;
+import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -317,7 +319,7 @@ public class PlotPanel extends javax.swing.JPanel {
                 
             }
         }
-        
+        updateTooltips();
     }
     
     void resetZoom(){
@@ -1207,14 +1209,32 @@ public class PlotPanel extends javax.swing.JPanel {
     //Configuration
     public void setMarkersVisible(boolean visible) {
         markersVisible = visible;
-        XYPlot plot = chart.getXYPlot();
         for (int i = 0; i < getNumberOfSeries(); i++) {
             getRenderer(i).setBaseShapesVisible(visible);
         }
+        updateTooltips();
         if (isShowing()) {
             repaint();
         }
     }
+    
+    void updateTooltips(){
+        boolean tooltips = markersVisible && !scrollMode;
+        for (int i = 0; i < getNumberOfSeries(); i++) {
+            if (tooltips){
+                DecimalFormat vf = new DecimalFormat("0.##########");
+                SimpleDateFormat tf = new SimpleDateFormat("HH:mm:ss.S");
+                getRenderer(i).setBaseToolTipGenerator(new StandardXYToolTipGenerator("{0} {1} {2}", tf, vf));
+                chartPanel.setDisplayToolTips(true);
+                chartPanel.getChartRenderingInfo().setEntityCollection(new StandardEntityCollection());
+            } else {
+                chartPanel.getChartRenderingInfo().setEntityCollection(null);
+                chartPanel.setDisplayToolTips(false);
+                getRenderer(i).setBaseToolTipGenerator(null);
+            }
+        }
+        
+    }  
 
     public boolean isMarkersVisible() {
         return markersVisible;
