@@ -81,37 +81,54 @@ dependencies {
 }
 
 
+def app_name = project.name
+def app_path = '/usr/share/' + project.name
+
 task generateRpm(type: Rpm) {
     //Commented as is being executed in clean+build
     //dependsOn 'clean' 
     //dependsOn 'fatJar' 
 
-    packageName 'jstriptool'
+    packageName project.name
     requires 'java'
-
-    //version '1.0.0'
-    //release 1
-    //arch I386
-
+    release = 1
+    //version '1.0.0'    
     arch 'noarch'
     os LINUX
   
     user='root'
     permissionGroup 'root'
     //addParentDirs false
-        
+
+    directory(app_path, 755)
+    directory(app_path + '/lib', 755)
+    directory(app_path + '/bin', 755)
+    
+    into app_path  
+
     from ('build/libs') {
         into 'lib'
-        include fatJar.archiveName
+        //include fatJar.archiveName
         fileMode 0644
     }
 
     from('scripts') {
         into 'bin'
+        //Add version to startup script name
+        rename { String fileName ->
+            if (fileName == "startup"){
+                app_name + "_" + version
+            }
+        }
+        expand([
+            "app_name": app_name,
+            "app_version": version,
+        ])
         fileMode 0755
     }
 
-    link('/usr/lib/jstriptool', ('/usr/lib/' + fatJar.archiveName))    
+    link('/usr/lib/' + app_name + "_" + version + '.jar', app_path + '/lib/' + fatJar.archiveName)   
+    link('/usr/bin/' + app_name, app_path + '/bin/' + app_name + "_" + version)   
 }
 
 
