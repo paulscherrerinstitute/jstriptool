@@ -79,7 +79,10 @@ dependencies {
 
 
 def app_name = project.name
-def app_path = '/opt/psi/' + project.name + "/" + version
+def app_path = '/opt/' + project.name + "/" + version
+def jar_file = app_path + '/lib/' + fatJar.archiveName
+def sys_bin ='/usr/local/bin/'
+def sys_lib ='/usr/local/lib/'
 
 task generateRpm(type: Rpm) {
     //Commented as is being executed in clean+build
@@ -95,7 +98,7 @@ task generateRpm(type: Rpm) {
   
     user='root'
     permissionGroup 'root'
-    //addParentDirs false
+    addParentDirs false
 
     directory(app_path, 755)
     directory(app_path + '/lib', 755)
@@ -120,12 +123,13 @@ task generateRpm(type: Rpm) {
         expand([
             "app_name": app_name,
             "app_version": version,
+            "jar_file": jar_file
         ])
         fileMode 0755
     }
 
-    link('/usr/lib/' + app_name + "_" + version + '.jar', app_path + '/lib/' + fatJar.archiveName)   
-    link('/usr/bin/' + app_name, app_path + '/bin/' + app_name + "_" + version)   
+    link(sys_bin + app_name + "_" + version, app_path + '/bin/' + app_name + "_" + version)   
+    link(sys_bin + app_name, sys_bin + app_name + "_" + version)   
 }
 
 publishing {
