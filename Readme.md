@@ -6,7 +6,7 @@ __jstriptool__ is a reimplementation of StripTool in Java.
 
 # Requirements
 
- * Java 8. 
+ * Java 11. 
 
 
 

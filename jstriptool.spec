@@ -10,7 +10,7 @@ Vendor:         PSI GFA Controls
 Packager:       dockre@psi.ch
 URL:            https://github.com/paulscherrerinstitute/jstriptool
 
-Requires:       java >= 1.8
+Requires: java-11-openjdk
 
 %define inst_folder                          /opt/%{name}
 # %define git_folder                           %{_sourcedir}/%{name}-%{version}
