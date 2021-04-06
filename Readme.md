@@ -39,12 +39,12 @@ To build the RPM Java is required to be installed on your build machine (as the 
 
 To build the RPM, generate the fat jar first:
  ```
- ./gradlew clean build
+ ./gradlew clean fatJar
  ```
 
 Afterwards run the docker rpm build container as follows (for RHEL7):
 ```
-docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/data paulscherrerinstitute/centos_build_rpm:7 package jstriptool.spec
+docker run -it --rm -v `pwd`:/data paulscherrerinstitute/centos_build_rpm:7 package jstriptool.spec
 ```
 
 The resulting rpm will be placed in the `rpm` folder.
@@ -52,7 +52,7 @@ The resulting rpm will be placed in the `rpm` folder.
 For SL6 use following command to build the RPM:
 
 ```
-docker run -it --rm -v ~/.ssh:/root/.ssh -v `pwd`:/data paulscherrerinstitute/centos_build_rpm:6 package jstriptool.spec
+docker run -it --rm -v `pwd`:/data paulscherrerinstitute/centos_build_rpm:6 package jstriptool.spec
 ```
 
 

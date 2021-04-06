@@ -1,6 +1,6 @@
 Summary:        Java Strip Tool
 Name:           jstriptool
-Version:        1.0
+Version:        1.2.0
 Release:        0%{?dist}
 License:        GPL
 Group:          Applications
@@ -43,6 +43,7 @@ Java Epics Strip Tool
 %{__mkdir_p} $RPM_BUILD_ROOT/usr/local/bin
 %{__cp} -a %{_curdir}/build/libs/jstriptool-*-fat.jar $RPM_BUILD_ROOT%{inst_folder}/lib/jstriptool-fat.jar
 %{__cp} -a %{_curdir}/jstriptool $RPM_BUILD_ROOT/usr/local/bin
+# ln -s jstriptool $RPM_BUILD_ROOT/usr/local/bin/
 # %{__cp} -a %{_sourcedir}/build/libs/jstriptool-*-fat.jar $RPM_BUILD_ROOT%{inst_folder}/lib
 
 %clean
