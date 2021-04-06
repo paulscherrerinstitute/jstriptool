@@ -24,7 +24,7 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import static javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE;
 import static javax.swing.WindowConstants.HIDE_ON_CLOSE;
-import org.epics.ca.Context;
+import org.epics.ca.impl.ProtocolConfiguration;
 
 /**
  *
@@ -220,7 +220,7 @@ public class App {
         System.out.println("\t-debug\tShow debug information");
         System.out.println("\t-hide_invalid\tDo not display invalid values");
         System.out.println("EPICS CA arguments: ");
-        for (Context.Configuration cfg : Context.Configuration.values()) {
+        for (ProtocolConfiguration.PropertyNames cfg : ProtocolConfiguration.PropertyNames.values()) {
             System.out.println("\t-" + cfg.toString() + "=<value>");
         }
         System.out.println("Environmennt variables: ");
@@ -251,7 +251,7 @@ public class App {
         }     
 
         caProperties = new Properties();
-        for (Context.Configuration cfg : Context.Configuration.values()) {
+        for (ProtocolConfiguration.PropertyNames cfg : ProtocolConfiguration.PropertyNames.values()) {
             String val = getArgumentValue(cfg.toString());
             if (val != null) {
                 caProperties.setProperty(cfg.toString(), val);
