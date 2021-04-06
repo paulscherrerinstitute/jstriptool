@@ -248,7 +248,13 @@ public class App {
             if (handler instanceof ConsoleHandler) {
                 handler.setLevel(consoleLogLevel);
             }
-        }     
+        }
+        if (!System.getProperties().contains("CA_LIBRARY_LOG_LEVEL")){
+            System.getProperties().put("CA_LIBRARY_LOG_LEVEL", consoleLogLevel.toString());
+        }
+        if (!System.getProperties().contains("CA_REPEATER_LOG_LEVEL")){
+            System.getProperties().put("CA_REPEATER_LOG_LEVEL", consoleLogLevel.toString());
+        }
 
         caProperties = new Properties();
         for (ProtocolConfiguration.PropertyNames cfg : ProtocolConfiguration.PropertyNames.values()) {
