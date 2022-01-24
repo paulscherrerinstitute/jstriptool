@@ -979,10 +979,13 @@ public class ConfigFrame extends javax.swing.JFrame {
 
     private void buttonInsertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonInsertActionPerformed
         if (modelSeries.getRowCount() < Config.MAX_NUMBER_PLOTS) {
-            String channelName = SwingUtils.getString(this, "Enter channel name", "");
-            if ((channelName != null) && !(channelName.trim().isEmpty())) {
+            String channelName="";
+            while (true){
+                channelName = SwingUtils.getString(this, "Enter channel name", channelName);
+                if ((channelName == null) || (channelName.isBlank())) {
+                    return;
+                }
                 channelName = channelName.trim();
-
                 try (Context context = new Context(App.getCaProperties())) {
                     Channel<Double> channel = context.createChannel(channelName, Double.class);
                     channel.connectAsync().get(2, TimeUnit.SECONDS);
@@ -1014,8 +1017,9 @@ public class ConfigFrame extends javax.swing.JFrame {
                     if (!App.plotFrame.isStarted()){
                         App.plotFrame.start();
                     }
-            
+
                     App.plotFrame.addChannel(index, channelName, true, false, precision, min, max, units, desc);
+                    return;
                 } catch (Exception ex) {
                     SwingUtils.showException(this, ex);
                 }
