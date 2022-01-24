@@ -131,6 +131,9 @@ public class SeriesSetPanel extends javax.swing.JPanel {
     }
     
     SeriesPanel[] getSeriesPanels() {
+        if (scrollPanel==null){
+            return new SeriesPanel[0];
+        }
         return Arrays.asList(scrollPanel.getComponents()).toArray(new SeriesPanel[0]);
     }
 
