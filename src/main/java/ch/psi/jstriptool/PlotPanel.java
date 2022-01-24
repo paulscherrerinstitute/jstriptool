@@ -175,7 +175,8 @@ public class PlotPanel extends javax.swing.JPanel {
         ((NumberAxis) plot.getRangeAxis()).setAutoRangeMinimumSize(AUTO_RANGE_MINIMUM_SIZE);
 
         setLayout(new java.awt.BorderLayout());
-        chartPanel = new ChartPanel(chart) {
+        boolean userBuffer = !App.isMac();
+        chartPanel = new ChartPanel(chart, userBuffer) {
             @Override
             public void restoreAutoRangeBounds() {
                 super.restoreAutoRangeBounds();

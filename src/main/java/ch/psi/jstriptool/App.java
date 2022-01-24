@@ -195,6 +195,11 @@ public class App {
     public static boolean isAntiAliasing() {
         return hasArgument("aa");
     }
+    
+    
+    public static boolean isMac(){
+        return System.getProperty("os.name").toLowerCase().contains("mac");
+    }
 
     static void printStartupMessage() {
         System.out.println("JStripTool");
