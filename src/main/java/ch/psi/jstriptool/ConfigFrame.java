@@ -38,6 +38,7 @@ public class ConfigFrame extends javax.swing.JFrame {
     final DefaultTableModel modelSeries;
     Config config;
     File file;
+    volatile boolean updating;
 
     final int COLUMN_NAME = 0;
     final int COLUMN_ENABLED = 1;
@@ -292,9 +293,14 @@ public class ConfigFrame extends javax.swing.JFrame {
         spinnerRedrawInterval.setValue(config.refreshInterval);
         spinnerBufferSize.setValue(config.numSamples);
 
-        spinnerHour.setValue(config.timespan / 3600);
-        spinnerMin.setValue(config.timespan / 60);
-        spinnerSec.setValue(config.timespan % 60);
+        updating=true;
+        try{
+            spinnerHour.setValue(config.timespan / 3600);
+            spinnerMin.setValue((config.timespan % 3600) / 60);
+            spinnerSec.setValue(config.timespan % 60);
+        } finally{
+            updating=false;
+        }
 
         if (modelSeries.getRowCount() != config.getNumberCurves()) {
             modelSeries.setRowCount(config.getNumberCurves());
@@ -314,34 +320,6 @@ public class ConfigFrame extends javax.swing.JFrame {
         updateButtons();
     }
 
-    /*
-    void updateConfig() {
-        config.foreground = panelColorForeground.getBackground() == null ? new DeepColor() : new DeepColor(panelColorForeground.getBackground());
-        config.background = panelColorBackground.getBackground() == null ? new DeepColor() :new DeepColor(panelColorBackground.getBackground());
-        config.grid = panelColorGrid.getBackground() == null ? new DeepColor() : new DeepColor(panelColorGrid.getBackground());
-        config.gridXon = GridVisibility.values()[comboGridX.getSelectedIndex()];
-        config.gridYon = GridVisibility.values()[comboGridY.getSelectedIndex()];
-        config.axisYcolorStat = LabelColorAxisY.values()[comboColorY.getSelectedIndex()];
-        config.sampleInterval = (Double) spinnerSampleInterval.getValue();
-        config.refreshInterval = (Double) spinnerRedrawInterval.getValue();
-        config.timespan = ((Integer) spinnerHour.getValue()) * 3600 + ((Integer) spinnerMin.getValue()) * 60 + ((Integer) spinnerSec.getValue());
-
-        config.curves = new Curve[Config.MAX_NUMBER_PLOTS];
-        for (int i = 0; i < modelSeries.getRowCount(); i++) {
-            Curve c = new Curve();
-            c.name = (String) modelSeries.getValueAt(i, COLUMN_NAME);
-            c.plotStatus = (Boolean) modelSeries.getValueAt(i, COLUMN_ENABLED);
-            c.scale = ((Boolean) modelSeries.getValueAt(i, COLUMN_LOG)) ? Scale.logarithmic : Scale.linear;
-            c.precision = (Integer) modelSeries.getValueAt(i, COLUMN_PREC);
-            c.min = (Double) modelSeries.getValueAt(i, COLUMN_MIN);
-            c.max = (Double) modelSeries.getValueAt(i, COLUMN_MAX);
-            c.units = (String) modelSeries.getValueAt(i, COLUMN_UNITS);
-            c.comment = (String) modelSeries.getValueAt(i, COLUMN_DESC);
-            config.curves[i] = c;
-            config.colors[i] = new DeepColor(Config.getColorFromString((String) modelSeries.getValueAt(i, COLUMN_COLORS)));
-        }
-    }
-     */
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -1229,10 +1207,12 @@ public class ConfigFrame extends javax.swing.JFrame {
 
     private void spinnerHourStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerHourStateChanged
         try {
-            int timespan = (Integer) spinnerSec.getValue();
-            timespan += ((Integer) spinnerMin.getValue()) * 60;
-            timespan += ((Integer) spinnerHour.getValue()) * 3600;
-            App.plotFrame.setTimespan(timespan);
+            if (!updating){
+                int timespan = (Integer) spinnerSec.getValue();
+                timespan += ((Integer) spinnerMin.getValue()) * 60;
+                timespan += ((Integer) spinnerHour.getValue()) * 3600;
+                App.plotFrame.setTimespan(timespan);
+            }
 
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
