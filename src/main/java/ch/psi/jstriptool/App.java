@@ -182,7 +182,7 @@ public class App {
         return userHome;
     }
 
-    static final String DARK_LOOK_AND_FEEL = "com.bulenkov.darcula.DarculaLaf";
+    static final String DARK_LOOK_AND_FEEL = "com.formdev.flatlaf.FlatDarculaLaf";
 
     public static boolean isDark() {
         return UIManager.getLookAndFeel().getClass().getName().equals(DARK_LOOK_AND_FEEL);
