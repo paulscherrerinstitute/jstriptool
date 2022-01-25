@@ -157,6 +157,16 @@ public class Config {
         }
         return ret;
     }
+    
+    List<String> getCurvesNames() {
+        List<String> ret = new ArrayList<>();
+        for (int i = 0; i < MAX_NUMBER_PLOTS; i++) {
+            if (curves[i] != null) {
+                ret.add(curves[i].name);
+            }
+        }
+        return ret;
+    }    
 
     int getNumberCurves() {
         for (int i = 0; i < MAX_NUMBER_PLOTS; i++) {
@@ -361,29 +371,31 @@ public class Config {
         timespan = 20 * 60;
         try (Context context = new Context(App.getCaProperties())) {
             for (int i = 0; i < channels.length; i++) {
-                curves[i] = new Curve();
-                String channelName = channels[i];
-                curves[i].name = channelName;
-                try {
-                    Channel<Double> channel = context.createChannel(channelName, Double.class);
-                    channel.connectAsync().get(2, TimeUnit.SECONDS);
-                    Graphic g = channel.get(Graphic.class);
-                    String units = g.getUnits() == null ? "" : g.getUnits();
-                    Integer precision = ((Number) g.getPrecision()).intValue();
-                    Double min = ((Number) g.getLowerDisplay()).doubleValue();
-                    Double max = ((Number) g.getUpperDisplay()).doubleValue();
-                    if (max <= min) {
-                        max = min + 1;
-                    }
+                if ((channels[i]!=null) && !channels[i].isBlank()){
+                    curves[i] = new Curve();
+                    String channelName = channels[i].trim();
+                    curves[i].name = channelName;
+                    try {
+                        Channel<Double> channel = context.createChannel(channelName, Double.class);
+                        channel.connectAsync().get(2, TimeUnit.SECONDS);
+                        Graphic g = channel.get(Graphic.class);
+                        String units = g.getUnits() == null ? "" : g.getUnits();
+                        Integer precision = ((Number) g.getPrecision()).intValue();
+                        Double min = ((Number) g.getLowerDisplay()).doubleValue();
+                        Double max = ((Number) g.getUpperDisplay()).doubleValue();
+                        if (max <= min) {
+                            max = min + 1;
+                        }
 
-                    curves[i].min = min;
-                    curves[i].max = max;
-                    curves[i].comment = "";
-                    curves[i].precision = precision;
-                    curves[i].units = units;
-                    curves[i].plotStatus = true;
-                } catch (Exception ex) {
-                    curves[i].plotStatus = false;
+                        curves[i].min = min;
+                        curves[i].max = max;
+                        curves[i].comment = "";
+                        curves[i].precision = precision;
+                        curves[i].units = units;
+                        curves[i].plotStatus = true;
+                    } catch (Exception ex) {
+                        curves[i].plotStatus = false;
+                    }
                 }
             }
         }

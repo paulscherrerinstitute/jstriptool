@@ -5,10 +5,12 @@ import ch.psi.jstriptool.SwingUtils.OptionType;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -220,23 +222,35 @@ public class App {
         System.out.println("\t-default=<dir>\tSet default configuration file");
         System.out.println("\t-laf=<name>\tSupported values: nimbus, metal, dark or system");
         System.out.println("\t-clog=<level>\tSet the console logging level");
-        System.out.println("\t-aa\tEnable anti-aliasing");
-        System.out.println("\t-xrm='<name>:<val>'\tSet graphical resources");
-        System.out.println("\t-debug\tShow debug information");
+        System.out.println("\t-aa\t\tEnable anti-aliasing");
+        System.out.println("\t-debug\t\tShow debug information");
         System.out.println("\t-hide_invalid\tDo not display invalid values");
-        System.out.println("EPICS CA arguments: ");
+        System.out.println("\t-xrm=\"...\"\tSet graphical resources in the format: <name>:<value>");
+        System.out.println("\t-cmd=\"...\"\tList of commands for changing the plot configuration (';' separated):");
+        System.out.println("\t\t\t  add <channel>                    (add a plot)");
+        System.out.println("\t\t\t  del <channel or index>           (remove a plot)");
+        System.out.println("\t\t\t  min <channel or index> <value>   (set plot minimum value)");
+        System.out.println("\t\t\t  max <channel or index> <value>   (set plot maximum value)");
+        System.out.println("\t\t\t  range <channel or index> <range> (set plot range)");
+        System.out.println("\t\t\t  log <channel or index> <value>   (set plot logarithmic/linear)");
+        System.out.println("\t\t\t  color <channel or index> <color> (set plot color)");
+        System.out.println("\t\t\t  span <time in seconds>           (set plot time span)");
+        System.out.println("\t\t\t  poll <time in seconds>           (set channel update interval - 0 for monitored)");
+        System.out.println("\t\t\t  redraw <time in seconds>         (set plot redraw interval)");
+        System.out.println("\t\t\tCommands can be entered the console, in the same format");
+        System.out.println("\nEPICS CA arguments: ");
         for (ProtocolConfiguration.PropertyNames cfg : ProtocolConfiguration.PropertyNames.values()) {
             System.out.println("\t-" + cfg.toString() + "=<value>");
         }
-        System.out.println("Environmennt variables: ");
+        System.out.println("\nEnvironmennt variables: ");
         System.out.println("\tSTRIP_SITE_DEFAULTS");
         System.out.println("\tSTRIP_FILE_SEARCH_PATH");
         System.out.println("\n");
     }
-
+    
     public static void main(String args[]) throws Exception {
         arguments = args;
-    
+        final Object startLock = new Object();
         printStartupMessage();
         if (hasArgument("h")) {
             printHelpMessage();
@@ -286,10 +300,15 @@ public class App {
                 lastArg = args[args.length - 1].trim();
             }
         }
-        String startup = (lastArg != null) && !lastArg.isEmpty() && !lastArg.startsWith("-") && !lastArg.startsWith("#")
-                ? lastArg : null;
         
         boolean isChannelList =  hasArgument("l");
+        String startup = (lastArg != null) && 
+                         (!lastArg.isEmpty()||isChannelList) && 
+                          !lastArg.startsWith("-") && 
+                            !lastArg.startsWith("#")
+                ? lastArg : null;
+        
+        
         String startupFile = isChannelList ? null : startup;
         String[] startupChannels = (isChannelList  && (startup!=null)) ? startup.split(" ") : null;
 
@@ -447,7 +466,100 @@ public class App {
                     configFrame.setVisible(true);
                     configFrame.setLocationRelativeTo(null);
                 }
+                
+                for (String cmd : App.getArgumentValues("cmd")){
+                    for (String statement : cmd.split(";")){
+                        statement = statement.trim();
+                        if (!statement.isBlank()){
+                            try {
+                                System.out.println("Executing command: " + statement);
+                                executeStatement(statement);
+                            } catch (Exception ex) {
+                                Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    }
+                }
+                synchronized(startLock){
+                    startLock.notifyAll();
+                }
             }
         });
+                
+        synchronized(startLock){
+            startLock.wait();
+        }
+        
+        //Run console        
+        String cursor = "> ";
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            while (true) {
+                System.out.print(cursor);
+                String statement = null;
+                try {
+                    statement = reader.readLine();
+                } catch (IOException ex) {
+                }
+                if (statement == null) {
+                    break;
+                }
+
+                try {
+                    Object ret = executeStatement(statement);
+                    System.out.println((ret != null)? ret : "\n");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }        
+    }
+    
+    static Object executeStatement(String statement) throws Exception{
+        String[] tokens=statement.split(" ");
+        String op = tokens[0];
+        switch (op){
+            case "add":                            
+                configFrame.addChannel(tokens[1]);
+                return "Ok";    
+            case "del":   
+                configFrame.removeChannel(configFrame.getIndex(tokens[1]));
+                return "Ok";    
+            case "range":   
+                configFrame.setChannelMin(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
+                configFrame.setChannelMax(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[3]));
+                return "Ok";    
+            case "min":   
+                configFrame.setChannelMin(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
+                return "Ok";    
+            case "max":   
+                configFrame.setChannelMax(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
+                return "Ok";    
+            case "log":   
+                configFrame.setChannelLog(configFrame.getIndex(tokens[1]), Boolean.valueOf(tokens[2]));
+                return "Ok";    
+            case "color":   
+                configFrame.setChannelColor(configFrame.getIndex(tokens[1]), tokens[2]);
+                return "Ok";    
+            case "channels":   
+                return String.join("\n", configFrame.config.getCurvesNames().toArray(new String[0]));
+            case "indexes":  
+                List<Integer> indexes =  configFrame.config.getCurvesIndexes();
+                String[] names = new String[indexes.size()];
+                for (int i=0; i< names.length; i++){
+                    names[i] = String.valueOf(indexes.get(i));
+                }
+                return String.join("\n", names);     
+            case "span":
+                configFrame.setTimespan(Integer.valueOf(tokens[1]));
+                return "Ok";    
+            case "poll":
+                configFrame.setSampleInterval(Double.valueOf(tokens[1]));
+                return "Ok";
+            case "redraw":
+                configFrame.setRedrawInterval(Double.valueOf(tokens[1]));
+                return "Ok";             
+            default:
+                return "Invalid command";
+        }                    
     }
 }

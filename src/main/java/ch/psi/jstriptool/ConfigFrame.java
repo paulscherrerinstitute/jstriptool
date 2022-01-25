@@ -92,20 +92,21 @@ public class ConfigFrame extends javax.swing.JFrame {
                                 case COLUMN_PREC:
                                     App.plotFrame.setPrec(index, (value == null) ? 0 : (Integer) value);
                                     break;
-                                    case COLUMN_MIN:
-                                        App.plotFrame.setMin(index, (value == null) ? Double.NaN : (Double) value);
-                                        break;
-                                    case COLUMN_MAX:
-                                        App.plotFrame.setMax(index, (value == null) ? Double.NaN : (Double) value);
-                                        break;
-                                    case COLUMN_UNITS:
-                                        App.plotFrame.setUnits(index, (value == null) ? "" : (String) value);
-                                        break;
-                                    case COLUMN_DESC:
-                                        App.plotFrame.setDesc(index, (value == null) ? "" : (String) value);
-                                        break;
-                                    case COLUMN_COLORS:
-                                        App.plotFrame.setColor(index, (value == null) ? Color.BLACK : Config.getColorFromString((String) value));
+                                case COLUMN_MIN:
+                                    App.plotFrame.setMin(index, (value == null) ? Double.NaN : (Double) value);
+                                    break;
+                                case COLUMN_MAX:
+                                    App.plotFrame.setMax(index, (value == null) ? Double.NaN : (Double) value);
+                                    break;
+                                case COLUMN_UNITS:
+                                    App.plotFrame.setUnits(index, (value == null) ? "" : (String) value);
+                                    break;
+                                case COLUMN_DESC:
+                                    App.plotFrame.setDesc(index, (value == null) ? "" : (String) value);
+                                    break;
+                                case COLUMN_COLORS:
+                                    App.plotFrame.setColor(index, (value == null) ? Color.BLACK : Config.getColorFromString((String) value));
+                                    break;
                                 }
                         }
                     }
@@ -319,7 +320,144 @@ public class ConfigFrame extends javax.swing.JFrame {
         }
         updateButtons();
     }
+    
+    
+    public void addChannel(String channelName) throws Exception{
+        if (channelName.isBlank()){
+            throw new Exception("Invalid channel name");
+        }
+        try (Context context = new Context(App.getCaProperties())) {
+            Channel<Double> channel = context.createChannel(channelName, Double.class);
+            channel.connectAsync().get(2, TimeUnit.SECONDS);
+            Graphic g = channel.get(Graphic.class);
+            String units = g.getUnits() == null ? "" : g.getUnits();
+            Integer precision = ((Number) g.getPrecision()).intValue();
+            Double min = ((Number) g.getLowerDisplay()).doubleValue();
+            Double max = ((Number) g.getUpperDisplay()).doubleValue();
+            if (max <= min) {
+                max = min + 1;
+            }
+            //String desc = ""Config.getChannelDesc(context, channelName);
+            //Resolve description dinamically 
+            String desc = ""; 
 
+            Object[] data = new Object[]{channelName, Boolean.TRUE, Boolean.FALSE,
+                precision, min, max, units, desc,
+                Config.getStringFromColor(config.colors[modelSeries.getRowCount()].toColor())};
+            int index = modelSeries.getRowCount();
+            //if (tableSeries.getSelectedRow() >= 0) {
+            //    index = tableSeries.getSelectedRow() + 1;
+            //    modelSeries.insertRow(tableSeries.getSelectedRow() + 1, data);
+            //} else {
+            modelSeries.addRow(data);
+            //}
+            modelSeries.fireTableDataChanged();
+            updateButtons();
+            updateColors();
+            if (!App.plotFrame.isStarted()){
+                App.plotFrame.start();
+            }
+
+            App.plotFrame.addChannel(index, channelName, true, false, precision, min, max, units, desc);
+        }
+    }
+    
+    public void removeChannel(int index) throws Exception{
+        if (index>=modelSeries.getRowCount()){
+            throw new Exception("Invalid channel index");
+        }
+        modelSeries.removeRow(Math.max(index, 0));
+        App.plotFrame.removeChannel(index);
+        updateButtons();
+        updateColors();        
+    }
+    
+    
+     
+    public void setChannelRange(int index, double min, double max) throws Exception{
+        if ((index<0) ||(index>=modelSeries.getRowCount())){
+            throw new Exception("Invalid channel index");
+        }
+        modelSeries.setValueAt(min, index, COLUMN_MIN);
+        modelSeries.setValueAt(max, index, COLUMN_MAX);
+        //App.plotFrame.setMin(index, min);    
+        //App.plotFrame.setMax(index, max);    
+    } 
+    
+    public void setChannelMin(int index, double value) throws Exception{
+        if ((index<0) ||(index>=modelSeries.getRowCount())){
+            throw new Exception("Invalid channel index");
+        }
+        modelSeries.setValueAt(value, index, COLUMN_MIN);
+        //App.plotFrame.setMin(index, value); 
+    } 
+
+    public void setChannelMax(int index, double value) throws Exception{
+        if ((index<0) ||(index>=modelSeries.getRowCount())){
+            throw new Exception("Invalid channel index");
+        }
+        modelSeries.setValueAt(value, index, COLUMN_MAX);
+        //App.plotFrame.setMax(index, value);    
+    } 
+
+    public void setChannelLog(int index, boolean value) throws Exception{
+        if ((index<0) ||(index>=modelSeries.getRowCount())){
+            throw new Exception("Invalid channel index");
+        }
+        modelSeries.setValueAt(value, index, COLUMN_LOG);   
+    }     
+    
+    public void setChannelColor(int index, String value) throws Exception{
+        if ((index<0) ||(index>=modelSeries.getRowCount())){
+            throw new Exception("Invalid channel index");
+        }
+        modelSeries.setValueAt(value, index, COLUMN_COLORS);   
+    }    
+    
+    public int getIndex(String channel) throws Exception{
+       channel= channel.strip();
+       Integer index = null;
+       try {
+           index = Integer.parseInt(channel);
+           if ((index<0) || (index>=modelSeries.getRowCount())){
+                throw new Exception("Invalid channel index: " + index);
+           }
+           return index;
+       } catch (NumberFormatException e) {      
+       }       
+        for (int i=0; i<modelSeries.getRowCount(); i++){
+            if (channel.equalsIgnoreCase(String.valueOf(modelSeries.getValueAt(i, 0)))){
+                return i;
+            }
+        }
+        throw new Exception("Invalid channel name: " + channel);
+    }
+    
+    public void setTimespan( int value) throws Exception{
+        if (value<=0){
+            throw new Exception("Invalid value");
+        }        
+        App.plotFrame.setTimespan(value);
+        updateWindow();        
+    }     
+    
+    public void setSampleInterval( double value) throws Exception{
+        if (value<0){
+            throw new Exception("Invalid value");
+        }        
+        App.plotFrame.setSampleInterval(value);
+        updateWindow();                  
+    }     
+    
+    public void setRedrawInterval( double value) throws Exception{
+        if (value<=0){
+            throw new Exception("Invalid value");
+        }        
+        App.plotFrame.setRedrawInterval(value);
+        updateWindow();        
+    }        
+   
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -946,12 +1084,13 @@ public class ConfigFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_tableSeriesKeyReleased
 
     private void buttonDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonDeleteActionPerformed
-        if (modelSeries.getRowCount() > 0) {
-            int index = tableSeries.getSelectedRow();
-            modelSeries.removeRow(Math.max(index, 0));
-            App.plotFrame.removeChannel(index);
-            updateButtons();
-            updateColors();
+        try {
+            if (modelSeries.getRowCount() > 0) {
+                int index = tableSeries.getSelectedRow();
+                removeChannel(index);
+            }
+        } catch (Exception ex) {
+            SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonDeleteActionPerformed
 
@@ -986,39 +1125,8 @@ public class ConfigFrame extends javax.swing.JFrame {
                     return;
                 }
                 channelName = channelName.trim();
-                try (Context context = new Context(App.getCaProperties())) {
-                    Channel<Double> channel = context.createChannel(channelName, Double.class);
-                    channel.connectAsync().get(2, TimeUnit.SECONDS);
-                    Graphic g = channel.get(Graphic.class);
-                    String units = g.getUnits() == null ? "" : g.getUnits();
-                    Integer precision = ((Number) g.getPrecision()).intValue();
-                    Double min = ((Number) g.getLowerDisplay()).doubleValue();
-                    Double max = ((Number) g.getUpperDisplay()).doubleValue();
-                    if (max <= min) {
-                        max = min + 1;
-                    }
-                    //String desc = ""Config.getChannelDesc(context, channelName);
-                    //Resolve description dinamically 
-                    String desc = ""; 
-
-                    Object[] data = new Object[]{channelName, Boolean.TRUE, Boolean.FALSE,
-                        precision, min, max, units, desc,
-                        Config.getStringFromColor(config.colors[modelSeries.getRowCount()].toColor())};
-                    int index = modelSeries.getRowCount();
-                    //if (tableSeries.getSelectedRow() >= 0) {
-                    //    index = tableSeries.getSelectedRow() + 1;
-                    //    modelSeries.insertRow(tableSeries.getSelectedRow() + 1, data);
-                    //} else {
-                    modelSeries.addRow(data);
-                    //}
-                    modelSeries.fireTableDataChanged();
-                    updateButtons();
-                    updateColors();
-                    if (!App.plotFrame.isStarted()){
-                        App.plotFrame.start();
-                    }
-
-                    App.plotFrame.addChannel(index, channelName, true, false, precision, min, max, units, desc);
+                try {
+                    addChannel(channelName);
                     return;
                 } catch (Exception ex) {
                     SwingUtils.showException(this, ex);
