@@ -506,7 +506,9 @@ public class App {
 
                 try {
                     Object ret = executeStatement(statement);
-                    System.out.println((ret != null)? ret : "\n");
+                    if (ret != null){
+                        System.out.println(ret);
+                    }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -515,51 +517,55 @@ public class App {
     }
     
     static Object executeStatement(String statement) throws Exception{
-        String[] tokens=statement.split(" ");
-        String op = tokens[0];
-        switch (op){
-            case "add":                            
-                configFrame.addChannel(tokens[1]);
-                return "Ok";    
-            case "del":   
-                configFrame.removeChannel(configFrame.getIndex(tokens[1]));
-                return "Ok";    
-            case "range":   
-                configFrame.setChannelMin(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
-                configFrame.setChannelMax(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[3]));
-                return "Ok";    
-            case "min":   
-                configFrame.setChannelMin(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
-                return "Ok";    
-            case "max":   
-                configFrame.setChannelMax(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
-                return "Ok";    
-            case "log":   
-                configFrame.setChannelLog(configFrame.getIndex(tokens[1]), Boolean.valueOf(tokens[2]));
-                return "Ok";    
-            case "color":   
-                configFrame.setChannelColor(configFrame.getIndex(tokens[1]), tokens[2]);
-                return "Ok";    
-            case "channels":   
-                return String.join("\n", configFrame.config.getCurvesNames().toArray(new String[0]));
-            case "indexes":  
-                List<Integer> indexes =  configFrame.config.getCurvesIndexes();
-                String[] names = new String[indexes.size()];
-                for (int i=0; i< names.length; i++){
-                    names[i] = String.valueOf(indexes.get(i));
-                }
-                return String.join("\n", names);     
-            case "span":
-                configFrame.setTimespan(Integer.valueOf(tokens[1]));
-                return "Ok";    
-            case "poll":
-                configFrame.setSampleInterval(Double.valueOf(tokens[1]));
-                return "Ok";
-            case "redraw":
-                configFrame.setRedrawInterval(Double.valueOf(tokens[1]));
-                return "Ok";             
-            default:
-                return "Invalid command";
-        }                    
+        statement = statement.trim();
+        if (!statement.isBlank()){
+            String[] tokens=statement.split(" ");
+            String op = tokens[0];
+            switch (op){
+                case "add":                            
+                    configFrame.addChannel(tokens[1]);
+                    return "Ok";    
+                case "del":   
+                    configFrame.removeChannel(configFrame.getIndex(tokens[1]));
+                    return "Ok";    
+                case "range":   
+                    configFrame.setChannelMin(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
+                    configFrame.setChannelMax(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[3]));
+                    return "Ok";    
+                case "min":   
+                    configFrame.setChannelMin(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
+                    return "Ok";    
+                case "max":   
+                    configFrame.setChannelMax(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
+                    return "Ok";    
+                case "log":   
+                    configFrame.setChannelLog(configFrame.getIndex(tokens[1]), Boolean.valueOf(tokens[2]));
+                    return "Ok";    
+                case "color":   
+                    configFrame.setChannelColor(configFrame.getIndex(tokens[1]), tokens[2]);
+                    return "Ok";    
+                case "channels":   
+                    return String.join("\n", configFrame.config.getCurvesNames().toArray(new String[0]));
+                case "indexes":  
+                    List<Integer> indexes =  configFrame.config.getCurvesIndexes();
+                    String[] names = new String[indexes.size()];
+                    for (int i=0; i< names.length; i++){
+                        names[i] = String.valueOf(indexes.get(i));
+                    }
+                    return String.join("\n", names);     
+                case "span":
+                    configFrame.setTimespan(Integer.valueOf(tokens[1]));
+                    return "Ok";    
+                case "poll":
+                    configFrame.setSampleInterval(Double.valueOf(tokens[1]));
+                    return "Ok";
+                case "redraw":
+                    configFrame.setRedrawInterval(Double.valueOf(tokens[1]));
+                    return "Ok";             
+                default:
+                    return "Invalid command";
+            }                    
+        }
+        return null;
     }
 }
