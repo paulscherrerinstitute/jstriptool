@@ -224,6 +224,7 @@ public class App {
         System.out.println("\t-clog=<level>\tSet the console logging level");
         System.out.println("\t-aa\t\tEnable anti-aliasing");
         System.out.println("\t-debug\t\tShow debug information");
+        System.out.println("\t-cli  \t\tStarts the CLI");
         System.out.println("\t-hide_invalid\tDo not display invalid values");
         System.out.println("\t-xrm=\"...\"\tSet graphical resources in the format: <name>:<value>");
         System.out.println("\t-cmd=\"...\"\tList of commands for changing the plot configuration (';' separated):");
@@ -237,7 +238,7 @@ public class App {
         System.out.println("\t\t\t  span <time in seconds>           (set plot time span)");
         System.out.println("\t\t\t  poll <time in seconds>           (set channel update interval - 0 for monitored)");
         System.out.println("\t\t\t  redraw <time in seconds>         (set plot redraw interval)");
-        System.out.println("\t\t\tCommands can be entered the console, in the same format");
+        System.out.println("\t\t\tCommands can be entered in the CLI using the same format");
         System.out.println("\nEPICS CA arguments: ");
         for (ProtocolConfiguration.PropertyNames cfg : ProtocolConfiguration.PropertyNames.values()) {
             System.out.println("\t-" + cfg.toString() + "=<value>");
@@ -490,27 +491,29 @@ public class App {
             startLock.wait();
         }
         
-        //Run console        
-        String cursor = "> ";
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
-            while (true) {
-                System.out.print(cursor);
-                String statement = null;
-                try {
-                    statement = reader.readLine();
-                } catch (IOException ex) {
-                }
-                if (statement == null) {
-                    break;
-                }
-
-                try {
-                    Object ret = executeStatement(statement);
-                    if (ret != null){
-                        System.out.println(ret);
+        if (isArgumentDefined("cli")){
+            //Run console        
+            String cursor = "> ";
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+                while (true) {
+                    System.out.print(cursor);
+                    String statement = null;
+                    try {
+                        statement = reader.readLine();
+                    } catch (IOException ex) {
                     }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                    if (statement == null) {
+                        break;
+                    }
+
+                    try {
+                        Object ret = executeStatement(statement);
+                        if (ret != null){
+                            System.out.println(ret);
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 }
             }
         }        
