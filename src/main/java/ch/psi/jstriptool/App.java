@@ -491,7 +491,7 @@ public class App {
             startLock.wait();
         }
         
-        if (isArgumentDefined("cli")){
+        if (hasArgument("cli")){
             //Run console        
             String cursor = "> ";
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
