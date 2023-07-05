@@ -78,37 +78,37 @@ If the '-l' options is set then the last argument is a list of channels to be di
 
 <br/>
 
-| Option                       | Description |
-| :--------------------------- | :---------- |
-| -l                           | Instead of fileneme, last argument is a channel list: \"<channel_1> <channel_2> ...\"|
-| -default=<file_name>         | Sets default configuration file.|'
-| -home=<folder_name>          | Sets home folder.|
-| -config                      | When filename is provided, shows the configuration dialog too.|
-| -laf=<name>                  | Sets the look and feel: nimbus, metal, dark, system, or LAF class name.|
-| -aa=false                    | Disable anti-aliasing (lower the quality but increase performance).|
-| -xrm=<resource name>:<value> | Set graphical resources. Valid names: StripTool.StripGraph.width and StripTool.StripGraph.height.|
-| -clog=<level>                | Console log level: OFF, SEVERE, WARNING, INFO, FINE, FINER, FINEST, ALL.|
-| -cli                         | Enables command line interface.|
-| -sync                        | Disable use of channel monitors - use blocking get instead.|
-| -hide_invalid                | Does not display invalid channel values.|
-| -debug                       | Shows debug information.|
-| -cmd="<cmd_1>;<cmd_2>..."    | List of commands for changing the plot configuration (';' separated). See 'Commands' section.|
-| -h                           | Displays help message.|
+| Option                         | Description |
+| :----------------------------- | :---------- |
+| `-l`                           | Instead of fileneme, last argument is a channel list: \"<channel_1> <channel_2> ...\"|
+| `-default=<file_name>`         | Sets default configuration file.|'
+| `-home=<folder_name> `         | Sets home folder.|
+| `-config`                      | When filename is provided, shows the configuration dialog too.|
+| `-laf=<name>`                  | Sets the look and feel: nimbus, metal, dark, system, or LAF class name.|
+| `-aa=false`                    | Disable anti-aliasing (lower the quality but increase performance).|
+| `-xrm=<resource_name>:<value>` | Set graphical resources. Valid names: StripTool.StripGraph.width and StripTool.StripGraph.height.|
+| `-clog=<level>`                | Console log level: OFF, SEVERE, WARNING, INFO, FINE, FINER, FINEST, ALL.|
+| `-cli`                         | Enables command line interface.|
+| `-sync`                        | Disable use of channel monitors - use blocking get instead.|
+| `-hide_invalid`                | Does not display invalid channel values.|
+| `-debug`                       | Shows debug information.|
+| `-cmd="<cmd_1>;<cmd_2>..."`    | List of commands for changing the plot configuration (';' separated). See 'Commands' section.|
+| `-h`                           | Displays help message.|
 
 
 The following options are used to override the EPICS configuration, as defined in 
 https://www.slac.stanford.edu/grp/ssrl/spear/epics/base/CAref.html#EPICS
 <br/>
 
-| Option                            | Range |
-| :---------------------------------| :---------- |
-| -EPICS_CA_ADDR_LIST=<value>       | {"N.N.N.N N.N.N.N:P ...}
-| -EPICS_CA_AUTO_ADDR_LIST=<value>  | {YES, NO}|
-| -EPICS_CA_CONN_TMO=<value>        | r > 0.1 seconds|
-| -EPICS_CA_BEACON_PERIOD=<value>   | r > 0.1 seconds|
-| -EPICS_CA_REPEATER_PORT=<value>   | i > 5000|
-| -EPICS_CA_SERVER_PORT=<value>     | i > 5000|
-| -EPICS_CA_MAX_ARRAY_BYTES=<value> | i >= 16384|
+| Option                              | Range |
+| :-----------------------------------| :---------- |
+| `-EPICS_CA_ADDR_LIST=<value>`       | {"N.N.N.N N.N.N.N:P ...}
+| `-EPICS_CA_AUTO_ADDR_LIST=<value>`  | {YES, NO}|
+| `-EPICS_CA_CONN_TMO=<value>`        | r > 0.1 seconds|
+| `-EPICS_CA_BEACON_PERIOD=<value>`   | r > 0.1 seconds|
+| `-EPICS_CA_REPEATER_PORT=<value>`   | i > 5000|
+| `-EPICS_CA_SERVER_PORT=<value>`     | i > 5000|
+| `-EPICS_CA_MAX_ARRAY_BYTES=<value>` | i >= 16384|
 
 
 
@@ -132,15 +132,15 @@ Commands can be used to configure the plots, through the command line interface 
 
 <br/>
 
-| Command                              | Description |
-| :----------------------------------- | :---------- |
-| add <channel>                        | Adds a plot.|
-| del <channel or index>               | Removes a plot.|
-| min <channel or index> <value>       | Sets plot minimum value.|
-| max <channel or index> <value>       | Sets plot maximum value.|
-| range <channel or index> <min> <max> | Sets plot range.|
-| log <channel or index> <value>       | Value TRUE/FALSE sets plot logarithmic/linear.|
-| color <channel or index> <color>     | Sets plot color: R,G,B or colorname.|
-| span <time in seconds>               | Sets plot time span.|
-| poll <time in seconds>               | Sets channel update interval - 0 for monitored.|
-| redraw <time in seconds>             | Sets plot redraw interval.|
+| Command                                | Description |
+| :------------------------------------- | :---------- |
+| `add <channel>`                        | Adds a plot.|
+| `del <channel or index>`               | Removes a plot.|
+| `min <channel or index> <value>`       | Sets plot minimum value.|
+| `max <channel or index> <value>`       | Sets plot maximum value.|
+| `range <channel or index> <min> <max>` | Sets plot range.|
+| `log <channel or index> <value>`       | Value TRUE/FALSE sets plot logarithmic/linear.|
+| `color <channel or index> <color>`     | Sets plot color: R,G,B or colorname.|
+| `span <time in seconds>`               | Sets plot time span.|
+| `poll <time in seconds>`               | Sets channel update interval - 0 for monitored.|
+| `redraw <time in seconds>`             | Sets plot redraw interval.|
