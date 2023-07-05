@@ -121,8 +121,8 @@ https://epics.anl.gov/EpicsDocumentation/ExtensionsManuals/StripTool/StripTool.h
 
 | Environment Variable                 | Description |
 | :----------------------------------- | :---------- |
-| STRIP_SITE_DEFAULTS                  | The full path name of a site application defaults file.|
-| STRIP_FILE_SEARCH_PATH               | The search path for finding configuration files that are specified on the command line.|
+| `STRIP_SITE_DEFAULTS `               | The full path name of a site application defaults file.|
+| `STRIP_FILE_SEARCH_PATH`             | The search path for finding configuration files that are specified on the command line.|
  
 
 
