@@ -68,7 +68,7 @@ Launch the application typing:
 
 <br/>
 
-If the '-l' options is set, then the last argument is a list of channels to be displayed, and not a file name:
+If the '-l' options is set then the last argument is a list of channels to be displayed and not a file name:
  ```
  java -jar jstriptool-<version>-fat.jar <startup options...> -l \"<channel_1> <channel_2> ...\"
  ```  
@@ -118,6 +118,7 @@ The following environment variables are supported, as described in
 https://epics.anl.gov/EpicsDocumentation/ExtensionsManuals/StripTool/StripTool.html#Environment:
 
 <br/>
+
 | Environment Variable                 | Description |
 | :----------------------------------- | :---------- |
 | STRIP_SITE_DEFAULTS                  | The full path name of a site application defaults file.|
@@ -130,6 +131,7 @@ https://epics.anl.gov/EpicsDocumentation/ExtensionsManuals/StripTool/StripTool.h
 Commands can be used to configure the plots, through the command line interface or with the "-cmd" startup option.
 
 <br/>
+
 | Command                              | Description |
 | :----------------------------------- | :---------- |
 | add <channel>                        | Adds a plot.|
