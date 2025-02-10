@@ -10,6 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.EventObject;
 import java.util.concurrent.TimeUnit;
 import javax.swing.AbstractCellEditor;
@@ -25,6 +26,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import org.epics.ca.Channel;
 import org.epics.ca.Context;
@@ -151,9 +153,11 @@ public class ConfigFrame extends javax.swing.JFrame {
 
         TableColumn colMin = tableSeries.getColumnModel().getColumn(COLUMN_MIN);
         colMin.setPreferredWidth(PREFERRED_WIDTHS[COLUMN_MIN]);
+        colMin.setCellRenderer(new ScientificNotationRenderer());
 
         TableColumn colMax = tableSeries.getColumnModel().getColumn(COLUMN_MAX);
         colMax.setPreferredWidth(PREFERRED_WIDTHS[COLUMN_MAX]);
+        colMax.setCellRenderer(new ScientificNotationRenderer());
 
         TableColumn colUnits = tableSeries.getColumnModel().getColumn(COLUMN_UNITS);
         colUnits.setPreferredWidth(PREFERRED_WIDTHS[COLUMN_UNITS]);
@@ -226,6 +230,22 @@ public class ConfigFrame extends javax.swing.JFrame {
 
     }
 
+    static class ScientificNotationRenderer extends DefaultTableCellRenderer {
+        private static final DecimalFormat SCI_FORMAT = new DecimalFormat("0.0E0");
+        @Override
+        protected void setValue(Object value) {
+            if ((value instanceof Number) && (Math.abs(((Number)value).doubleValue())<0.001) 
+                                          && (Math.abs(((Number)value).doubleValue())>0)) {
+                double number = ((Number) value).doubleValue();
+                if ((Math.abs(number)<0.001) && (Math.abs(number) > 1.e-24)){
+                    setText(SCI_FORMAT.format(number));  // Format as scientific notation
+                    return;
+                }
+            } 
+            setText(value.toString());  // Default behavior
+        }
+    }
+    
     void clear() {
         config = App.defaultConfig == null ? new Config() : App.defaultConfig.clone();
         file = null;
