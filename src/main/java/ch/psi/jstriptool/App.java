@@ -258,6 +258,11 @@ public class App {
             System.exit(0);
         };
         
+        // Otherwise org.epics:ca on Java 21 uses IPv6
+        if (!hasArgument("ipv6")) {
+            System.setProperty("java.net.preferIPv4Stack", "true");        
+        }
+        
         //Console log level is warning, unless otherwise specified
         Level consoleLogLevel = Level.WARNING;        
         try{
