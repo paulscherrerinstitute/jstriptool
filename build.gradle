@@ -86,15 +86,12 @@ dependencies {
 
 def app_name = project.name
 def app_path = '/opt/' + project.name + "/" + version
-def jar_file = app_path + '/lib/' + fatJar.archiveFileName
+def jarFileName = fatJar.archiveFileName.get()
+def jarFilePath = "${app_path}/lib/${jarFileName}"
 def sys_bin ='/usr/local/bin/'
 def sys_lib ='/usr/local/lib/'
 
 task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
-    //Commented as is being executed in clean+build
-    //dependsOn 'clean' 
-    //dependsOn 'fatJar' 
-
     packageName project.name
     requires 'java-11-openjdk'
     release = 1
@@ -130,14 +127,12 @@ task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
         into 'bin'
         //Add version to startup script name
         rename { String fileName ->
-            if (fileName == "startup"){
-                app_name + "_" + version
-            }
+            fileName == "startup" ? "${app_name}_${version}" : fileName
         }
         expand([
             "app_name": app_name,
             "app_version": version,
-            "jar_file": jar_file
+            "jar_file": jarFilePath
         ])
         fileMode 0755
     }
