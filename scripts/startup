@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Find the latest Java in /usr/lib/jvm/
 #JAVA_HOME=\$(ls -d /usr/lib/jvm/jre-* 2>/dev/null | sort -V | tail -n 1)
