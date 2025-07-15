@@ -5,7 +5,7 @@ plugins {
 }
 
 
-version = '1.3.3' 
+version = '1.3.4' 
 group = 'ch.psi'
 ext.timestamp = new Date().format("yyMMddHHmm")
 
@@ -92,6 +92,14 @@ def sys_bin ='/usr/local/bin/'
 def sys_lib ='/usr/local/lib/'
 
 task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
+        doFirst {
+            def rpmFile = archiveFile.get().asFile
+            if (rpmFile.exists()) {
+                //Workaround to nebula plugin bug: must first remove old RPMs otherwise the payload digest is corrupted.
+                rpmFile.delete()
+            }
+        }            
+                
     packageName project.name
     requires 'java-11-openjdk'
     release = 1
@@ -99,7 +107,7 @@ task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
     arch 'noarch'
     os LINUX
 
-    // Metadata for "rpm -qi"
+    // Metadata for "rpm -qi"    
     summary = 'A Java port of EPICS Strip Tool'
     url = 'https://github.com/paulscherrerinstitute/jstriptool'
     vendor = 'Paul Scherrer Institute' 
