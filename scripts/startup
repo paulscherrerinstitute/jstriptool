@@ -1,10 +1,6 @@
 #!/bin/sh
 
-# Find the latest Java in /usr/lib/jvm/
-#JAVA_HOME=\$(ls -d /usr/lib/jvm/jre-* 2>/dev/null | sort -V | tail -n 1)
-# Find the latest Java version (11+), ignoring Java 8 (`jre-openjdk`)
-JAVA_HOME=\$(ls -d /usr/lib/jvm/jre-* 2>/dev/null | grep -E 'jre-[1-9][1-9]' | sort -V | tail -n 1)
-
+JAVA_HOME="/usr/lib/jvm/java-${app_jdk}-openjdk"
 
 # If JAVA_HOME is found, use its java binary; otherwise, fall back to system java
 if [ -x "\$JAVA_HOME/bin/java" ]; then
@@ -14,4 +10,4 @@ else
 fi
 
 # Run the JAR with all passed arguments
-exec "\$JAVA_CMD" -jar ${jar_file} "\$@"
+exec "\$JAVA_CMD" -jar ${jar_file} \$JSTRIPCHART_ARGS "\$@"

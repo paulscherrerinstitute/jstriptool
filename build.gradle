@@ -1,13 +1,14 @@
 plugins {
     id 'java-library'
     id "maven-publish"
-    id 'com.netflix.nebula.rpm' version '11.6.0'
+    id("com.netflix.nebula.rpm") version "11.11.2"
 }
 
 
-version = '1.3.4' 
+version = '1.4.0' 
 group = 'ch.psi'
 ext.timestamp = new Date().format("yyMMddHHmm")
+ext.app_jdk = '21'
 
 java {
     sourceCompatibility = '1.11'
@@ -90,8 +91,10 @@ def jarFileName = fatJar.archiveFileName.get()
 def jarFilePath = "${app_path}/lib/${jarFileName}"
 def sys_bin ='/usr/local/bin/'
 def sys_lib ='/usr/local/lib/'
+def bin_file_name = "${app_name}-" + version
 
 task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
+    def jdk = app_jdk.toString()
         doFirst {
             def rpmFile = archiveFile.get().asFile
             if (rpmFile.exists()) {
@@ -101,11 +104,12 @@ task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
         }            
                 
     packageName project.name
-    requires 'java-11-openjdk'
+    requires 'java-' + jdk.toString() + '-openjdk'
     release = 1
     //version '1.0.0'    
     arch 'noarch'
     os LINUX
+    reproducibleFileOrder = true
 
     // Metadata for "rpm -qi"    
     summary = 'A Java port of EPICS Strip Tool'
@@ -117,7 +121,7 @@ task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
   
     user='root'
     permissionGroup 'root'
-    addParentDirs false
+    addParentDirs true
 
     directory(app_path, 755)
     directory(app_path + '/lib', 755)
@@ -127,7 +131,7 @@ task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
 
     from ('build/libs') {
         into 'lib'
-        //include fatJar.archiveFileName
+        include jarFileName
         fileMode 0644
     }
 
@@ -135,18 +139,19 @@ task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
         into 'bin'
         //Add version to startup script name
         rename { String fileName ->
-            fileName == "startup" ? "${app_name}_${version}" : fileName
+            fileName == "startup" ? bin_file_name : fileName
         }
         expand([
             "app_name": app_name,
             "app_version": version,
+            "app_jdk": jdk,
             "jar_file": jarFilePath
         ])
         fileMode 0755
     }
 
-    link(sys_bin + app_name + "_" + version, app_path + '/bin/' + app_name + "_" + version)   
-    link(sys_bin + app_name, sys_bin + app_name + "_" + version)   
+    link(sys_bin + bin_file_name, app_path + '/bin/' + bin_file_name)   
+    link(sys_bin + app_name, sys_bin + bin_file_name)   
 }
 
 publishing {
