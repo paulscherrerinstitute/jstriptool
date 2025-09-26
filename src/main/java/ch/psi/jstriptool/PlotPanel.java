@@ -9,6 +9,7 @@ import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -499,10 +500,11 @@ public class PlotPanel extends javax.swing.JPanel {
         saveData(filename, isSparse());
     }
 
-    public void saveData(String filename, boolean sparse) throws IOException {
-        String data = getDataAsString();
-        if (data != null) {
-            Files.write(Paths.get(filename), data.getBytes());
+    public void saveData(String filename, boolean sparse) throws IOException {        
+        try (FileWriter writer = new FileWriter(filename, false)) {
+            saveData(writer, sparse);
+        } catch (IOException ex) {
+            SwingUtils.showException(this, ex);
         }
     }
 
@@ -516,13 +518,11 @@ public class PlotPanel extends javax.swing.JPanel {
         sparse = value;
     }
 
-    protected String getDataAsString() {
-        StringBuilder str = new StringBuilder(1024);
-
+    protected void saveData(FileWriter writer, boolean sparse) throws IOException {
         if (isSparse()) {
             for (int i = 0; i < series.size(); i++) {
                 List<TimestampedValue<Double>> values = getSeriesData(i);
-                str.append("#Series: ").append(getSeriesName(i)).append(LINE_SEPARATOR);
+                writer.append("#Series: ").append(getSeriesName(i)).append(LINE_SEPARATOR);
                 Double last = null;
                 for (TimestampedValue<Double> item : values) {
                     Double val = item.getValue();
@@ -531,23 +531,23 @@ public class PlotPanel extends javax.swing.JPanel {
                     }
                     if (!val.equals(last)) {
                         last = val;
-                        str.append(new SimpleDateFormat("dd/MM/YY HH:mm:ss.SSS ").format(item.getTimestamp()));
-                        str.append(String.valueOf(val));
-                        str.append(LINE_SEPARATOR);
+                        writer.append(new SimpleDateFormat("dd/MM/YY HH:mm:ss.SSS ").format(item.getTimestamp()));
+                        writer.append(String.valueOf(val));
+                        writer.append(LINE_SEPARATOR);
                     }
                 }
-                str.append(LINE_SEPARATOR);
+                writer.append(LINE_SEPARATOR);
             }
         } else {
             //Header
             int numSeries = series.size();
-            str.append("Time").append(FIELD_SEPARATOR);
+            writer.append("Time").append(FIELD_SEPARATOR);
             for (int i = 0; i < numSeries; i++) {
-                str.append(series.get(i).plotSeries.name)
+                writer.append(series.get(i).plotSeries.name)
                         .append(" [").append(series.get(i).plotSeries.units).append("]").
                         append(FIELD_SEPARATOR);
             }
-            str.append(LINE_SEPARATOR);
+            writer.append(LINE_SEPARATOR);
 
             List<List<TimestampedValue<Double>>> values = new ArrayList<>();
             String[] format = new String[numSeries];
@@ -575,17 +575,16 @@ public class PlotPanel extends javax.swing.JPanel {
                 }
                 if (!Arrays.equals(last, record)) {
                     last = record;
-                    str.append(new SimpleDateFormat("dd/MM/YY HH:mm:ss.SSS").format(values.get(0).get(i).getTimestamp()));
-                    str.append(FIELD_SEPARATOR);
+                    writer.append(new SimpleDateFormat("dd/MM/YY HH:mm:ss.SSS").format(values.get(0).get(i).getTimestamp()));
+                    writer.append(FIELD_SEPARATOR);
                     for (int j = 0; j < record.length; j++) {
-                        str.append(series.get(j).plotSeries.toString(record[j], false, false, false)).append(FIELD_SEPARATOR);
+                        writer.append(series.get(j).plotSeries.toString(record[j], false, false, false)).append(FIELD_SEPARATOR);
                     }
-                    str.append(LINE_SEPARATOR);
+                    writer.append(LINE_SEPARATOR);
                 }
 
             }
         }
-        return str.toString();
     }
 
     int axisSize = -1;
