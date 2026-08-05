@@ -6,15 +6,15 @@ JAVA_HOME="/usr/lib/jvm/java-${app_jdk}-openjdk"
 if [ -x "\$JAVA_HOME/bin/java" ]; then
     JAVA_CMD="\$JAVA_HOME/bin/java"
 else
-    JAVA_DIR=$(
+    JAVA_DIR=\$(
         ls -d /usr/lib/jvm/java-* /usr/lib/jvm/jre-* 2>/dev/null \
         | grep -E '/(java|jre)-([9]|[1-9][0-9]+)' \
         | sort -V \
         | tail -n 1
     )
 
-    if [ -n "$JAVA_DIR" ] && [ -x "$JAVA_DIR/bin/java" ]; then
-        JAVA_CMD="$JAVA_DIR/bin/java"
+    if [ -n "\$JAVA_DIR" ] && [ -x "\$JAVA_DIR/bin/java" ]; then
+        JAVA_CMD="\$JAVA_DIR/bin/java"
     else
         JAVA_CMD="java"
     fi
