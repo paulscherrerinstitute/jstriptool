@@ -14,14 +14,9 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import org.epics.ca.Channel;
-import org.epics.ca.Context;
-import org.epics.ca.Monitor;
 import org.epics.ca.data.AlarmSeverity;
 import org.epics.ca.data.Timestamped;
 
@@ -55,13 +50,13 @@ public class PlotFrame extends javax.swing.JFrame {
         
         //Not implemented
         buttonRedraw.setVisible(false);
-        //buttonMode.setVisible(false);
     }
 
     PlotPanel getPlot() {
         return plotPanel;
     }
-
+        
+    
     void addSeries(Curve c, Color color, int index) {
         numberOfSeries++;
         PlotSeries series = PlotSeries.create(c, color, config.graphLineWidth, config.numSamples);
@@ -70,36 +65,29 @@ public class PlotFrame extends javax.swing.JFrame {
         panelSeriesSet.addSeries(series);
         repaint();
 
-        if (!App.isSimulated()) {
-            Channel<Double> channel = ((c.name!=null) && (!c.name.isEmpty())) ? context.createChannel(c.name, Double.class) : null;
-            if (channel!=null){
-                //channel.connect();
-                channel.connectAsync().handle((ret, ex) -> {
-                    Logger.getLogger(App.class.getName()).fine("Connected to channel: " + c.name);
+        if (!App.isSimulated()) 
+        {            
+            Pv pv = new Pv(c.name){
+                protected void onConnection(){
                     series.setConnected();
                     if (!blocking) {
                         if (c.isEnabled()) {
-                            updateAsync(channel);
+                            updateAsync(this);
                         }
-                        Monitor<Timestamped<Double>> monitor = channel.addMonitor(Timestamped.class, timestampedValue -> {
-                            if (timestampedValue != null) {
-                                if (c.isEnabled()) {
-                                    cache.put(channel, timestampedValue);
-                                    if (config.sampleInterval <= 0) {
-                                        addValue();
-                                    }
-                                }
+                        this.addMonitor((value)->{
+                            cache.put(this, value);
+                            if (config.sampleInterval <= 0) {
+                                addValue();
                             }
+                            
                         });
                     }
-                    return ret;
-                });
-            }
-            cache.put(channel, toTimestamped(Double.NaN, null));
-            //channel.connect();
-            
+                                
+                }
+            };
+            cache.put(pv, Pv.toTimestamped(Double.NaN, null));
             synchronized (channels) {
-                channels.add(channel);
+                channels.add(pv);
             }
         }
     }
@@ -113,13 +101,12 @@ public class PlotFrame extends javax.swing.JFrame {
         panelSeriesSet.removeSeries(index);
         repaint();
         if (!App.isSimulated()) {
-            Channel channel = null;
+            Pv channel = null;
             synchronized (channels) {
                 channel = channels.get(index);
                 channels.remove(index);
             }
             if (channel != null) {
-                Logger.getLogger(App.class.getName()).fine("Disconnected channel: " + channel.getName());
                 channel.close();
             }
         }
@@ -160,9 +147,8 @@ public class PlotFrame extends javax.swing.JFrame {
     Timer redrawTimer;
     //java.util.Timer sampleTimer;
     ScheduledExecutorService sampleScheduler;
-    Context context;
-    final List<Channel<Double>> channels = new ArrayList<>();
-    final Map<Channel<Double>, Timestamped<Double>> cache = new HashMap<>();
+    final List<Pv> channels = new ArrayList<>();
+    final Map<Pv, Timestamped<Double>> cache = new HashMap<>();
     //final ArrayList<Timestamped<Timestamped<Double>[]>> valueList = new ArrayList<>(); //Retain IOC time
     final ArrayList<Timestamped<double[]>> valueList = new ArrayList<>();
     volatile Config config;
@@ -170,10 +156,6 @@ public class PlotFrame extends javax.swing.JFrame {
 
     void start() {
         stop();
-        if (!App.isSimulated()) {
-            Logger.getLogger(App.class.getName()).fine("Creating EPICS context");
-            context = new Context(App.getCaProperties());
-        }
         config = App.configFrame.config;
         numberOfSeries = 0;
         //Anti-aliasing
@@ -275,11 +257,12 @@ public class PlotFrame extends javax.swing.JFrame {
                     try {
                         if (blocking) {
                             if (config.curves[i].isEnabled()){
-                                values[i] = channels.get(i).getAsync().get(1, TimeUnit.SECONDS);
+                                values[i] = channels.get(i).readValue().getValue();
+                                
                             } else {
                                 values[i] = Double.NaN;
                             }
-                        } else {
+                        } else {                         
                             Timestamped<Double> t = cache.get(channels.get(i));
                             values[i] = (hideInvalid && (t.getAlarmSeverity() == AlarmSeverity.INVALID_ALARM)) ? Double.NaN: t.getValue();
                         }
@@ -289,7 +272,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 }
             }
 
-            Timestamped<double[]> tv = toTimestamped(values, millis);
+            Timestamped<double[]> tv = Pv.toTimestamped(values, millis);
 
             synchronized (valueList) {
                 valueList.add(tv);
@@ -301,19 +284,6 @@ public class PlotFrame extends javax.swing.JFrame {
         }
     }
 
-    Timestamped toTimestamped(Object obj, Long millis) {
-        Timestamped tv = new Timestamped();
-        //Timestamped<Timestamped<Double>[]> tv = new Timestamped<>(); //Retain IOC time}
-        tv.setValue(obj);
-        if (obj != null){
-            tv.setAlarmSeverity(AlarmSeverity.NO_ALARM);
-        }
-        if (millis != null) {
-            tv.setSeconds((long) (millis / 1e3));
-            tv.setNanos((int) ((millis % 1e3) * 1e6));
-        }
-        return tv;
-    }
     int counterSample;
 
     void plotValues() {
@@ -370,10 +340,6 @@ public class PlotFrame extends javax.swing.JFrame {
             redrawTimer.stop();
             redrawTimer = null;
         }
-        if (context != null) {
-            context.close();
-            Logger.getLogger(App.class.getName()).fine("Closed EPICS context");
-        }
         synchronized (channels) {
             channels.clear();
         }
@@ -394,13 +360,13 @@ public class PlotFrame extends javax.swing.JFrame {
         return (config != null) && (getSeriesCount() > 0);
     }
     
-    void updateAsync(Channel channel){
-        channel.getAsync(Timestamped.class).handle((value, ex) -> {
+    void updateAsync(Pv channel){
+        channel.getAsync().handle((value, ex) -> {
             if (ex == null) {
-                    cache.put(channel, (Timestamped)value);
-                }
-            return value;
-        });    
+                cache.put(channel, value);
+            }
+            return value;            
+        });
     }
 
     public void setEnabled(int index, boolean value) {
@@ -412,7 +378,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 } else {
                     Timestamped<Double> tv = new Timestamped<>();
                     tv.setValue(Double.NaN);
-                    cache.put(channels.get(index), toTimestamped(Double.NaN, null));
+                    cache.put(channels.get(index), Pv.toTimestamped(Double.NaN, null));
                 }
             }
         }

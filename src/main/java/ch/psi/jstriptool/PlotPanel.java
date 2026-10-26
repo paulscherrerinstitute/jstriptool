@@ -184,7 +184,7 @@ public class PlotPanel extends javax.swing.JPanel {
                 for (int i = 0; i < getNumberOfSeries(); i++) {
                     ValueAxis axis = plot.getRangeAxis(i);
                     Range range = getSeriesInfo(i).getRange();
-                    if (range != null) {
+                    if ((range != null) && (range.getUpperBound() > range.getLowerBound())) {
                         axis.setRangeWithMargins(range);
                     } else {
                         axis.setAutoRange(true);

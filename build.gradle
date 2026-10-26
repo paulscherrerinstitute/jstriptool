@@ -1,75 +1,92 @@
 plugins {
     id 'java-library'
-    id "maven-publish"
-    id("com.netflix.nebula.rpm") version "11.11.2"
+    id 'maven-publish'
+    id 'com.netflix.nebula.rpm' version '11.11.2'
 }
 
-
-version = '1.4.2' 
+version = '2.0.0'
 group = 'ch.psi'
 ext.timestamp = new Date().format("yyMMddHHmm")
 ext.app_jdk = '21'
 
 java {
-    sourceCompatibility = '1.11'
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
 
-
-if (!hasProperty('mainClass')) {
+if (!project.hasProperty('mainClass')) {
     ext.mainClass = 'ch.psi.jstriptool.App'
 }
 ext.main_class = ext.mainClass
 
-if (!hasProperty('runArgs')) {
-    ext.arguments = ''
+if (!project.hasProperty('runArgs')) {
+    ext.arguments = []
 } else {
-    ext.arguments = runArgs.split (" ")
-} 
-
-task(debug, dependsOn: 'classes', type: JavaExec) {      
-    mainClass = main_class
-    classpath = sourceSets.main.runtimeClasspath
-    args arguments
-    ignoreExitValue = true
-    debug true
+    ext.arguments = runArgs.split(' ')
 }
 
-task(run, dependsOn: 'classes', type: JavaExec) {      
-    mainClass = main_class
+tasks.register('debug', JavaExec) {
+    dependsOn classes
+
+    mainClass = project.ext.main_class
     classpath = sourceSets.main.runtimeClasspath
-    args arguments 
+    args project.ext.arguments
     ignoreExitValue = true
-    debug false
+    debug = true
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveClassifier = 'sources'
+tasks.register('run', JavaExec) {
+    dependsOn classes
+
+    mainClass = project.ext.main_class
+    classpath = sourceSets.main.runtimeClasspath
+    args project.ext.arguments
+    ignoreExitValue = true
+    debug = false
+}
+
+tasks.register('sourcesJar', Jar) {
+    dependsOn classes
+
+    archiveClassifier.set('sources')
     from sourceSets.main.allSource
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    archiveClassifier = 'javadoc'
-    from javadoc.destinationDir
+tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
+
+    archiveClassifier.set('javadoc')
+    from javadoc
 }
 
-task fatJar(type: Jar, dependsOn: jar) {
-    archiveClassifier = 'fat'
-    duplicatesStrategy = 'exclude'  
+tasks.register('fatJar', Jar) {
+    dependsOn jar
+
+    archiveClassifier.set('fat')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     manifest {
-        attributes (
-            'Main-Class': mainClass,
-            'Implementation-Version': version,
-            'Build-Time': timestamp,
-            //,'Class-Path': configurations.compile.collect { it.getName() }.join(' ')
+        attributes(
+            'Main-Class': project.ext.mainClass,
+            'Implementation-Version': project.version,
+            'Build-Time': project.ext.timestamp
         )
-    }    
-    doFirst {
-        from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } 
     }
-    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'     
-        
+
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+
     with jar
 }
 
@@ -79,57 +96,67 @@ repositories {
 
 dependencies {
     implementation 'org.epics:ca:1.3.2'
+    implementation 'org.phoebus:core-pva:5.0.5'
     implementation 'org.apache.commons:commons-lang3:3.9'
     implementation 'org.jfree:jfreechart:1.0.19'
     implementation 'com.formdev:flatlaf:1.6'
-    testImplementation group: 'junit', name: 'junit', version: '4.10'
+
+    testImplementation 'junit:junit:4.10'
 }
 
 def app_name = project.name
-def app_path = '/opt/' + project.name + "/" + version
-def jarFileName = fatJar.archiveFileName.get()
-def jarFilePath = "${app_path}/lib/${jarFileName}"
-def sys_bin ='/usr/local/bin/'
-def sys_lib ='/usr/local/lib/'
-def bin_file_name = "${app_name}-" + version
+def app_path = "/opt/${project.name}/${version}"
 
-task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
-    def jdk = app_jdk.toString()
-        doFirst {
-            def rpmFile = archiveFile.get().asFile
-            if (rpmFile.exists()) {
-                //Workaround to nebula plugin bug: must first remove old RPMs otherwise the payload digest is corrupted.
-                rpmFile.delete()
-            }
-        }            
-                
-    packageName project.name
-    requires 'java-' + jdk.toString() + '-openjdk'
+def jarFileName = tasks.named('fatJar', Jar).get().archiveFileName.get()
+def jarFilePath = "${app_path}/lib/${jarFileName}"
+
+def sys_bin = '/usr/local/bin/'
+def sys_lib = '/usr/local/lib/'
+def bin_file_name = "${app_name}-${version}"
+
+tasks.register('generateRpm', Rpm) {
+    dependsOn tasks.named('fatJar')
+    dependsOn tasks.named('sourcesJar')
+
+    def jdk = project.ext.app_jdk.toString()
+
+    doFirst {
+        def rpmFile = archiveFile.get().asFile
+
+        if (rpmFile.exists()) {
+            // Workaround to Nebula plugin bug:
+            // must first remove old RPMs otherwise the payload digest is corrupted.
+            rpmFile.delete()
+        }
+    }
+
+    packageName = project.name
+    requires "java-${jdk}-openjdk"
+
     release = 1
-    //version '1.0.0'    
     arch 'noarch'
     os LINUX
     reproducibleFileOrder = true
 
-    // Metadata for "rpm -qi"    
+    // Metadata for rpm -qi
     summary = 'A Java port of EPICS Strip Tool'
     url = 'https://github.com/paulscherrerinstitute/jstriptool'
-    vendor = 'Paul Scherrer Institute' 
+    vendor = 'Paul Scherrer Institute'
     license = 'GPL'
     packageGroup = 'Applications'
     packageDescription = 'This tool is used for plotting time series data from EPICS control systems.'
-  
-    user='root'
+
+    user = 'root'
     permissionGroup 'root'
-    addParentDirs true
+    addParentDirs = true
 
     directory(app_path, 755)
-    directory(app_path + '/lib', 755)
-    directory(app_path + '/bin', 755)
-    
-    into app_path  
+    directory("${app_path}/lib", 755)
+    directory("${app_path}/bin", 755)
 
-    from ('build/libs') {
+    into app_path
+
+    from('build/libs') {
         into 'lib'
         include jarFileName
         fileMode 0644
@@ -137,30 +164,35 @@ task generateRpm(type: Rpm, dependsOn: [fatJar,sourcesJar]) {
 
     from('scripts') {
         into 'bin'
-        //Add version to startup script name
+
+        // Add version to startup script name
         rename { String fileName ->
-            fileName == "startup" ? bin_file_name : fileName
+            fileName == 'startup' ? bin_file_name : fileName
         }
-        expand([
-            "app_name": app_name,
-            "app_version": version,
-            "app_jdk": jdk,
-            "jar_file": jarFilePath
-        ])
+
+        expand(
+            app_name: app_name,
+            app_version: version,
+            app_jdk: jdk,
+            jar_file: jarFilePath
+        )
+
         fileMode 0755
     }
 
-    link(sys_bin + bin_file_name, app_path + '/bin/' + bin_file_name)   
-    link(sys_bin + app_name, sys_bin + bin_file_name)   
+    link(sys_bin + bin_file_name,app_path + '/bin/' + bin_file_name)
+
+    link(sys_bin + app_name,sys_bin + bin_file_name)
 }
 
 publishing {
     repositories {
         maven {
             credentials {
-                username artifactoryUser 
-                password artifactoryPwd
+                username = artifactoryUser
+                password = artifactoryPwd
             }
+
             url = artifactoryUrlRel
         }
     }
@@ -168,15 +200,15 @@ publishing {
     publications {
         MyPublication(MavenPublication) {
             from components.java
-            artifact sourcesJar
-            //artifact javadocJar
-            artifact generateRpm
-            artifact fatJar
-            groupId group
-            artifactId project.name
-            version version
+
+            artifact tasks.named('sourcesJar')
+            // artifact tasks.named('javadocJar')
+            artifact tasks.named('generateRpm')
+            artifact tasks.named('fatJar')
+
+            groupId = project.group
+            artifactId = project.name
+            version = project.version
         }
     }
 }
-
-

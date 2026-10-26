@@ -33,12 +33,19 @@ import org.epics.ca.impl.ProtocolConfiguration;
  */
 public class App {
 
+    public enum Protocol{
+        CA,
+        PVA
+    }
+
     private static String[] arguments;
     private static Properties caProperties;
     private static List<String> path = new ArrayList<>();
     static Config defaultConfig;
     static boolean simulated;
-
+    static Protocol defaultProtocol = Protocol.CA;
+    static int timeout = 1000;
+    
     //Arguments
     static public String[] getArguments() {
         return arguments;
@@ -211,6 +218,21 @@ public class App {
         }
         System.out.println("\n");
     }
+    
+    enum PvaArgument {
+        EPICS_PVA_ADDR_LIST,
+        EPICS_PVA_AUTO_ADDR_LIST,
+        EPICS_PVA_NAME_SERVERS,
+        EPICS_PVA_SERVER_PORT,
+        EPICS_PVAS_TLS_PORT,
+        EPICS_PVAS_INTF_ADDR_LIST,
+        EPICS_PVA_BROADCAST_PORT ,
+        EPICS_PVAS_BROADCAST_PORT,
+        EPICS_PVA_CONN_TMO,
+        EPICS_PVA_TCP_SOCKET_TMO,
+        EPICS_PVA_MAX_ARRAY_FORMATTING,
+        EPICS_PVAS_TLS_KEYCHAIN
+    }
 
     static void printHelpMessage() {
         System.out.println("Usage: jstriptool [-arg[=value]] filename");
@@ -240,9 +262,17 @@ public class App {
         System.out.println("\t\t\t  redraw <time in seconds>         (set plot redraw interval)");
         System.out.println("\t\t\tCommands can be entered in the CLI using the same format");
         System.out.println("\nEPICS CA arguments: ");
-        for (ProtocolConfiguration.PropertyNames cfg : ProtocolConfiguration.PropertyNames.values()) {
-            System.out.println("\t-" + cfg.toString() + "=<value>");
+        for (ProtocolConfiguration.PropertyNames option : ProtocolConfiguration.PropertyNames.values()) {
+            System.out.println("\t-" + option.toString() + "=<value>");
         }
+        System.out.println("\nEPICS PVA arguments: ");
+        for (PvaArgument option : PvaArgument.values()) {
+            System.out.println("\t-" + option.toString() + "=<value>");
+        }
+        System.out.println("\t-protocol=<name>\tSupported values: ca or pva -default: " + defaultProtocol.toString().toLowerCase());
+        System.out.println("\t-timeout=<value>\tTimeout in milliseconds - default: " + timeout);        
+        
+        
         System.out.println("\nEnvironmennt variables: ");
         System.out.println("\tSTRIP_SITE_DEFAULTS");
         System.out.println("\tSTRIP_FILE_SEARCH_PATH");
@@ -260,19 +290,21 @@ public class App {
         
         // Otherwise org.epics:ca on Java 21 uses IPv6
         if (!hasArgument("ipv6")) {
-            System.setProperty("java.net.preferIPv4Stack", "true");        
+            System.setProperty("java.net.preferIPv4Stack", "true");                    
+            System.setProperty("EPICS_PVA_ENABLE_IPV6", "false");            
         }
         
         //Console log level is warning, unless otherwise specified
         Level consoleLogLevel = Level.WARNING;        
+        System.setProperty("java.util.logging.SimpleFormatter.format","%1$tF %1$tT %4$s %3$s - %5$s%6$s%n");
         try{
             consoleLogLevel = Level.parse(getArgumentValue("clog"));
         } catch (Exception ex){            
         }
         for (Handler handler : Logger.getLogger("").getHandlers()) {
             if (handler instanceof ConsoleHandler) {
-                handler.setLevel(consoleLogLevel);
-            }
+                handler.setLevel(consoleLogLevel);                
+            }           
         }
         if (!System.getProperties().contains("CA_LIBRARY_LOG_LEVEL")){
             System.getProperties().put("CA_LIBRARY_LOG_LEVEL", consoleLogLevel.toString());
@@ -280,14 +312,38 @@ public class App {
         if (!System.getProperties().contains("CA_REPEATER_LOG_LEVEL")){
             System.getProperties().put("CA_REPEATER_LOG_LEVEL", consoleLogLevel.toString());
         }
+        
+        
+        try{
+            String val = getArgumentValue("protocol");
+            if (val != null) {
+                 defaultProtocol = Protocol.valueOf(val.toUpperCase());
+            }                       
+        } catch (Exception ex){            
+        }                
+
+        try{
+            String val = getArgumentValue("timeout");
+            if (val != null) {
+                 timeout = Integer.valueOf(val);
+            }                       
+        } catch (Exception ex){            
+        }                
 
         caProperties = new Properties();
-        for (ProtocolConfiguration.PropertyNames cfg : ProtocolConfiguration.PropertyNames.values()) {
-            String val = getArgumentValue(cfg.toString());
+        for (ProtocolConfiguration.PropertyNames arg : ProtocolConfiguration.PropertyNames.values()) {
+            String val = getArgumentValue(arg.toString());
             if (val != null) {
-                caProperties.setProperty(cfg.toString(), val);
+                caProperties.setProperty(arg.toString(), val);
             }
         }
+        
+        for (PvaArgument arg : PvaArgument.values()) {
+            String val = getArgumentValue(arg.toString());
+            if (val != null) {
+                System.setProperty(arg.toString(), val);
+            }
+        }                
         
         if (isDebug()) {
             caProperties.setProperty("CA_DEBUG", "1");
@@ -522,6 +578,7 @@ public class App {
                 }
             }
         }        
+        Logger.getLogger(App.class.getName()).info("Application initialized");
     }
     
     static Object executeStatement(String statement) throws Exception{

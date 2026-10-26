@@ -1,9 +1,11 @@
 package ch.psi.jstriptool;
 
+import ch.psi.jstriptool.App.Protocol;
 import ch.psi.jstriptool.Config.Curve;
 import ch.psi.jstriptool.Config.GridVisibility;
 import ch.psi.jstriptool.Config.LabelColorAxisY;
 import ch.psi.jstriptool.Config.Scale;
+import ch.psi.jstriptool.Pv.Metadata;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
@@ -12,7 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.EventObject;
-import java.util.concurrent.TimeUnit;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
@@ -26,11 +27,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import org.epics.ca.Channel;
-import org.epics.ca.Context;
-import org.epics.ca.data.Graphic;
 
 /**
  *
@@ -247,6 +244,7 @@ public class ConfigFrame extends javax.swing.JFrame {
     }
     
     void clear() {
+        Pv.closeCa();
         config = App.defaultConfig == null ? new Config() : App.defaultConfig.clone();
         file = null;
         updateWindow();
@@ -256,7 +254,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         if (App.plotFrame != null) {
             App.plotFrame.setTitle("JStripTool");
             App.plotFrame.stop();
-        }
+        }        
     }
 
     void open(File file) throws IOException {
@@ -346,40 +344,23 @@ public class ConfigFrame extends javax.swing.JFrame {
         if (channelName.isBlank()){
             throw new Exception("Invalid channel name");
         }
-        try (Context context = new Context(App.getCaProperties())) {
-            Channel<Double> channel = context.createChannel(channelName, Double.class);
-            channel.connectAsync().get(2, TimeUnit.SECONDS);
-            Graphic g = channel.get(Graphic.class);
-            String units = g.getUnits() == null ? "" : g.getUnits();
-            Integer precision = ((Number) g.getPrecision()).intValue();
-            Double min = ((Number) g.getLowerDisplay()).doubleValue();
-            Double max = ((Number) g.getUpperDisplay()).doubleValue();
-            if (max <= min) {
-                max = min + 1;
-            }
-            //String desc = ""Config.getChannelDesc(context, channelName);
-            //Resolve description dinamically 
-            String desc = ""; 
+        Metadata metadata = Pv.readMetadata(channelName);
 
-            Object[] data = new Object[]{channelName, Boolean.TRUE, Boolean.FALSE,
-                precision, min, max, units, desc,
-                Config.getStringFromColor(config.colors[modelSeries.getRowCount()].toColor())};
-            int index = modelSeries.getRowCount();
-            //if (tableSeries.getSelectedRow() >= 0) {
-            //    index = tableSeries.getSelectedRow() + 1;
-            //    modelSeries.insertRow(tableSeries.getSelectedRow() + 1, data);
-            //} else {
-            modelSeries.addRow(data);
-            //}
-            modelSeries.fireTableDataChanged();
-            updateButtons();
-            updateColors();
-            if (!App.plotFrame.isStarted()){
-                App.plotFrame.start();
-            }
-
-            App.plotFrame.addChannel(index, channelName, true, false, precision, min, max, units, desc);
+        Object[] data = new Object[]{channelName, Boolean.TRUE, Boolean.FALSE,
+            metadata.precision(), metadata.low(), metadata.high(), metadata.units(), metadata.description(),
+            Config.getStringFromColor(config.colors[modelSeries.getRowCount()].toColor())};
+        int index = modelSeries.getRowCount();
+        modelSeries.addRow(data);
+        //}
+        modelSeries.fireTableDataChanged();
+        updateButtons();
+        updateColors();
+        if (!App.plotFrame.isStarted()){
+            App.plotFrame.start();
         }
+
+        App.plotFrame.addChannel(index, channelName, true, false,
+                metadata.precision(), metadata.low(), metadata.high(), metadata.units(), metadata.description());                    
     }
     
     public void removeChannel(int index) throws Exception{

@@ -1,5 +1,6 @@
 package ch.psi.jstriptool;
 
+import ch.psi.jstriptool.Pv.Metadata;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
@@ -11,12 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
-import org.epics.ca.Channel;
-import org.epics.ca.Context;
-import org.epics.ca.data.Graphic;
 
 /**
  *
@@ -369,33 +366,21 @@ public class Config {
 
     public void load(String[] channels) throws Exception {
         timespan = 20 * 60;
-        try (Context context = new Context(App.getCaProperties())) {
-            for (int i = 0; i < channels.length; i++) {
-                if ((channels[i]!=null) && !channels[i].isBlank()){
-                    curves[i] = new Curve();
-                    String channelName = channels[i].trim();
-                    curves[i].name = channelName;
-                    try {
-                        Channel<Double> channel = context.createChannel(channelName, Double.class);
-                        channel.connectAsync().get(2, TimeUnit.SECONDS);
-                        Graphic g = channel.get(Graphic.class);
-                        String units = g.getUnits() == null ? "" : g.getUnits();
-                        Integer precision = ((Number) g.getPrecision()).intValue();
-                        Double min = ((Number) g.getLowerDisplay()).doubleValue();
-                        Double max = ((Number) g.getUpperDisplay()).doubleValue();
-                        if (max <= min) {
-                            max = min + 1;
-                        }
-
-                        curves[i].min = min;
-                        curves[i].max = max;
-                        curves[i].comment = "";
-                        curves[i].precision = precision;
-                        curves[i].units = units;
-                        curves[i].plotStatus = true;
-                    } catch (Exception ex) {
-                        curves[i].plotStatus = false;
-                    }
+        for (int i = 0; i < channels.length; i++) {
+            if ((channels[i]!=null) && !channels[i].isBlank()){
+                curves[i] = new Curve();
+                String channelName = channels[i].trim();
+                curves[i].name = channelName;
+                try {
+                    Metadata metadata = Pv.readMetadata(channelName);
+                    curves[i].min = metadata.low();
+                    curves[i].max = metadata.high();
+                    curves[i].comment = metadata.description();
+                    curves[i].precision = metadata.precision();
+                    curves[i].units = metadata.units();
+                    curves[i].plotStatus = true;
+                } catch (Exception ex) {
+                    curves[i].plotStatus = false;
                 }
             }
         }
@@ -518,16 +503,6 @@ public class Config {
         return config;
     }
 
-    public static String getChannelDesc(Context context, String channelName) {
-        String desc = "";
-        try {
-            Channel<String> channelDesc = context.createChannel(channelName + ".DESC", String.class);
-            channelDesc.connectAsync().get(2, TimeUnit.SECONDS);
-            desc = channelDesc.get();
-        } catch (Exception ex) {
-        }
-        return desc;
-    }
 
     public static void main(String[] args) throws IOException {
         Config config = new Config();
