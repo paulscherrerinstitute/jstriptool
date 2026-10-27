@@ -1,6 +1,5 @@
 package ch.psi.jstriptool;
 
-import ch.psi.jstriptool.Pv.Metadata;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
@@ -372,7 +371,7 @@ public class Config {
                 String channelName = channels[i].trim();
                 curves[i].name = channelName;
                 try {
-                    Metadata metadata = Pv.readMetadata(channelName);
+                    ChannelMetadata metadata = Pv.readMetadata(channelName);
                     curves[i].min = metadata.low();
                     curves[i].max = metadata.high();
                     curves[i].comment = metadata.description();

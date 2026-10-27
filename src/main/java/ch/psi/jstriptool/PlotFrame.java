@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import org.epics.ca.data.AlarmSeverity;
+import org.apache.commons.lang3.tuple.Pair;
 import org.epics.ca.data.Timestamped;
 
 /**
@@ -27,7 +27,6 @@ public class PlotFrame extends javax.swing.JFrame {
 
     static PlotFrame instance;
     final boolean blocking;
-    final boolean hideInvalid;
 
     /**
      * Creates new form MainFrame
@@ -46,7 +45,6 @@ public class PlotFrame extends javax.swing.JFrame {
         plotPanel.setSparse(false);//Values are appended together for all series
 
         blocking = App.isBlocking();
-        hideInvalid = App.getHideInvalid();
         
         //Not implemented
         buttonRedraw.setVisible(false);
@@ -74,7 +72,7 @@ public class PlotFrame extends javax.swing.JFrame {
                         if (c.isEnabled()) {
                             updateAsync(this);
                         }
-                        this.addMonitor((value)->{
+                        setMonitor((value) -> {
                             cache.put(this, value);
                             if (config.sampleInterval <= 0) {
                                 addValue();
@@ -85,7 +83,7 @@ public class PlotFrame extends javax.swing.JFrame {
                                 
                 }
             };
-            cache.put(pv, Pv.toTimestamped(Double.NaN, null));
+            cache.put(pv, ChannelValue.empty());
             synchronized (channels) {
                 channels.add(pv);
             }
@@ -148,9 +146,8 @@ public class PlotFrame extends javax.swing.JFrame {
     //java.util.Timer sampleTimer;
     ScheduledExecutorService sampleScheduler;
     final List<Pv> channels = new ArrayList<>();
-    final Map<Pv, Timestamped<Double>> cache = new HashMap<>();
-    //final ArrayList<Timestamped<Timestamped<Double>[]>> valueList = new ArrayList<>(); //Retain IOC time
-    final ArrayList<Timestamped<double[]>> valueList = new ArrayList<>();
+    final Map<Pv, ChannelValue> cache = new HashMap<>();
+    final ArrayList<Pair<Long,ChannelValue[]>> valueList = new ArrayList<>(); //Retain IOC time
     volatile Config config;
     int numberOfSeries;
 
@@ -246,36 +243,30 @@ public class PlotFrame extends javax.swing.JFrame {
             }
             long millis = System.currentTimeMillis();
             int series = getSeriesCount();
-            double[] values = new double[series];
-            if (App.isSimulated()) {
-                for (int i = 0; i < series; i++) {
-                    values[i] = Math.random() * (config.curves[i].max - config.curves[i].min) + config.curves[i].min;
-                }
-            } else {
-                //Timestamped<Double>[] values = new Timestamped[series]; //Retain IOC time
-                for (int i = 0; i < series; i++) {
-                    try {
+            ChannelValue[] values = new ChannelValue[series];
+            
+            for (int i = 0; i < series; i++) {
+                ChannelValue value = ChannelValue.empty();
+                try {                        
+                    if (App.isSimulated()) {
+                        double v =  Math.random() * (config.curves[i].max - config.curves[i].min) + config.curves[i].min;
+                        value = new ChannelValue(v, System.currentTimeMillis(), false);
+                    } else {
                         if (blocking) {
                             if (config.curves[i].isEnabled()){
-                                values[i] = channels.get(i).readValue().getValue();
-                                
-                            } else {
-                                values[i] = Double.NaN;
-                            }
+                                value = channels.get(i).readValue();                                
+                            } 
                         } else {                         
-                            Timestamped<Double> t = cache.get(channels.get(i));
-                            values[i] = (hideInvalid && (t.getAlarmSeverity() == AlarmSeverity.INVALID_ALARM)) ? Double.NaN: t.getValue();
+                            value = cache.get(channels.get(i));
                         }
-                    } catch (Exception ex) {
-                        values[i] = Double.NaN;
                     }
-                }
+                } catch (Exception ex) {
+                }        
+                values[i] = value;
             }
 
-            Timestamped<double[]> tv = Pv.toTimestamped(values, millis);
-
             synchronized (valueList) {
-                valueList.add(tv);
+                valueList.add(Pair.of(millis,values));
             }
             if (config.refreshInterval <= 0) {
                 SwingUtilities.invokeLater(() -> plotValues());
@@ -283,33 +274,26 @@ public class PlotFrame extends javax.swing.JFrame {
         } catch (Exception ex) {
         }
     }
-
+    
     int counterSample;
 
     void plotValues() {
         try {
-            List<Timestamped<double[]>> values;
-            //List<Timestamped<Timestamped<Double>[]>> values; //Retain IOC time
+            ArrayList<Pair<Long,ChannelValue[]>> values;
             synchronized (valueList) {
-                values = (List<Timestamped<double[]>>) valueList.clone();
-                //values = (List<Timestamped<Timestamped<Double>[]>>) valueList.clone(); //Retain IOC time
+                values = (ArrayList<Pair<Long,ChannelValue[]>>)valueList.clone();
                 valueList.clear();
             }
             if (getPlot().isStarted() & values.size() > 0) {
-                for (Timestamped<double[]> value : values) {
-                    getPlot().add(value.getMillis(), value.getValue());
-                }
-                //Retain IOC time
-                /*
-                for (Timestamped<Timestamped<Double>[]> value : values) {
-                    if (value!=null){
-                        for (int i=0; i< value.getValue().length; i++){
-                            Timestamped<Double> td = value.getValue()[i];
-                            getPlot().add(i, value.getMillis(), value.getValue());
-                        }
+                for (var val : values) {
+                    var localTimestamp = val.getLeft();
+                    var channelValues = val.getRight();
+                    for (int i=0; i< channelValues.length; i++){
+                        var channelValue = channelValues[i];
+                        var timestamp = localTimestamp;
+                        getPlot().add(i, timestamp, channelValue.displayValue());
                     }
                 }
-                 */
                 getPlot().notifyUpdate();
             }
         } catch (Exception ex) {
@@ -376,9 +360,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 if (value) {
                     updateAsync(channels.get(index));
                 } else {
-                    Timestamped<Double> tv = new Timestamped<>();
-                    tv.setValue(Double.NaN);
-                    cache.put(channels.get(index), Pv.toTimestamped(Double.NaN, null));
+                    cache.put(channels.get(index), ChannelValue.empty());
                 }
             }
         }

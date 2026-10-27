@@ -2,8 +2,6 @@
 package ch.psi.jstriptool;
 
 import ch.psi.jstriptool.App.Protocol;
-import java.io.IOException;
-import java.time.Instant;
 import java.util.BitSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -14,31 +12,17 @@ import java.util.logging.Logger;
 import org.epics.ca.Channel;
 import org.epics.ca.Context;
 import org.epics.ca.Monitor;
-import org.epics.ca.data.AlarmSeverity;
 import org.epics.ca.data.Graphic;
 import org.epics.ca.data.Timestamped;
 import org.epics.pva.client.PVAChannel;
 import org.epics.pva.client.PVAClient;
-import org.epics.pva.data.PVAData;
-import org.epics.pva.data.PVADouble;
-import org.epics.pva.data.PVAInt;
-import org.epics.pva.data.PVANumber;
-import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
-import org.epics.pva.data.nt.PVADisplay;
-import org.epics.pva.data.nt.PVATimeStamp;
 
 /**
  *
  */
 public class Pv implements AutoCloseable {
-    
-    public static record Metadata(String units, int precision, double low, double high, String description){
-        public static Metadata empty(){
-            return new Metadata ("", 0, 0, 0, "");
-        }
-    };
-
+          
     static PVAClient client;
     public static PVAClient getPva() throws Exception{
         if (client == null){
@@ -51,57 +35,7 @@ public class Pv implements AutoCloseable {
         PVAClient client = getPva();
         return client.getChannel(name);
     }
-    
-    static Timestamped<Double>  readPvaValue(PVAChannel channel) throws InterruptedException, ExecutionException, IOException, TimeoutException{    
-        return getPvaValue(channel.read("field(value,timeStamp)").get(App.timeout, TimeUnit.MILLISECONDS));
-    }
-    
-    static Timestamped<Double>  getPvaValue(PVAStructure value){
-        //PVAScalar<?> scalar = PVAScalar.fromStructure(value);
-        PVAData data = value.get("value");
-        if (data instanceof PVANumber number) {
-            double y = number.getNumber().doubleValue();
-            PVATimeStamp timestamp = PVATimeStamp.getTimeStamp(value);
-            Instant instant = (timestamp==null) ? Instant.now() : timestamp.instant();
-            long x = instant.toEpochMilli();                                            
-            Timestamped timestampedValue = toTimestamped(y, x);
-            return timestampedValue;
-        }
-        return null;
-    }       
-    
-    static Metadata  readPvaMetadata(PVAChannel channel) throws InterruptedException, ExecutionException, TimeoutException{   
-        PVAStructure value = channel.read("field(display)").get(App.timeout, TimeUnit.MILLISECONDS);
-        return getPvaMetadata(value);
-    }
-    
-    static Metadata  getPvaMetadata(PVAStructure value){            
-        PVADisplay display = PVADisplay.fromStructure(value);
-        String units = display.get("units").toString();
-        int precision = ((PVAInt) display.get("precision")).get();
-        double low = ((PVADouble) display.get("limitLow")).get();
-        double high = ((PVADouble) display.get("limitHigh")).get();
-        String description = ((PVAString) display.get("description")).get();        
-        if (high <= low) {
-            high = low + 1;
-        }                                                      
-        return new Metadata(units, precision, low, high, description);        
-    }
-    
-    static Timestamped toTimestamped(Object obj, Long millis) {
-        Timestamped tv = new Timestamped();
-        //Timestamped<Timestamped<Double>[]> tv = new Timestamped<>(); //Retain IOC time}
-        tv.setValue(obj);
-        if (obj != null){
-            tv.setAlarmSeverity(AlarmSeverity.NO_ALARM);
-        }
-        if (millis != null) {
-            tv.setSeconds((long) (millis / 1e3));
-            tv.setNanos((int) ((millis % 1e3) * 1e6));
-        }
-        return tv;
-    }
-    
+        
         
     static Context context;
     public static Context getCa() {
@@ -123,35 +57,14 @@ public class Pv implements AutoCloseable {
         }        
     }
             
-    static Metadata  readCaMetadata(Channel<Double> channel) throws InterruptedException, ExecutionException, TimeoutException{           
-        CompletableFuture<Graphic> future= channel.getAsync(Graphic.class);
-        Graphic g = future.get(App.timeout, TimeUnit.MILLISECONDS);
-        Channel<String> channelDesc = getCa().createChannel(channel.getName() + ".DESC", String.class);
-        channelDesc.connectAsync().get(App.timeout, TimeUnit.MILLISECONDS);
-        String desc =  channelDesc.getAsync().get(App.timeout, TimeUnit.MILLISECONDS);
-        return getCaMetadata(g, desc);
-    }
     
-    static Metadata  getCaMetadata(Graphic g, String desc){       
-        String units = g.getUnits() == null ? "" : g.getUnits();
-        int precision = ((Number) g.getPrecision()).intValue();
-        double low = ((Number) g.getLowerDisplay()).doubleValue();
-        double high = ((Number) g.getUpperDisplay()).doubleValue();   
-        if (high <= low) {
-            high = low + 1;
-        }                                          
-        return new Metadata(units, precision, low, high, desc);        
-    }
-
-    
-    
-    public static Metadata readMetadata(String channelName) {        
+    public static ChannelMetadata readMetadata(String channelName) {        
         try (Pv pv = new Pv(channelName)){
             pv.waitConnected();
             return pv.metadata();
         } catch (Exception ex){
             Logger.getLogger(PlotFrame.class.getName()).warning("Error reading metadata of " + channelName + ": " + ex );            
-            return Metadata.empty();
+            return ChannelMetadata.empty();
         }
     }
            
@@ -211,19 +124,20 @@ public class Pv implements AutoCloseable {
         return connected;
     }
 
-    public void addMonitor(Consumer<Timestamped<Double>> consumer) {
+    public void setMonitor(Consumer<ChannelValue> consumer) {
         try {
             if (channel instanceof PVAChannel c) {
-                c.subscribe("field(value,timeStamp)", (PVAChannel channel1, BitSet changed, BitSet overrun, PVAStructure value) -> {
-                    Timestamped<Double> timestampedValue = getPvaValue(value);
-                    if (timestampedValue != null) {
-                        consumer.accept(timestampedValue);
+                c.subscribe("field(value,alarm,imeStamp)", (PVAChannel channel1, BitSet changed, BitSet overrun, PVAStructure structure) -> {
+                    ChannelValue value  = ChannelValue.fromPva(structure);
+                    if (value != null) {
+                        consumer.accept(value);
                     }
                 });                
             } else if (channel instanceof Channel c){
                 Monitor<Timestamped<Double>> monitor = c.addMonitor(Timestamped.class, timestampedValue -> {
-                    if (timestampedValue != null) {
-                        consumer.accept((Timestamped<Double>)timestampedValue);
+                    ChannelValue value  = ChannelValue.fromCa((Timestamped) timestampedValue);
+                    if (value != null) {
+                        consumer.accept(value);
                     }
                 });
             }                                
@@ -251,33 +165,33 @@ public class Pv implements AutoCloseable {
         return channel;        
     }    
     
-    public Timestamped<Double> readValue(){
+    public ChannelValue readValue(){
         try{        
-            if (channel instanceof Channel ch){                
-                double ret = ((Channel<Double>) ch).getAsync().get(App.timeout, TimeUnit.MILLISECONDS);
-                return toTimestamped(ret, System.currentTimeMillis()); //TODO
-
-            } else if (channel instanceof PVAChannel ch){                                                                        
-                Timestamped<Double> timestampedValue = readPvaValue(ch);
-                if (timestampedValue!=null){
-                    return timestampedValue;
-                }                                                       
+            if (channel instanceof Channel ch){                             
+                ChannelValue value = ChannelValue.fromCa((Timestamped)ch.getAsync(Timestamped.class).get(App.timeout, TimeUnit.MILLISECONDS));                
+                if (value!=null){
+                     return value;
+                }  
+            } else if (channel instanceof PVAChannel ch){          
+               ChannelValue value = ChannelValue.fromPva(ch.read("field(value,alarm,timeStamp)").get(App.timeout, TimeUnit.MILLISECONDS));                
+               if (value!=null){
+                    return value;
+               }                                                       
             }   
         } catch (Exception ex){      
             Logger.getLogger(Pv.class.getName()).warning("Error reading channel " + channel + " value: " + ex );
         }
-        return toTimestamped(Double.NaN, System.currentTimeMillis());
+        return ChannelValue.empty();
     }    
     
-    public CompletableFuture<Timestamped> getAsync(){
+    public CompletableFuture<ChannelValue> getAsync(){
         if (channel instanceof Channel ch){
             return ch.getAsync(Timestamped.class).thenApply(value -> {
-                return value;
+                return ChannelValue.fromCa((Timestamped)value);
             });    
         } else if (channel instanceof PVAChannel ch){
-            return ch.read("field(value,timeStamp)").thenApply(value -> {
-                Timestamped<Double> timestampedValue = getPvaValue(value);
-                return timestampedValue;
+            return ch.read("field(value,alarm,timeStamp)").thenApply(value -> {
+                return ChannelValue.fromPva(value);
             });    
             
         }
@@ -287,18 +201,22 @@ public class Pv implements AutoCloseable {
     }           
     
     
-    public Metadata metadata(){        
+    public ChannelMetadata metadata(){        
         try{
             if (channel instanceof Channel ch){
-                return readCaMetadata(ch);   
-
+                CompletableFuture<Graphic> future= ch.getAsync(Graphic.class);
+                Graphic g = future.get(App.timeout, TimeUnit.MILLISECONDS);
+                Channel<String> channelDesc = getCa().createChannel(ch.getName() + ".DESC", String.class);
+                channelDesc.connectAsync().get(App.timeout, TimeUnit.MILLISECONDS);
+                String desc =  channelDesc.getAsync().get(App.timeout, TimeUnit.MILLISECONDS);
+                return ChannelMetadata.fromCa(g, desc);               
             } else if (channel instanceof PVAChannel ch){
-                return readPvaMetadata(ch);                                
+                return ChannelMetadata.fromPva(ch.read("field(display)").get(App.timeout, TimeUnit.MILLISECONDS));
             }
         } catch (Exception ex){      
             Logger.getLogger(Pv.class.getName()).warning("Error reading channel " + name + " metadata: " + ex );
         }
-        return Metadata.empty();
+        return ChannelMetadata.empty();
     }
             
 

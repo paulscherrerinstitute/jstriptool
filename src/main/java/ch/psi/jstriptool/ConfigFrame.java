@@ -1,11 +1,9 @@
 package ch.psi.jstriptool;
 
-import ch.psi.jstriptool.App.Protocol;
 import ch.psi.jstriptool.Config.Curve;
 import ch.psi.jstriptool.Config.GridVisibility;
 import ch.psi.jstriptool.Config.LabelColorAxisY;
 import ch.psi.jstriptool.Config.Scale;
-import ch.psi.jstriptool.Pv.Metadata;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
@@ -344,7 +342,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         if (channelName.isBlank()){
             throw new Exception("Invalid channel name");
         }
-        Metadata metadata = Pv.readMetadata(channelName);
+        var metadata = Pv.readMetadata(channelName);
 
         Object[] data = new Object[]{channelName, Boolean.TRUE, Boolean.FALSE,
             metadata.precision(), metadata.low(), metadata.high(), metadata.units(), metadata.description(),
