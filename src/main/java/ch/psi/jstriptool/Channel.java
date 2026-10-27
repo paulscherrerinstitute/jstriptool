@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
-import org.epics.ca.Channel;
 import org.epics.ca.Context;
 import org.epics.ca.Monitor;
 import org.epics.ca.data.Graphic;
@@ -21,45 +20,46 @@ import org.epics.pva.data.PVAStructure;
 /**
  *
  */
-public class Pv implements AutoCloseable {
+public class Channel implements AutoCloseable {
           
-    static PVAClient client;
+    static PVAClient pva;
     public static PVAClient getPva() throws Exception{
-        if (client == null){
-            client = new PVAClient();
+        if (!App.isSimulated()) {
+            if (pva == null){
+                Logger.getLogger(PlotFrame.class.getName()).fine("Creating EPICS PVA client");
+                pva = new PVAClient();
+            }
         }
-        return client;
-    }    
-    
-    public static PVAChannel getPvaChannel(String name) throws Exception{    
-        PVAClient client = getPva();
-        return client.getChannel(name);
-    }
+        return pva;
+    }       
         
-        
-    static Context context;
+    static Context ca;
     public static Context getCa() {
         if (!App.isSimulated()) {
             Logger.getLogger(PlotFrame.class.getName()).fine("Creating EPICS CA context");
-
-            if (context == null){
-                context = context = new Context(App.getCaProperties());
+            if (ca == null){
+                ca = new Context(App.getCaProperties());
             }
         }
-        return context;
+        return ca;
     }    
     
-    public static  void closeCa(){
-        if (context != null) {
-            context.close();
+    public static void dispose(){
+        if (ca != null) {
+            ca.close();
             Logger.getLogger(PlotFrame.class.getName()).fine("Closed EPICS CA context");
-            context=null;
+            ca = null;
         }        
+        if (pva != null) {
+            pva.close();
+            Logger.getLogger(PlotFrame.class.getName()).fine("Closed EPICS PVA client");
+            pva = null;
+        }       
     }
             
     
     public static ChannelMetadata readMetadata(String channelName) {        
-        try (Pv pv = new Pv(channelName)){
+        try (Channel pv = new Channel(channelName)){
             pv.waitConnected();
             return pv.metadata();
         } catch (Exception ex){
@@ -75,21 +75,24 @@ public class Pv implements AutoCloseable {
     CompletableFuture connectionFuture;
     boolean connected;
     
-    public Pv(String channelName) {
+    public Channel(String channelName) {
         name = getChannelName(channelName);
         protocol = getChannelProtocol(channelName);
         AutoCloseable ch = null;
-        try {
+        try {            
+            if ((name==null) || name.isEmpty()){
+                throw new Exception("Empty");
+            }
             
             if (protocol == Protocol.PVA){
-                PVAChannel channel = getPvaChannel(name);
+                PVAChannel channel =  getPva().getChannel(name);        
                 connectionFuture = channel.connect().handle((ret, ex)->{
                     connected(ex);
                     return ret;
                 });                    
                 ch = channel;
             } else {
-                Channel<Double> channel = ((name!=null) && (!name.isEmpty())) ? getCa().createChannel(name, Double.class) : null;
+                org.epics.ca.Channel<Double> channel = getCa().createChannel(name, Double.class);
                 if (channel!=null){
                     connectionFuture = channel.connectAsync().handle((ret, ex) -> {
                         connected(ex);
@@ -133,7 +136,7 @@ public class Pv implements AutoCloseable {
                         consumer.accept(value);
                     }
                 });                
-            } else if (channel instanceof Channel c){
+            } else if (channel instanceof org.epics.ca.Channel c){
                 Monitor<Timestamped<Double>> monitor = c.addMonitor(Timestamped.class, timestampedValue -> {
                     ChannelValue value  = ChannelValue.fromCa((Timestamped) timestampedValue);
                     if (value != null) {
@@ -142,7 +145,7 @@ public class Pv implements AutoCloseable {
                 });
             }                                
         } catch (Exception ex) {
-            System.getLogger(Pv.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            System.getLogger(Channel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }
     
@@ -152,7 +155,7 @@ public class Pv implements AutoCloseable {
             try{
                 return Protocol.valueOf(protocol.toUpperCase());
             } catch (Exception ex){
-                System.getLogger(Pv.class.getName()).log(System.Logger.Level.ERROR, "Invalid protocol in channel: " + channel);
+                System.getLogger(Channel.class.getName()).log(System.Logger.Level.ERROR, "Invalid protocol in channel: " + channel);
             }
         }
         return App.defaultProtocol;        
@@ -167,7 +170,7 @@ public class Pv implements AutoCloseable {
     
     public ChannelValue readValue(){
         try{        
-            if (channel instanceof Channel ch){                             
+            if (channel instanceof org.epics.ca.Channel ch){                             
                 ChannelValue value = ChannelValue.fromCa((Timestamped)ch.getAsync(Timestamped.class).get(App.timeout, TimeUnit.MILLISECONDS));                
                 if (value!=null){
                      return value;
@@ -179,13 +182,13 @@ public class Pv implements AutoCloseable {
                }                                                       
             }   
         } catch (Exception ex){      
-            Logger.getLogger(Pv.class.getName()).warning("Error reading channel " + channel + " value: " + ex );
+            Logger.getLogger(Channel.class.getName()).warning("Error reading channel " + channel + " value: " + ex );
         }
         return ChannelValue.empty();
     }    
     
     public CompletableFuture<ChannelValue> getAsync(){
-        if (channel instanceof Channel ch){
+        if (channel instanceof org.epics.ca.Channel ch){
             return ch.getAsync(Timestamped.class).thenApply(value -> {
                 return ChannelValue.fromCa((Timestamped)value);
             });    
@@ -203,10 +206,10 @@ public class Pv implements AutoCloseable {
     
     public ChannelMetadata metadata(){        
         try{
-            if (channel instanceof Channel ch){
+            if (channel instanceof org.epics.ca.Channel ch){
                 CompletableFuture<Graphic> future= ch.getAsync(Graphic.class);
                 Graphic g = future.get(App.timeout, TimeUnit.MILLISECONDS);
-                Channel<String> channelDesc = getCa().createChannel(ch.getName() + ".DESC", String.class);
+                org.epics.ca.Channel<String> channelDesc = getCa().createChannel(ch.getName() + ".DESC", String.class);
                 channelDesc.connectAsync().get(App.timeout, TimeUnit.MILLISECONDS);
                 String desc =  channelDesc.getAsync().get(App.timeout, TimeUnit.MILLISECONDS);
                 return ChannelMetadata.fromCa(g, desc);               
@@ -214,7 +217,7 @@ public class Pv implements AutoCloseable {
                 return ChannelMetadata.fromPva(ch.read("field(display)").get(App.timeout, TimeUnit.MILLISECONDS));
             }
         } catch (Exception ex){      
-            Logger.getLogger(Pv.class.getName()).warning("Error reading channel " + name + " metadata: " + ex );
+            Logger.getLogger(Channel.class.getName()).warning("Error reading channel " + name + " metadata: " + ex );
         }
         return ChannelMetadata.empty();
     }
@@ -227,10 +230,10 @@ public class Pv implements AutoCloseable {
     
     public void close(){
         try {
-            Logger.getLogger(Pv.class.getName()).fine("Disconnected channel: " + name);
+            Logger.getLogger(Channel.class.getName()).fine("Disconnected channel: " + name);
             channel.close();
         } catch (Exception ex) {
-            System.getLogger(Pv.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            System.getLogger(Channel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }
 }

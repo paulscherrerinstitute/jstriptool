@@ -242,7 +242,6 @@ public class ConfigFrame extends javax.swing.JFrame {
     }
     
     void clear() {
-        Pv.closeCa();
         config = App.defaultConfig == null ? new Config() : App.defaultConfig.clone();
         file = null;
         updateWindow();
@@ -253,6 +252,7 @@ public class ConfigFrame extends javax.swing.JFrame {
             App.plotFrame.setTitle("JStripTool");
             App.plotFrame.stop();
         }        
+        //Channel.dispose();
     }
 
     void open(File file) throws IOException {
@@ -342,7 +342,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         if (channelName.isBlank()){
             throw new Exception("Invalid channel name");
         }
-        var metadata = Pv.readMetadata(channelName);
+        var metadata = Channel.readMetadata(channelName);
 
         Object[] data = new Object[]{channelName, Boolean.TRUE, Boolean.FALSE,
             metadata.precision(), metadata.low(), metadata.high(), metadata.units(), metadata.description(),

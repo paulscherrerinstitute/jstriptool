@@ -162,6 +162,12 @@ public class App {
         return App.hasArgument("hide_invalid");
     }
     
+    public static boolean isIocTime(){
+        return App.hasArgument("ioc_time");
+    }
+    
+    
+    
     public static File resolveFile(String name) throws FileNotFoundException {
         name = name.trim();
         File file = new File(expandUserHome(name));
@@ -244,6 +250,7 @@ public class App {
         System.out.println("\t-default=<dir>\tSet default configuration file");
         System.out.println("\t-laf=<name>\tSupported values: nimbus, metal, dark or system");
         System.out.println("\t-clog=<level>\tSet the console logging level");
+        System.out.println("\t-ioc_time  \t\tUses IOC timestamps for plotting");
         System.out.println("\t-aa\t\tEnable anti-aliasing");
         System.out.println("\t-debug\t\tShow debug information");
         System.out.println("\t-cli  \t\tStarts the CLI");

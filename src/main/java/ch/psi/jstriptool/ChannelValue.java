@@ -18,7 +18,7 @@ public record ChannelValue(Double value, long timestamp, boolean invalid) {
     static ChannelValue fromCa(Timestamped timestamped){
         timestamped.setSeconds(0);
         if (timestamped!=null){
-            if (timestamped.getValue() instanceof Double value){
+            if (timestamped.getValue() instanceof Double value){                
                 return new ChannelValue(value, timestamped.getMillis(), timestamped.getAlarmSeverity() == AlarmSeverity.INVALID_ALARM);
             }
         }

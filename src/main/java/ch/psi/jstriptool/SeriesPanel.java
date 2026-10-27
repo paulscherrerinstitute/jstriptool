@@ -65,7 +65,7 @@ public class SeriesPanel extends javax.swing.JPanel {
             }
             desc = series.desc == null ? "" : series.desc;            
             if (desc.isEmpty()){
-                 desc = Pv.readMetadata(name).description();
+                 desc = Channel.readMetadata(name).description();
             }
             textInfo.setForeground(series.getColor());
             setToolTipText(name);

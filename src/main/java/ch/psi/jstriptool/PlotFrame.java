@@ -18,7 +18,6 @@ import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.apache.commons.lang3.tuple.Pair;
-import org.epics.ca.data.Timestamped;
 
 /**
  *
@@ -27,6 +26,7 @@ public class PlotFrame extends javax.swing.JFrame {
 
     static PlotFrame instance;
     final boolean blocking;
+    final boolean iocTime;
 
     /**
      * Creates new form MainFrame
@@ -45,6 +45,7 @@ public class PlotFrame extends javax.swing.JFrame {
         plotPanel.setSparse(false);//Values are appended together for all series
 
         blocking = App.isBlocking();
+        iocTime = App.isIocTime();
         
         //Not implemented
         buttonRedraw.setVisible(false);
@@ -65,14 +66,14 @@ public class PlotFrame extends javax.swing.JFrame {
 
         if (!App.isSimulated()) 
         {            
-            Pv pv = new Pv(c.name){
+            Channel pv = new Channel(c.name){
                 protected void onConnection(){
                     series.setConnected();
                     if (!blocking) {
                         if (c.isEnabled()) {
                             updateAsync(this);
                         }
-                        setMonitor((value) -> {
+                        setMonitor((value) -> {                            
                             cache.put(this, value);
                             if (config.sampleInterval <= 0) {
                                 addValue();
@@ -99,7 +100,7 @@ public class PlotFrame extends javax.swing.JFrame {
         panelSeriesSet.removeSeries(index);
         repaint();
         if (!App.isSimulated()) {
-            Pv channel = null;
+            Channel channel = null;
             synchronized (channels) {
                 channel = channels.get(index);
                 channels.remove(index);
@@ -145,8 +146,8 @@ public class PlotFrame extends javax.swing.JFrame {
     Timer redrawTimer;
     //java.util.Timer sampleTimer;
     ScheduledExecutorService sampleScheduler;
-    final List<Pv> channels = new ArrayList<>();
-    final Map<Pv, ChannelValue> cache = new HashMap<>();
+    final List<Channel> channels = new ArrayList<>();
+    final Map<Channel, ChannelValue> cache = new HashMap<>();
     final ArrayList<Pair<Long,ChannelValue[]>> valueList = new ArrayList<>(); //Retain IOC time
     volatile Config config;
     int numberOfSeries;
@@ -201,24 +202,6 @@ public class PlotFrame extends javax.swing.JFrame {
     }
 
     void startSampleTimer(boolean triggerImmediately) {
-        /*
-        if (sampleTimer != null) {
-            sampleTimer.cancel();
-            sampleTimer = null;
-        }  
-         if (config.sampleInterval > 0) {
-            sampleTimer = new java.util.Timer("Sample timer", true);
-            
-            sampleTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    addValue();
-                }
-            } 
-            , triggerImmediately ? 0 : ((int) (config.sampleInterval * 1000)), ((int) (config.sampleInterval * 1000)));
-        }
-         */
-
         if (sampleScheduler != null) {
             sampleScheduler.shutdown();
             sampleScheduler = null;
@@ -248,16 +231,16 @@ public class PlotFrame extends javax.swing.JFrame {
             for (int i = 0; i < series; i++) {
                 ChannelValue value = ChannelValue.empty();
                 try {                        
-                    if (App.isSimulated()) {
-                        double v =  Math.random() * (config.curves[i].max - config.curves[i].min) + config.curves[i].min;
-                        value = new ChannelValue(v, System.currentTimeMillis(), false);
-                    } else {
-                        if (blocking) {
-                            if (config.curves[i].isEnabled()){
+                    if (config.curves[i].isEnabled()){
+                        if (App.isSimulated()) {
+                            double v =  Math.random() * (config.curves[i].max - config.curves[i].min) + config.curves[i].min;
+                            value = new ChannelValue(v, System.currentTimeMillis(), false);
+                        } else {
+                            if (blocking) {
                                 value = channels.get(i).readValue();                                
-                            } 
-                        } else {                         
-                            value = cache.get(channels.get(i));
+                            } else {                         
+                                value = cache.get(channels.get(i));
+                            }
                         }
                     }
                 } catch (Exception ex) {
@@ -291,6 +274,9 @@ public class PlotFrame extends javax.swing.JFrame {
                     for (int i=0; i< channelValues.length; i++){
                         var channelValue = channelValues[i];
                         var timestamp = localTimestamp;
+                        if (iocTime) {
+                            timestamp = channelValue.timestamp();
+                        }
                         getPlot().add(i, timestamp, channelValue.displayValue());
                     }
                 }
@@ -344,10 +330,10 @@ public class PlotFrame extends javax.swing.JFrame {
         return (config != null) && (getSeriesCount() > 0);
     }
     
-    void updateAsync(Pv channel){
+    void updateAsync(Channel channel){
         channel.getAsync().handle((value, ex) -> {
             if (ex == null) {
-                cache.put(channel, value);
+                cache.put(channel, value);                
             }
             return value;            
         });

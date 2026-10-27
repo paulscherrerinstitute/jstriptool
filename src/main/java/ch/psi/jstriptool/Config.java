@@ -371,7 +371,7 @@ public class Config {
                 String channelName = channels[i].trim();
                 curves[i].name = channelName;
                 try {
-                    ChannelMetadata metadata = Pv.readMetadata(channelName);
+                    ChannelMetadata metadata = Channel.readMetadata(channelName);
                     curves[i].min = metadata.low();
                     curves[i].max = metadata.high();
                     curves[i].comment = metadata.description();
