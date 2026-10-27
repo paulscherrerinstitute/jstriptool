@@ -46,7 +46,7 @@ public class PlotFrame extends javax.swing.JFrame {
 
         blocking = App.isBlocking();
         iocTime = App.isIocTime();
-        
+
         //Not implemented
         buttonRedraw.setVisible(false);
     }
@@ -54,8 +54,7 @@ public class PlotFrame extends javax.swing.JFrame {
     PlotPanel getPlot() {
         return plotPanel;
     }
-        
-    
+
     void addSeries(Curve c, Color color, int index) {
         numberOfSeries++;
         PlotSeries series = PlotSeries.create(c, color, config.graphLineWidth, config.numSamples);
@@ -64,24 +63,23 @@ public class PlotFrame extends javax.swing.JFrame {
         panelSeriesSet.addSeries(series);
         repaint();
 
-        if (!App.isSimulated()) 
-        {            
-            Channel pv = new Channel(c.name){
-                protected void onConnection(){
+        if (!App.isSimulated()) {
+            Channel pv = new Channel(c.name) {
+                protected void onConnection() {
                     series.setConnected();
                     if (!blocking) {
                         if (c.isEnabled()) {
                             updateAsync(this);
                         }
-                        setMonitor((value) -> {                            
+                        setMonitor((value) -> {
                             cache.put(this, value);
                             if (config.sampleInterval <= 0) {
                                 addValue();
                             }
-                            
+
                         });
                     }
-                                
+
                 }
             };
             cache.put(pv, ChannelValue.empty());
@@ -110,7 +108,7 @@ public class PlotFrame extends javax.swing.JFrame {
             }
         }
     }
-    
+
     public void setActive(PlotSeries series) {
         if (!series.isActive()) {
             series.setActive();
@@ -148,7 +146,7 @@ public class PlotFrame extends javax.swing.JFrame {
     ScheduledExecutorService sampleScheduler;
     final List<Channel> channels = new ArrayList<>();
     final Map<Channel, ChannelValue> cache = new HashMap<>();
-    final ArrayList<Pair<Long,ChannelValue[]>> valueList = new ArrayList<>(); //Retain IOC time
+    final ArrayList<Pair<Long, ChannelValue[]>> valueList = new ArrayList<>(); //Retain IOC time
     volatile Config config;
     int numberOfSeries;
 
@@ -173,14 +171,14 @@ public class PlotFrame extends javax.swing.JFrame {
             startSampleTimer(true);
             startRedrawTimer(true);
             plotPanel.repaint();
-             SwingUtilities.invokeLater(() -> {
-                 
-                    setActive(plotPanel.getPlotSeries(0));
-             });
-           
+            SwingUtilities.invokeLater(() -> {
+
+                setActive(plotPanel.getPlotSeries(0));
+            });
+
         }
         updateAxisColor();
-        if (SwingUtilities.isEventDispatchThread()){
+        if (SwingUtilities.isEventDispatchThread()) {
             panelSeriesSet.update();
         }
     }
@@ -227,29 +225,29 @@ public class PlotFrame extends javax.swing.JFrame {
             long millis = System.currentTimeMillis();
             int series = getSeriesCount();
             ChannelValue[] values = new ChannelValue[series];
-            
+
             for (int i = 0; i < series; i++) {
                 ChannelValue value = ChannelValue.empty();
-                try {                        
-                    if (config.curves[i].isEnabled()){
+                try {
+                    if (config.curves[i].isEnabled()) {
                         if (App.isSimulated()) {
-                            double v =  Math.random() * (config.curves[i].max - config.curves[i].min) + config.curves[i].min;
+                            double v = Math.random() * (config.curves[i].max - config.curves[i].min) + config.curves[i].min;
                             value = new ChannelValue(v, System.currentTimeMillis(), false);
                         } else {
                             if (blocking) {
-                                value = channels.get(i).readValue();                                
-                            } else {                         
+                                value = channels.get(i).readValue();
+                            } else {
                                 value = cache.get(channels.get(i));
                             }
                         }
                     }
                 } catch (Exception ex) {
-                }        
+                }
                 values[i] = value;
             }
 
             synchronized (valueList) {
-                valueList.add(Pair.of(millis,values));
+                valueList.add(Pair.of(millis, values));
             }
             if (config.refreshInterval <= 0) {
                 SwingUtilities.invokeLater(() -> plotValues());
@@ -257,21 +255,21 @@ public class PlotFrame extends javax.swing.JFrame {
         } catch (Exception ex) {
         }
     }
-    
+
     int counterSample;
 
     void plotValues() {
         try {
-            ArrayList<Pair<Long,ChannelValue[]>> values;
+            ArrayList<Pair<Long, ChannelValue[]>> values;
             synchronized (valueList) {
-                values = (ArrayList<Pair<Long,ChannelValue[]>>)valueList.clone();
+                values = (ArrayList<Pair<Long, ChannelValue[]>>) valueList.clone();
                 valueList.clear();
             }
             if (getPlot().isStarted() & values.size() > 0) {
                 for (var val : values) {
                     var localTimestamp = val.getLeft();
                     var channelValues = val.getRight();
-                    for (int i=0; i< channelValues.length; i++){
+                    for (int i = 0; i < channelValues.length; i++) {
                         var channelValue = channelValues[i];
                         var timestamp = localTimestamp;
                         if (iocTime) {
@@ -329,13 +327,13 @@ public class PlotFrame extends javax.swing.JFrame {
     boolean isStarted() {
         return (config != null) && (getSeriesCount() > 0);
     }
-    
-    void updateAsync(Channel channel){
+
+    void updateAsync(Channel channel) {
         channel.getAsync().handle((value, ex) -> {
             if (ex == null) {
-                cache.put(channel, value);                
+                cache.put(channel, value);
             }
-            return value;            
+            return value;
         });
     }
 
@@ -540,7 +538,7 @@ public class PlotFrame extends javax.swing.JFrame {
             }
         }
     }
-      
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -782,73 +780,73 @@ public class PlotFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonPanLeftActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPanLeftActionPerformed
-        try{
+        try {
             plotPanel.panLeft();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonPanLeftActionPerformed
 
     private void buttonPanRightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPanRightActionPerformed
-        try{
+        try {
             plotPanel.panRight();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonPanRightActionPerformed
 
     private void buttonPanUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPanUpActionPerformed
-        try{
+        try {
             plotPanel.panUp();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonPanUpActionPerformed
 
     private void buttonPanDownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPanDownActionPerformed
-        try{
-           plotPanel.panDown();
-        } catch (Exception ex){
+        try {
+            plotPanel.panDown();
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonPanDownActionPerformed
 
     private void buttonZoomOutXActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonZoomOutXActionPerformed
-        try{
+        try {
             plotPanel.zoomOutX();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonZoomOutXActionPerformed
 
     private void buttonZoomInXActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonZoomInXActionPerformed
-        try{
+        try {
             plotPanel.zoomInX();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonZoomInXActionPerformed
 
     private void buttonZoomOutYActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonZoomOutYActionPerformed
-        try{
+        try {
             plotPanel.zoomOutY();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonZoomOutYActionPerformed
 
     private void buttonZoomInYActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonZoomInYActionPerformed
-        try{
+        try {
             plotPanel.zoomInY();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonZoomInYActionPerformed
 
     private void buttonResetGraphActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonResetGraphActionPerformed
-        try{
+        try {
             plotPanel.resetZoom();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonResetGraphActionPerformed
@@ -858,30 +856,30 @@ public class PlotFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_buttonRedrawActionPerformed
 
     private void buttonAutoScaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAutoScaleActionPerformed
-        try{
-            if (buttonAutoScale.isSelected()){
+        try {
+            if (buttonAutoScale.isSelected()) {
                 buttonAutoScale.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/AutoScaleOn.png")));
                 plotPanel.setAutoScale(true);
             } else {
                 buttonAutoScale.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/AutoScaleOff.png")));
                 plotPanel.setAutoScale(false);
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
     }//GEN-LAST:event_buttonAutoScaleActionPerformed
 
     private void buttonModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonModeActionPerformed
-        try{
+        try {
             plotPanel.setScrollMode(!buttonMode.isSelected());
-            if (buttonMode.isSelected()){
+            if (buttonMode.isSelected()) {
                 buttonMode.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/PanningMode.png")));
             } else {
                 buttonMode.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/ScrollingMode.png")));
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
-        }        
+        }
     }//GEN-LAST:event_buttonModeActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

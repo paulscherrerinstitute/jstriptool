@@ -26,7 +26,7 @@ public class SeriesPanel extends javax.swing.JPanel {
         initialize();
         font = textInfo.getFont().deriveFont(11.0f);
         textInfo.setFont(font);
-        GroupLayout l = (GroupLayout)getLayout();
+        GroupLayout l = (GroupLayout) getLayout();
         l.setAutoCreateContainerGaps(false);
         l.setAutoCreateGaps(false);
     }
@@ -34,14 +34,14 @@ public class SeriesPanel extends javax.swing.JPanel {
     String desc;
     String name;
 
-    public PlotSeries getSeries(){
+    public PlotSeries getSeries() {
         return series;
     }
-    
-    public Font getFont(){
+
+    public Font getFont() {
         return font;
     }
-    
+
     public void updateBorder() {
         if (this == SeriesSetPanel.active) {
             setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(series.getColor(), 2), name, LEADING, DEFAULT_POSITION, null, series.getColor()));
@@ -52,9 +52,9 @@ public class SeriesPanel extends javax.swing.JPanel {
 
     public void initialize() {
         name = series.getName();
-        if ((name == null) || (name.trim().isEmpty())){
+        if ((name == null) || (name.trim().isEmpty())) {
             setVisible(false);
-        } else  {
+        } else {
             setVisible(true);
             if (series.isFixedRange()) {
                 range = String.format(("(%s, %s)"),
@@ -63,13 +63,13 @@ public class SeriesPanel extends javax.swing.JPanel {
             } else {
                 range = "";
             }
-            desc = series.desc == null ? "" : series.desc;            
-            if (desc.isEmpty()){
-                 desc = Channel.readMetadata(name).description();
+            desc = series.desc == null ? "" : series.desc;
+            if (desc.isEmpty()) {
+                desc = Channel.readMetadata(name).description();
             }
             textInfo.setForeground(series.getColor());
             setToolTipText(name);
-            updateBorder();   
+            updateBorder();
             update();
         }
     }
@@ -84,16 +84,15 @@ public class SeriesPanel extends javax.swing.JPanel {
             updateBorder();
         }
     }
-    
-    
-    public boolean isActive(){
+
+    public boolean isActive() {
         return (this == SeriesSetPanel.active);
-    }    
+    }
 
     public void update() {
         try {
             String displayValue;
-            if (!series.isConnected()){
+            if (!series.isConnected()) {
                 displayValue = "Not connected";
             } else {
                 TimestampedValue tval = series.getLastValue();
@@ -105,17 +104,17 @@ public class SeriesPanel extends javax.swing.JPanel {
             }
             if (!displayValue.equals(currentDisplayValue)) {
                 String text = "";
-                switch(visibleRows){
+                switch (visibleRows) {
                     case 1:
-                        text= String.format("<html><div style='text-align: center;'>%s</div></html>", displayValue );
+                        text = String.format("<html><div style='text-align: center;'>%s</div></html>", displayValue);
                         break;
                     case 2:
-                        text= String.format("<html><div style='text-align: center;'>%s<br>%s</div></html>", displayValue, range );
+                        text = String.format("<html><div style='text-align: center;'>%s<br>%s</div></html>", displayValue, range);
                         break;
                     case 3:
-                        text= String.format("<html><div style='text-align: center;'>%s<br>%s<br>%s</div></html>", displayValue, range, desc );
+                        text = String.format("<html><div style='text-align: center;'>%s<br>%s<br>%s</div></html>", displayValue, range, desc);
                         break;
-                }                
+                }
                 textInfo.setText(text);
                 currentDisplayValue = displayValue;
             }
@@ -123,10 +122,11 @@ public class SeriesPanel extends javax.swing.JPanel {
 
         }
     }
-    
+
     int visibleRows = 3;
-    void setVisibleRows(int rows){
-        if (visibleRows != rows){
+
+    void setVisibleRows(int rows) {
+        if (visibleRows != rows) {
             visibleRows = rows;
             currentDisplayValue = null;
             update();

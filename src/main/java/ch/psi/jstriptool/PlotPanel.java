@@ -11,8 +11,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -89,8 +87,8 @@ public class PlotPanel extends javax.swing.JPanel {
         NumberAxis getAxis() {
             return (NumberAxis) chart.getXYPlot().getRangeAxis(index);
         }
-        
-        Range getRange(){
+
+        Range getRange() {
             return plotSeries.isFixedRange() ? new Range(plotSeries.getRangeMin(), plotSeries.getRangeMax()) : null;
         }
     }
@@ -214,11 +212,11 @@ public class PlotPanel extends javax.swing.JPanel {
         systemAxisLinePaint = chart.getXYPlot().getDomainAxis().getAxisLinePaint();
 
     }
-    
-    XYPlot getPlot(){
+
+    XYPlot getPlot() {
         return chart.getXYPlot();
     }
-    
+
     void moverOverPlot(XYDataItem translationVector, int index) {
         double translatedDomainIntervalMin = chart.getXYPlot().getDomainAxis().getRange().getLowerBound() + translationVector.getX().doubleValue();
         double translatedDomainIntervalMax = chart.getXYPlot().getDomainAxis().getRange().getUpperBound() + translationVector.getX().doubleValue();
@@ -232,109 +230,109 @@ public class PlotPanel extends javax.swing.JPanel {
         //...and true in the last
         chart.getXYPlot().getRangeAxis(index).setRange(rangeAxisRange, true, true);
 
-    }  
-    
+    }
+
     void moveY(double offset, int index) {
         XYDataItem translationVector = new XYDataItem(0.0, offset);
         double translatedRangeIntervalMin = chart.getXYPlot().getRangeAxis(index).getRange().getLowerBound() + translationVector.getY().doubleValue();
         double translatedRangeIntervalMax = chart.getXYPlot().getRangeAxis(index).getRange().getUpperBound() + translationVector.getY().doubleValue();
         Range rangeAxisRange = new Range(translatedRangeIntervalMin, translatedRangeIntervalMax);
         chart.getXYPlot().getRangeAxis(index).setRange(rangeAxisRange, true, true);
-    }    
-    
+    }
+
     void moveX(double offset) {
         XYDataItem translationVector = new XYDataItem(offset, 0.0);
         double translatedDomainIntervalMin = chart.getXYPlot().getDomainAxis().getRange().getLowerBound() + translationVector.getX().doubleValue();
         double translatedDomainIntervalMax = chart.getXYPlot().getDomainAxis().getRange().getUpperBound() + translationVector.getX().doubleValue();
         Range domainAxisRange = new Range(translatedDomainIntervalMin, translatedDomainIntervalMax);
         chart.getXYPlot().getDomainAxis().setRange(domainAxisRange, true, false);
-    }      
-    
-    void zoomOutX() {                                               
-        if (scrollMode){
-            moveX(-chart.getXYPlot().getDomainAxis().getRange().getLength()/2);
-        }        
-        getPlot().zoomDomainAxes(2.0, null, null);
-    }                                              
+    }
 
-    void zoomInX() {                                              
-        getPlot().zoomDomainAxes(0.5, null, null);
-        if (scrollMode){
-            moveX(chart.getXYPlot().getDomainAxis().getRange().getLength()/2);
+    void zoomOutX() {
+        if (scrollMode) {
+            moveX(-chart.getXYPlot().getDomainAxis().getRange().getLength() / 2);
         }
-    }                                             
+        getPlot().zoomDomainAxes(2.0, null, null);
+    }
 
-    void zoomOutY() {                                               
+    void zoomInX() {
+        getPlot().zoomDomainAxes(0.5, null, null);
+        if (scrollMode) {
+            moveX(chart.getXYPlot().getDomainAxis().getRange().getLength() / 2);
+        }
+    }
+
+    void zoomOutY() {
         getPlot().zoomRangeAxes(2.0, null, null);
-    }                                              
+    }
 
-    void zoomInY() {                                              
+    void zoomInY() {
         getPlot().zoomRangeAxes(0.5, null, null);
-    }       
+    }
 
-    void panLeft(){                                       
-        try{
+    void panLeft() {
+        try {
             //getPlot().panDomainAxes(-50.0, null, null);
             moveX(-((DateAxis) chart.getXYPlot().getDomainAxis()).getTickUnit().getSize());
 
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
-    }                                             
+    }
 
-    void panRight(){                                                   
-        try{
+    void panRight() {
+        try {
             //getPlot().panDomainAxes(50.0, null, null);
-           moveX(((DateAxis) chart.getXYPlot().getDomainAxis()).getTickUnit().getSize());
-        } catch (Exception ex){
+            moveX(((DateAxis) chart.getXYPlot().getDomainAxis()).getTickUnit().getSize());
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
-    }                                              
+    }
 
-    void panUp(){                                                  
-        try{
+    void panUp() {
+        try {
             //plotPanel.getPlot().panRangeAxes(50.0, null, null);
             for (int i = 0; i < chart.getXYPlot().getRangeAxisCount(); i++) {
-                moveY(((NumberAxis) chart.getXYPlot().getRangeAxis(i)).getTickUnit().getSize(),i);
+                moveY(((NumberAxis) chart.getXYPlot().getRangeAxis(i)).getTickUnit().getSize(), i);
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
-    }                                           
+    }
 
-    void panDown(){                                              
-        try{
+    void panDown() {
+        try {
             //plotPanel.getPlot().panRangeAxes(-50.0, null, null);
             for (int i = 0; i < chart.getXYPlot().getRangeAxisCount(); i++) {
-                moveY(-((NumberAxis) chart.getXYPlot().getRangeAxis(i)).getTickUnit().getSize(),i);
+                moveY(-((NumberAxis) chart.getXYPlot().getRangeAxis(i)).getTickUnit().getSize(), i);
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
-    }   
-    
-    void setScrollMode(boolean value){
+    }
+
+    void setScrollMode(boolean value) {
         scrollMode = value;
-        if (!value){
-            if (chart.getXYPlot().getDomainAxis().isAutoRange()){
+        if (!value) {
+            if (chart.getXYPlot().getDomainAxis().isAutoRange()) {
                 chart.getXYPlot().getDomainAxis().setAutoRange(value);
-                
+
             }
         }
         updateTooltips();
     }
-    
-    void resetZoom(){
+
+    void resetZoom() {
         chartPanel.restoreAutoBounds();
     }
-    
-    void setAutoScale(boolean value){
+
+    void setAutoScale(boolean value) {
         autoScale = value;
         for (SeriesInfo s : series) {
             applyRange(s.index, s.getRange());
         }
     }
-    
+
     public int getNumberOfSeries() {
         return series.size();
     }
@@ -500,7 +498,7 @@ public class PlotPanel extends javax.swing.JPanel {
         saveData(filename, isSparse());
     }
 
-    public void saveData(String filename, boolean sparse) throws IOException {        
+    public void saveData(String filename, boolean sparse) throws IOException {
         try (FileWriter writer = new FileWriter(filename, false)) {
             saveData(writer, sparse);
         } catch (IOException ex) {
@@ -699,7 +697,7 @@ public class PlotPanel extends javax.swing.JPanel {
         plot.setRenderer(index, renderer);
         plot.setDataset(index, data);
         plot.mapDatasetToRangeAxis(index, index);
-        setAxisSize(axisSize);      
+        setAxisSize(axisSize);
         SeriesInfo seriesInfo = new SeriesInfo(index, plotSeries, timeSeries, data);
         applyRange(index, seriesInfo.getRange());
         series.add(seriesInfo);
@@ -711,9 +709,9 @@ public class PlotPanel extends javax.swing.JPanel {
             seriesInfo.getRenderer().setSeriesPaint(0, seriesInfo.plotSeries.getColor());
         }
         setLineWidth(getNumberOfSeries() - 1, plotSeries.lineWidth);
-        setNotify(getNumberOfSeries() - 1, false);        
+        setNotify(getNumberOfSeries() - 1, false);
         setMaximumItemCount(getNumberOfSeries() - 1, plotSeries.numSamples);
-        
+
         return seriesInfo;
     }
 
@@ -755,10 +753,10 @@ public class PlotPanel extends javax.swing.JPanel {
         NumberAxis axis;
         if (logarithmic) {
             axis = new LogarithmicAxis(null);
-            ((LogarithmicAxis)axis).setAllowNegativesFlag(false);
-            ((LogarithmicAxis)axis).setStrictValuesFlag(false);
-            ((LogarithmicAxis)axis).setLog10TickLabelsFlag(true); //TODO: only used to axis Y
-            ((LogarithmicAxis)axis).setAutoRangeMinimumSize(AUTO_RANGE_LOG_MINIMUM_SIZE);
+            ((LogarithmicAxis) axis).setAllowNegativesFlag(false);
+            ((LogarithmicAxis) axis).setStrictValuesFlag(false);
+            ((LogarithmicAxis) axis).setLog10TickLabelsFlag(true); //TODO: only used to axis Y
+            ((LogarithmicAxis) axis).setAutoRangeMinimumSize(AUTO_RANGE_LOG_MINIMUM_SIZE);
             setAxisMargin(axis, 0);
         } else {
             axis = new NumberAxis();
@@ -783,9 +781,9 @@ public class PlotPanel extends javax.swing.JPanel {
         if ((range == null) || autoScale) {
             setAxisAutoScale(index);
         } else {
-            try{
+            try {
                 setAxisScale(index, range);
-            } catch (IllegalArgumentException ex){
+            } catch (IllegalArgumentException ex) {
                 logger.warning("Invalid range for series " + index + ": setting auto-scale");
                 setAxisAutoScale(index);
             }
@@ -931,15 +929,15 @@ public class PlotPanel extends javax.swing.JPanel {
             }
         }
     }
-    
-    void updateLog(int index){
+
+    void updateLog(int index) {
         ValueAxis cur = chart.getXYPlot().getRangeAxis(index);
         if (cur != null) {
             boolean visible = cur.isVisible();
             createAxis(index, cur.getLabel(), isLogarithmic(index), visible);
             applyRange(index, cur.isAutoRange() ? null : cur.getRange());
         }
-        
+
     }
 
     XYItemRenderer selectedRenderer;
@@ -1013,12 +1011,12 @@ public class PlotPanel extends javax.swing.JPanel {
                 s.timeSeries.setMaximumItemAge(Long.MAX_VALUE);
             }
         }
-        */
+         */
     }
 
     public void setAxisAutoScale(int index) {
         ValueAxis axis = chart.getXYPlot().getRangeAxis(index);
-        if (axis!=null){
+        if (axis != null) {
             axis.setAutoRange(true);
         }
     }
@@ -1030,21 +1028,21 @@ public class PlotPanel extends javax.swing.JPanel {
 
     public void setAxisScale(int index, Range range) {
         ValueAxis axis = chart.getXYPlot().getRangeAxis(index);
-        if (axis!=null){
+        if (axis != null) {
             axis.setRangeWithMargins(range, true, true);
         }
     }
-    
+
     public void setAxisMargin(int index, double margin) {
         ValueAxis axis = chart.getXYPlot().getRangeAxis(index);
         setAxisMargin(axis, margin);
-    }  
-    
+    }
+
     void setAxisMargin(ValueAxis axis, double margin) {
         axis.setLowerMargin(margin);
         axis.setUpperMargin(margin);
-    }    
-    
+    }
+
     public void setTimeAxisLabel(String label) {
         final XYPlot plot = chart.getXYPlot();
         ValueAxis axis = plot.getDomainAxis();
@@ -1063,7 +1061,7 @@ public class PlotPanel extends javax.swing.JPanel {
             return null;
         }
         Paint p = renderer.getSeriesPaint(0);
-        return p instanceof Color ? (Color) p : null;
+        return p instanceof Color color ? color : null;
     }
 
     protected void setSeriesColor(PlotSeries plotSeries, Color color) {
@@ -1176,17 +1174,17 @@ public class PlotPanel extends javax.swing.JPanel {
     public void add(long time, double[] values) {
         if (isStarted()) {
             if ((values != null) && (getNumberOfSeries() == values.length)) {
-                if (scrollMode){
-                    if (!chart.getXYPlot().getDomainAxis().isAutoRange()){
+                if (scrollMode) {
+                    if (!chart.getXYPlot().getDomainAxis().isAutoRange()) {
                         TimestampedValue<Double> last = getItem(0, -1);
-                        if (last!=null){
-                            moveX(time-last.getTimestamp());
+                        if (last != null) {
+                            moveX(time - last.getTimestamp());
                         }
                     }
                 }
                 for (int i = 0; i < values.length; i++) {
                     addDataPoint(i, time, values[i]);
-                }               
+                }
             }
         }
     }
@@ -1217,11 +1215,11 @@ public class PlotPanel extends javax.swing.JPanel {
             repaint();
         }
     }
-    
-    void updateTooltips(){
+
+    void updateTooltips() {
         boolean tooltips = markersVisible && !scrollMode;
         for (int i = 0; i < getNumberOfSeries(); i++) {
-            if (tooltips){
+            if (tooltips) {
                 DecimalFormat vf = new DecimalFormat("0.##########");
                 SimpleDateFormat tf = new SimpleDateFormat("HH:mm:ss.S");
                 getRenderer(i).setBaseToolTipGenerator(new StandardXYToolTipGenerator("{0} {1} {2}", tf, vf));
@@ -1233,8 +1231,8 @@ public class PlotPanel extends javax.swing.JPanel {
                 getRenderer(i).setBaseToolTipGenerator(null);
             }
         }
-        
-    }  
+
+    }
 
     public boolean isMarkersVisible() {
         return markersVisible;

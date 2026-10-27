@@ -153,7 +153,7 @@ public class Config {
         }
         return ret;
     }
-    
+
     List<String> getCurvesNames() {
         List<String> ret = new ArrayList<>();
         for (int i = 0; i < MAX_NUMBER_PLOTS; i++) {
@@ -162,7 +162,7 @@ public class Config {
             }
         }
         return ret;
-    }    
+    }
 
     int getNumberCurves() {
         for (int i = 0; i < MAX_NUMBER_PLOTS; i++) {
@@ -366,7 +366,7 @@ public class Config {
     public void load(String[] channels) throws Exception {
         timespan = 20 * 60;
         for (int i = 0; i < channels.length; i++) {
-            if ((channels[i]!=null) && !channels[i].isBlank()){
+            if ((channels[i] != null) && !channels[i].isBlank()) {
                 curves[i] = new Curve();
                 String channelName = channels[i].trim();
                 curves[i].name = channelName;
@@ -501,7 +501,6 @@ public class Config {
         }
         return config;
     }
-
 
     public static void main(String[] args) throws IOException {
         Config config = new Config();

@@ -33,7 +33,7 @@ import org.epics.ca.impl.ProtocolConfiguration;
  */
 public class App {
 
-    public enum Protocol{
+    public enum Protocol {
         CA,
         PVA
     }
@@ -45,7 +45,7 @@ public class App {
     static boolean simulated;
     static Protocol defaultProtocol = Protocol.CA;
     static int timeout = 1000;
-    
+
     //Arguments
     static public String[] getArguments() {
         return arguments;
@@ -61,7 +61,7 @@ public class App {
      * latest.
      */
     static public String getArgumentValue(String name) {
-        List<String> values = getArgumentValues(name);
+        var values = getArgumentValues(name);
         int entries = values.size();
         if (entries <= 0) {
             return null;
@@ -81,7 +81,7 @@ public class App {
      * present then returns an empty list.
      */
     static public List<String> getArgumentValues(String name) {
-        ArrayList<String> argumentValues = new ArrayList<>();
+        var argumentValues = new ArrayList<String>();
         for (String arg : arguments) {
             if (arg.startsWith("-")) {
                 arg = arg.substring(1);
@@ -154,20 +154,18 @@ public class App {
         return App.hasArgument("sync");
     }
 
-    public static boolean isDebug(){
+    public static boolean isDebug() {
         return App.hasArgument("debug");
     }
-          
-    public static boolean getHideInvalid(){
+
+    public static boolean getHideInvalid() {
         return App.hasArgument("hide_invalid");
     }
-    
-    public static boolean isIocTime(){
+
+    public static boolean isIocTime() {
         return App.hasArgument("ioc_time");
     }
-    
-    
-    
+
     public static File resolveFile(String name) throws FileNotFoundException {
         name = name.trim();
         File file = new File(expandUserHome(name));
@@ -210,9 +208,8 @@ public class App {
     public static boolean isAntiAliasing() {
         return hasArgument("aa");
     }
-    
-    
-    public static boolean isMac(){
+
+    public static boolean isMac() {
         return System.getProperty("os.name").toLowerCase().contains("mac");
     }
 
@@ -224,7 +221,7 @@ public class App {
         }
         System.out.println("\n");
     }
-    
+
     enum PvaArgument {
         EPICS_PVA_ADDR_LIST,
         EPICS_PVA_AUTO_ADDR_LIST,
@@ -232,7 +229,7 @@ public class App {
         EPICS_PVA_SERVER_PORT,
         EPICS_PVAS_TLS_PORT,
         EPICS_PVAS_INTF_ADDR_LIST,
-        EPICS_PVA_BROADCAST_PORT ,
+        EPICS_PVA_BROADCAST_PORT,
         EPICS_PVAS_BROADCAST_PORT,
         EPICS_PVA_CONN_TMO,
         EPICS_PVA_TCP_SOCKET_TMO,
@@ -277,15 +274,14 @@ public class App {
             System.out.println("\t-" + option.toString() + "=<value>");
         }
         System.out.println("\t-protocol=<name>\tSupported values: ca or pva -default: " + defaultProtocol.toString().toLowerCase());
-        System.out.println("\t-timeout=<value>\tTimeout in milliseconds - default: " + timeout);        
-        
-        
+        System.out.println("\t-timeout=<value>\tTimeout in milliseconds - default: " + timeout);
+
         System.out.println("\nEnvironmennt variables: ");
         System.out.println("\tSTRIP_SITE_DEFAULTS");
         System.out.println("\tSTRIP_FILE_SEARCH_PATH");
         System.out.println("\n");
     }
-    
+
     public static void main(String args[]) throws Exception {
         arguments = args;
         final Object startLock = new Object();
@@ -294,48 +290,50 @@ public class App {
             printHelpMessage();
             System.exit(0);
         };
-        
+
         // Otherwise org.epics:ca on Java 21 uses IPv6
         if (!hasArgument("ipv6")) {
-            System.setProperty("java.net.preferIPv4Stack", "true");                    
-            System.setProperty("EPICS_PVA_ENABLE_IPV6", "false");            
+            System.setProperty("java.net.preferIPv4Stack", "true");
+            System.setProperty("EPICS_PVA_ENABLE_IPV6", "false");
         }
-        
+
         //Console log level is warning, unless otherwise specified
-        Level consoleLogLevel = Level.WARNING;        
-        System.setProperty("java.util.logging.SimpleFormatter.format","%1$tF %1$tT %4$s %3$s - %5$s%6$s%n");
-        try{
+        Level consoleLogLevel = Level.WARNING;
+        System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %4$s %3$s - %5$s%6$s%n");
+        try {
             consoleLogLevel = Level.parse(getArgumentValue("clog"));
-        } catch (Exception ex){            
+        } catch (Exception ex) {
+            Logger.getLogger(App.class.getName()).warning("parsing argument clog: " + ex);
         }
         for (Handler handler : Logger.getLogger("").getHandlers()) {
             if (handler instanceof ConsoleHandler) {
-                handler.setLevel(consoleLogLevel);                
-            }           
+                handler.setLevel(consoleLogLevel);
+            }
         }
-        if (!System.getProperties().contains("CA_LIBRARY_LOG_LEVEL")){
+        if (!System.getProperties().contains("CA_LIBRARY_LOG_LEVEL")) {
             System.getProperties().put("CA_LIBRARY_LOG_LEVEL", consoleLogLevel.toString());
         }
-        if (!System.getProperties().contains("CA_REPEATER_LOG_LEVEL")){
+        if (!System.getProperties().contains("CA_REPEATER_LOG_LEVEL")) {
             System.getProperties().put("CA_REPEATER_LOG_LEVEL", consoleLogLevel.toString());
         }
-        
-        
-        try{
+
+        try {
             String val = getArgumentValue("protocol");
             if (val != null) {
-                 defaultProtocol = Protocol.valueOf(val.toUpperCase());
-            }                       
-        } catch (Exception ex){            
-        }                
+                defaultProtocol = Protocol.valueOf(val.toUpperCase());
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(App.class.getName()).warning("parsing argument protocol: " + ex);
+        }
 
-        try{
+        try {
             String val = getArgumentValue("timeout");
             if (val != null) {
-                 timeout = Integer.valueOf(val);
-            }                       
-        } catch (Exception ex){            
-        }                
+                timeout = Integer.parseInt(val);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(App.class.getName()).warning("parsing argument timeout: " + ex);
+        }
 
         caProperties = new Properties();
         for (ProtocolConfiguration.PropertyNames arg : ProtocolConfiguration.PropertyNames.values()) {
@@ -344,42 +342,41 @@ public class App {
                 caProperties.setProperty(arg.toString(), val);
             }
         }
-        
+
         for (PvaArgument arg : PvaArgument.values()) {
             String val = getArgumentValue(arg.toString());
             if (val != null) {
                 System.setProperty(arg.toString(), val);
             }
-        }                
-        
+        }
+
         if (isDebug()) {
             caProperties.setProperty("CA_DEBUG", "1");
-        }     
-        
+        }
+
         //Split ignoting quotes
         String lastArg = null;
-        if (args.length > 0){
-            String[] tokens =  String.join(" ", args).split(" (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
-            lastArg = tokens[tokens.length-1].trim();
-            if ((lastArg.length()>1) && (lastArg.startsWith("\""))&& (lastArg.endsWith("\""))){
+        if (args.length > 0) {
+            String[] tokens = String.join(" ", args).split(" (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+            lastArg = tokens[tokens.length - 1].trim();
+            if ((lastArg.length() > 1) && (lastArg.startsWith("\"")) && (lastArg.endsWith("\""))) {
                 //On macos the command line splits entries in quotes containing spaces
-                lastArg = lastArg.substring(1, lastArg.length()-1);
+                lastArg = lastArg.substring(1, lastArg.length() - 1);
             } else {
                 //On linux not, and the quotes are removed
                 lastArg = args[args.length - 1].trim();
             }
         }
-        
-        boolean isChannelList =  hasArgument("l");
-        String startup = (lastArg != null) && 
-                         (!lastArg.isEmpty()||isChannelList) && 
-                          !lastArg.startsWith("-") && 
-                            !lastArg.startsWith("#")
+
+        boolean isChannelList = hasArgument("l");
+        String startup = (lastArg != null)
+                && (!lastArg.isEmpty() || isChannelList)
+                && !lastArg.startsWith("-")
+                && !lastArg.startsWith("#")
                 ? lastArg : null;
-        
-        
+
         String startupFile = isChannelList ? null : startup;
-        String[] startupChannels = (isChannelList  && (startup!=null)) ? startup.split(" ") : null;
+        String[] startupChannels = (isChannelList && (startup != null)) ? startup.split(" ") : null;
 
         String laf = getArgumentValue("laf");
         if (laf != null) {
@@ -419,11 +416,11 @@ public class App {
         }
         simulated = hasArgument("simulated");
 
-        if (isDebug()){
+        if (isDebug()) {
             System.out.println("Home folder: " + getHome());
             System.out.println("Startup: " + startup);
         }
-    
+
         //Builds the search path
         path.add(".");
         path.add(expandUserHome("~"));
@@ -515,7 +512,7 @@ public class App {
                 if (startup != null) {
                     plotFrame.setVisible(true);
                     try {
-                        if (startupFile != null){
+                        if (startupFile != null) {
                             configFrame.open(resolveFile(startupFile));
                         } else if (startupChannels != null) {
                             configFrame.load(startupChannels);
@@ -523,23 +520,23 @@ public class App {
                     } catch (Exception ex) {
                         ex.printStackTrace();
                         Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-                        if (startupFile != null){
+                        if (startupFile != null) {
                             forceConfig = true;
                         }
                     }
                 } else if (startupChannels != null) {
-                    
+
                 }
 
                 if ((forceConfig) || (startup == null)) {
                     configFrame.setVisible(true);
                     configFrame.setLocationRelativeTo(null);
                 }
-                
-                for (String cmd : App.getArgumentValues("cmd")){
-                    for (String statement : cmd.split(";")){
+
+                for (String cmd : App.getArgumentValues("cmd")) {
+                    for (String statement : cmd.split(";")) {
                         statement = statement.trim();
-                        if (!statement.isBlank()){
+                        if (!statement.isBlank()) {
                             try {
                                 System.out.println("Executing command: " + statement);
                                 executeStatement(statement);
@@ -549,17 +546,17 @@ public class App {
                         }
                     }
                 }
-                synchronized(startLock){
+                synchronized (startLock) {
                     startLock.notifyAll();
                 }
             }
         });
-                
-        synchronized(startLock){
+
+        synchronized (startLock) {
             startLock.wait();
         }
-        
-        if (hasArgument("cli")){
+
+        if (hasArgument("cli")) {
             //Run console        
             String cursor = "> ";
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
@@ -576,7 +573,7 @@ public class App {
 
                     try {
                         Object ret = executeStatement(statement);
-                        if (ret != null){
+                        if (ret != null) {
                             System.out.println(ret);
                         }
                     } catch (Exception ex) {
@@ -584,59 +581,59 @@ public class App {
                     }
                 }
             }
-        }        
+        }
         Logger.getLogger(App.class.getName()).info("Application initialized");
     }
-    
-    static Object executeStatement(String statement) throws Exception{
+
+    static Object executeStatement(String statement) throws Exception {
         statement = statement.trim();
-        if (!statement.isBlank()){
-            String[] tokens=statement.split(" ");
+        if (!statement.isBlank()) {
+            String[] tokens = statement.split(" ");
             String op = tokens[0];
-            switch (op){
-                case "add":                            
+            switch (op) {
+                case "add":
                     configFrame.addChannel(tokens[1]);
-                    return "Ok";    
-                case "del":   
+                    return "Ok";
+                case "del":
                     configFrame.removeChannel(configFrame.getIndex(tokens[1]));
-                    return "Ok";    
-                case "range":   
+                    return "Ok";
+                case "range":
                     configFrame.setChannelMin(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
                     configFrame.setChannelMax(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[3]));
-                    return "Ok";    
-                case "min":   
+                    return "Ok";
+                case "min":
                     configFrame.setChannelMin(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
-                    return "Ok";    
-                case "max":   
+                    return "Ok";
+                case "max":
                     configFrame.setChannelMax(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
-                    return "Ok";    
-                case "log":   
+                    return "Ok";
+                case "log":
                     configFrame.setChannelLog(configFrame.getIndex(tokens[1]), Boolean.valueOf(tokens[2]));
-                    return "Ok";    
-                case "color":   
+                    return "Ok";
+                case "color":
                     configFrame.setChannelColor(configFrame.getIndex(tokens[1]), tokens[2]);
-                    return "Ok";    
-                case "channels":   
+                    return "Ok";
+                case "channels":
                     return String.join("\n", configFrame.config.getCurvesNames().toArray(new String[0]));
-                case "indexes":  
-                    List<Integer> indexes =  configFrame.config.getCurvesIndexes();
+                case "indexes":
+                    List<Integer> indexes = configFrame.config.getCurvesIndexes();
                     String[] names = new String[indexes.size()];
-                    for (int i=0; i< names.length; i++){
+                    for (int i = 0; i < names.length; i++) {
                         names[i] = String.valueOf(indexes.get(i));
                     }
-                    return String.join("\n", names);     
+                    return String.join("\n", names);
                 case "span":
                     configFrame.setTimespan(Integer.valueOf(tokens[1]));
-                    return "Ok";    
+                    return "Ok";
                 case "poll":
                     configFrame.setSampleInterval(Double.valueOf(tokens[1]));
                     return "Ok";
                 case "redraw":
                     configFrame.setRedrawInterval(Double.valueOf(tokens[1]));
-                    return "Ok";             
+                    return "Ok";
                 default:
                     return "Invalid command";
-            }                    
+            }
         }
         return null;
     }

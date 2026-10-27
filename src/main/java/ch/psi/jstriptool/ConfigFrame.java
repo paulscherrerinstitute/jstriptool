@@ -104,7 +104,7 @@ public class ConfigFrame extends javax.swing.JFrame {
                                 case COLUMN_COLORS:
                                     App.plotFrame.setColor(index, (value == null) ? Color.BLACK : Config.getColorFromString((String) value));
                                     break;
-                                }
+                            }
                         }
                     }
                 } catch (Exception ex) {
@@ -199,8 +199,8 @@ public class ConfigFrame extends javax.swing.JFrame {
 
             @Override
             public boolean isCellEditable(EventObject ev) {
-                if (ev instanceof MouseEvent) {
-                    return ((MouseEvent) ev).getClickCount() >= 2;
+                if (ev instanceof MouseEvent me) {
+                    return me.getClickCount() >= 2;
                 }
                 return true;
             }
@@ -226,21 +226,22 @@ public class ConfigFrame extends javax.swing.JFrame {
     }
 
     static class ScientificNotationRenderer extends DefaultTableCellRenderer {
+
         private static final DecimalFormat SCI_FORMAT = new DecimalFormat("0.0E0");
+
         @Override
         protected void setValue(Object value) {
-            if ((value instanceof Number) && (Math.abs(((Number)value).doubleValue())<0.001) 
-                                          && (Math.abs(((Number)value).doubleValue())>0)) {
-                double number = ((Number) value).doubleValue();
-                if ((Math.abs(number)<0.001) && (Math.abs(number) > 1.e-24)){
+            if (value instanceof Number number) {
+                double d = number.doubleValue();
+                if ((Math.abs(d) < 0.001) && (Math.abs(d) > 0)) {
                     setText(SCI_FORMAT.format(number));  // Format as scientific notation
                     return;
                 }
-            } 
+            }
             setText(value.toString());  // Default behavior
         }
     }
-    
+
     void clear() {
         config = App.defaultConfig == null ? new Config() : App.defaultConfig.clone();
         file = null;
@@ -251,7 +252,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         if (App.plotFrame != null) {
             App.plotFrame.setTitle("JStripTool");
             App.plotFrame.stop();
-        }        
+        }
         //Channel.dispose();
     }
 
@@ -273,7 +274,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         this.setTitle(file.getName());
         App.plotFrame.setTitle(getTitle());
     }
-    
+
     void load(String[] channels) throws Exception {
         clear();
         Config config = App.defaultConfig == null ? new Config() : App.defaultConfig.clone();
@@ -284,8 +285,8 @@ public class ConfigFrame extends javax.swing.JFrame {
         updateWindow();
         showPlotFrame();
     }
-    
-    void showPlotFrame(){
+
+    void showPlotFrame() {
         App.plotFrame.setVisible(true);
         App.plotFrame.setTitle(getTitle());
         App.plotFrame.setVisible(true);
@@ -310,13 +311,13 @@ public class ConfigFrame extends javax.swing.JFrame {
         spinnerRedrawInterval.setValue(config.refreshInterval);
         spinnerBufferSize.setValue(config.numSamples);
 
-        updating=true;
-        try{
+        updating = true;
+        try {
             spinnerHour.setValue(config.timespan / 3600);
             spinnerMin.setValue((config.timespan % 3600) / 60);
             spinnerSec.setValue(config.timespan % 60);
-        } finally{
-            updating=false;
+        } finally {
+            updating = false;
         }
 
         if (modelSeries.getRowCount() != config.getNumberCurves()) {
@@ -336,10 +337,9 @@ public class ConfigFrame extends javax.swing.JFrame {
         }
         updateButtons();
     }
-    
-    
-    public void addChannel(String channelName) throws Exception{
-        if (channelName.isBlank()){
+
+    public void addChannel(String channelName) throws Exception {
+        if (channelName.isBlank()) {
             throw new Exception("Invalid channel name");
         }
         var metadata = Channel.readMetadata(channelName);
@@ -353,110 +353,107 @@ public class ConfigFrame extends javax.swing.JFrame {
         modelSeries.fireTableDataChanged();
         updateButtons();
         updateColors();
-        if (!App.plotFrame.isStarted()){
+        if (!App.plotFrame.isStarted()) {
             App.plotFrame.start();
         }
 
         App.plotFrame.addChannel(index, channelName, true, false,
-                metadata.precision(), metadata.low(), metadata.high(), metadata.units(), metadata.description());                    
+                metadata.precision(), metadata.low(), metadata.high(), metadata.units(), metadata.description());
     }
-    
-    public void removeChannel(int index) throws Exception{
-        if (index>=modelSeries.getRowCount()){
+
+    public void removeChannel(int index) throws Exception {
+        if (index >= modelSeries.getRowCount()) {
             throw new Exception("Invalid channel index");
         }
         modelSeries.removeRow(Math.max(index, 0));
         App.plotFrame.removeChannel(index);
         updateButtons();
-        updateColors();        
+        updateColors();
     }
-    
-    
-     
-    public void setChannelRange(int index, double min, double max) throws Exception{
-        if ((index<0) ||(index>=modelSeries.getRowCount())){
+
+    public void setChannelRange(int index, double min, double max) throws Exception {
+        if ((index < 0) || (index >= modelSeries.getRowCount())) {
             throw new Exception("Invalid channel index");
         }
         modelSeries.setValueAt(min, index, COLUMN_MIN);
         modelSeries.setValueAt(max, index, COLUMN_MAX);
         //App.plotFrame.setMin(index, min);    
         //App.plotFrame.setMax(index, max);    
-    } 
-    
-    public void setChannelMin(int index, double value) throws Exception{
-        if ((index<0) ||(index>=modelSeries.getRowCount())){
+    }
+
+    public void setChannelMin(int index, double value) throws Exception {
+        if ((index < 0) || (index >= modelSeries.getRowCount())) {
             throw new Exception("Invalid channel index");
         }
         modelSeries.setValueAt(value, index, COLUMN_MIN);
         //App.plotFrame.setMin(index, value); 
-    } 
+    }
 
-    public void setChannelMax(int index, double value) throws Exception{
-        if ((index<0) ||(index>=modelSeries.getRowCount())){
+    public void setChannelMax(int index, double value) throws Exception {
+        if ((index < 0) || (index >= modelSeries.getRowCount())) {
             throw new Exception("Invalid channel index");
         }
         modelSeries.setValueAt(value, index, COLUMN_MAX);
         //App.plotFrame.setMax(index, value);    
-    } 
+    }
 
-    public void setChannelLog(int index, boolean value) throws Exception{
-        if ((index<0) ||(index>=modelSeries.getRowCount())){
+    public void setChannelLog(int index, boolean value) throws Exception {
+        if ((index < 0) || (index >= modelSeries.getRowCount())) {
             throw new Exception("Invalid channel index");
         }
-        modelSeries.setValueAt(value, index, COLUMN_LOG);   
-    }     
-    
-    public void setChannelColor(int index, String value) throws Exception{
-        if ((index<0) ||(index>=modelSeries.getRowCount())){
+        modelSeries.setValueAt(value, index, COLUMN_LOG);
+    }
+
+    public void setChannelColor(int index, String value) throws Exception {
+        if ((index < 0) || (index >= modelSeries.getRowCount())) {
             throw new Exception("Invalid channel index");
         }
-        modelSeries.setValueAt(value, index, COLUMN_COLORS);   
-    }    
-    
-    public int getIndex(String channel) throws Exception{
-       channel= channel.strip();
-       Integer index = null;
-       try {
-           index = Integer.parseInt(channel);
-           if ((index<0) || (index>=modelSeries.getRowCount())){
+        modelSeries.setValueAt(value, index, COLUMN_COLORS);
+    }
+
+    public int getIndex(String channel) throws Exception {
+        channel = channel.strip();
+        Integer index = null;
+        try {
+            index = Integer.parseInt(channel);
+            if ((index < 0) || (index >= modelSeries.getRowCount())) {
                 throw new Exception("Invalid channel index: " + index);
-           }
-           return index;
-       } catch (NumberFormatException e) {      
-       }       
-        for (int i=0; i<modelSeries.getRowCount(); i++){
-            if (channel.equalsIgnoreCase(String.valueOf(modelSeries.getValueAt(i, 0)))){
+            }
+            return index;
+        } catch (NumberFormatException e) {
+        }
+        for (int i = 0; i < modelSeries.getRowCount(); i++) {
+            if (channel.equalsIgnoreCase(String.valueOf(modelSeries.getValueAt(i, 0)))) {
                 return i;
             }
         }
         throw new Exception("Invalid channel name: " + channel);
     }
-    
-    public void setTimespan( int value) throws Exception{
-        if (value<=0){
+
+    public void setTimespan(int value) throws Exception {
+        if (value <= 0) {
             throw new Exception("Invalid value");
-        }        
+        }
         App.plotFrame.setTimespan(value);
-        updateWindow();        
-    }     
-    
-    public void setSampleInterval( double value) throws Exception{
-        if (value<0){
+        updateWindow();
+    }
+
+    public void setSampleInterval(double value) throws Exception {
+        if (value < 0) {
             throw new Exception("Invalid value");
-        }        
+        }
         App.plotFrame.setSampleInterval(value);
-        updateWindow();                  
-    }     
-    
-    public void setRedrawInterval( double value) throws Exception{
-        if (value<=0){
+        updateWindow();
+    }
+
+    public void setRedrawInterval(double value) throws Exception {
+        if (value <= 0) {
             throw new Exception("Invalid value");
-        }        
+        }
         App.plotFrame.setRedrawInterval(value);
-        updateWindow();        
-    }        
-   
-    
+        updateWindow();
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -1117,8 +1114,8 @@ public class ConfigFrame extends javax.swing.JFrame {
 
     private void buttonInsertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonInsertActionPerformed
         if (modelSeries.getRowCount() < Config.MAX_NUMBER_PLOTS) {
-            String channelName="";
-            while (true){
+            String channelName = "";
+            while (true) {
                 channelName = SwingUtils.getString(this, "Enter channel name", channelName);
                 if ((channelName == null) || (channelName.isBlank())) {
                     return;
@@ -1318,7 +1315,7 @@ public class ConfigFrame extends javax.swing.JFrame {
 
     private void spinnerHourStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerHourStateChanged
         try {
-            if (!updating){
+            if (!updating) {
                 int timespan = (Integer) spinnerSec.getValue();
                 timespan += ((Integer) spinnerMin.getValue()) * 60;
                 timespan += ((Integer) spinnerHour.getValue()) * 3600;

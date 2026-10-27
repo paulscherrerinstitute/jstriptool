@@ -19,7 +19,7 @@ public final class PlotSeries {
     String truncatedFormat = "%s";
     String expFormat = "";
     int lineWidth = 1;
-    int numSamples=7200;
+    int numSamples = 7200;
 
     int precision;
     boolean logarithmic;
@@ -124,21 +124,21 @@ public final class PlotSeries {
         rangeMin = fixed ? Math.min(min, max) : min;
         rangeMax = fixed ? Math.max(min, max) : max;
         if (getIndex() >= 0) {
-            if (isFixedRange()){
+            if (isFixedRange()) {
                 getPlot().setAxisScale(getIndex(), getRangeMin(), getRangeMax());
             } else {
                 getPlot().setAxisAutoScale(getIndex());
             }
-        } 
+        }
     }
 
     public boolean isFixedRange() {
         return isFixedRange(rangeMin, rangeMax);
     }
-    
+
     public static boolean isFixedRange(double min, double max) {
         return (!Double.isNaN(min) && !Double.isNaN(max));
-    }    
+    }
 
     public void setUnits(String value) {
         units = value;
@@ -180,10 +180,10 @@ public final class PlotSeries {
     public TimestampedValue getLastValue() {
         return getPlot().getLastItem(getIndex());
     }
-    
+
     public int getItemCount() {
         return getPlot().getItemCount(getIndex());
-    }    
+    }
 
     public void setActive() {
         if (getIndex() >= 0) {
@@ -200,17 +200,16 @@ public final class PlotSeries {
         }
         return false;
     }
-    
-    
+
     private boolean connected;
+
     public void setConnected() {
-       connected = true;
+        connected = true;
     }
-    
+
     public boolean isConnected() {
         return connected;
     }
-    
 
     PlotPanel getPlot() {
         //TODO
@@ -218,7 +217,7 @@ public final class PlotSeries {
     }
 
     String toString(double value, boolean allowExponential, boolean showUnits, boolean truncate) {
-        
+
         String ret = String.format(truncate ? truncatedFormat : format, value);
         if (allowExponential && (ret.length() > 10)) {
             ret = String.format(expFormat, value);

@@ -33,7 +33,7 @@ public class SwingUtils {
             }
         }).start();
     }
-    
+
     public static String getStackTrace(final Throwable throwable) {
         final StringWriter sw = new StringWriter();
         final PrintWriter pw = new PrintWriter(sw, true);
