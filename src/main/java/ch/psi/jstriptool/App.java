@@ -412,8 +412,12 @@ public class App {
             System.out.println("Blocking mode");
         }
         if (!hasArgument("noraise")) {
-            PlotPanel.setBringSelectedToTheTop(true);
+            PlotPanel.setBringSelectedToTheTop(true);            
         }
+        
+         PlotPanel.setSparse(App.isIocTime()); //Values are not appended together for all series
+        
+        
         simulated = hasArgument("simulated");
 
         if (isDebug()) {

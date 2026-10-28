@@ -510,13 +510,13 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
 
-    boolean sparse = true;
+    static boolean sparse = true;
 
-    public boolean isSparse() {
+    public static boolean isSparse() {
         return sparse;
     }
 
-    public void setSparse(boolean value) {
+    public static void setSparse(boolean value) {
         sparse = value;
     }
 

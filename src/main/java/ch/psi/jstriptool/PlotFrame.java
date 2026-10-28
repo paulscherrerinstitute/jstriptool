@@ -26,7 +26,7 @@ public class PlotFrame extends javax.swing.JFrame {
 
     static PlotFrame instance;
     final boolean blocking;
-    final boolean iocTime;
+    final boolean iocTime;    
 
     /**
      * Creates new form MainFrame
@@ -42,8 +42,6 @@ public class PlotFrame extends javax.swing.JFrame {
             App.configFrame.setVisible(true);
         });
         plotPanel.addPopupMenuItem(menuShowConfig);
-        plotPanel.setSparse(false);//Values are appended together for all series
-
         blocking = App.isBlocking();
         iocTime = App.isIocTime();
 
@@ -73,7 +71,7 @@ public class PlotFrame extends javax.swing.JFrame {
                         }
                         setMonitor((value) -> {
                             cache.put(this, value);
-                            if (config.sampleInterval <= 0) {
+                            if (config.getSamplingMode() == Config.SamplingMode.MONITOR) {
                                 addValue();
                             }
 
@@ -203,7 +201,7 @@ public class PlotFrame extends javax.swing.JFrame {
             sampleScheduler.shutdown();
             sampleScheduler = null;
         }
-        if (config.sampleInterval > 0) {
+        if (config.getSamplingMode() == Config.SamplingMode.POLLING) {
             sampleScheduler = Executors.newSingleThreadScheduledExecutor();
 
             sampleScheduler.scheduleAtFixedRate(new Runnable() {

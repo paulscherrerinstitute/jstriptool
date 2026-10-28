@@ -22,6 +22,11 @@ public class Config {
     public static final String EXTENSION = "stp";
     public static final String VERSION = "1.2";
     public static final int MAX_NUMBER_PLOTS = 10;
+    
+    public enum SamplingMode{
+        POLLING,
+        MONITOR
+    }
 
     public static class DeepColor {
 
@@ -477,6 +482,13 @@ public class Config {
 
     public static String getStringFromColor(Color color) {
         return (color == null) ? "" : color.getRed() + "," + color.getGreen() + "," + color.getBlue();
+    }
+    
+    public SamplingMode getSamplingMode(){
+        if (sampleInterval==0){
+            return SamplingMode.MONITOR;
+        }
+        return SamplingMode.POLLING;
     }
 
     @Override
