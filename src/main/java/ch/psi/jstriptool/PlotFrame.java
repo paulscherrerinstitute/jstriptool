@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -26,7 +27,8 @@ public class PlotFrame extends javax.swing.JFrame {
 
     static PlotFrame instance;
     final boolean blocking;
-    final boolean iocTime;    
+    final boolean localTime;    
+    final boolean sparseTime;   
 
     /**
      * Creates new form MainFrame
@@ -43,7 +45,8 @@ public class PlotFrame extends javax.swing.JFrame {
         });
         plotPanel.addPopupMenuItem(menuShowConfig);
         blocking = App.isBlocking();
-        iocTime = App.isIocTime();
+        localTime = App.timeMode.isLocalTime();
+        sparseTime = App.timeMode.isSparse();
 
         //Not implemented
         buttonRedraw.setVisible(false);
@@ -57,7 +60,7 @@ public class PlotFrame extends javax.swing.JFrame {
         numberOfSeries++;
         PlotSeries series = PlotSeries.create(c, color, config.graphLineWidth, config.numSamples);
         series.setActive();
-        plotPanel.addSeries(series);
+        plotPanel.addSeries(series, c.isEnabled());
         panelSeriesSet.addSeries(series);
         repaint();
 
@@ -70,21 +73,30 @@ public class PlotFrame extends javax.swing.JFrame {
                             updateAsync(this);
                         }
                         setMonitor((value) -> {
-                            cache.put(this, value);
-                            if (config.getSamplingMode() == Config.SamplingMode.MONITOR) {
-                                addValue();
-                            }
-
+                            addValue(this, value);
                         });
                     }
 
                 }
             };
-            cache.put(pv, ChannelValue.empty());
+            cache.put(pv, null);
             synchronized (channels) {
                 channels.add(pv);
             }
         }
+    }
+    
+    void addValue(Channel pv, ChannelValue value){
+        if (started() && (value!=null)) {
+            if (config.getSamplingMode() == Config.SamplingMode.MONITOR) {
+                synchronized (cache){
+                    cache.put(pv, value);
+                    updateValues();
+                }
+            } else {
+                cache.put(pv, value);
+            }
+         }        
     }
 
     public void removeSeries(int index) {
@@ -143,7 +155,8 @@ public class PlotFrame extends javax.swing.JFrame {
     ScheduledExecutorService sampleScheduler;
     final List<Channel> channels = new ArrayList<>();
     final Map<Channel, ChannelValue> cache = new HashMap<>();
-    final ArrayList<Pair<Long, ChannelValue[]>> valueList = new ArrayList<>(); //Retain IOC time
+    final ArrayList<Pair<Long, ChannelValue[]>> valueList = new ArrayList<>();
+    final Map<Channel, ChannelValue> valueListSparse = new HashMap<>();
     volatile Config config;
     int numberOfSeries;
 
@@ -179,6 +192,10 @@ public class PlotFrame extends javax.swing.JFrame {
             panelSeriesSet.update();
         }
     }
+    
+    boolean started(){
+        return config!=null;
+    }
 
     void startRedrawTimer(boolean triggerImmediately) {
         if (redrawTimer != null) {
@@ -207,14 +224,14 @@ public class PlotFrame extends javax.swing.JFrame {
             sampleScheduler.scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {
-                    addValue();
+                    updateValues();
                 }
             }, triggerImmediately ? 0 : ((int) (config.sampleInterval * 1000)), ((int) (config.sampleInterval * 1000)), TimeUnit.MILLISECONDS);
         }
 
     }
 
-    void addValue() {
+    void updateValues() {        
         try {
             if (!getPlot().isStarted()) {
                 return;
@@ -222,10 +239,9 @@ public class PlotFrame extends javax.swing.JFrame {
             long millis = System.currentTimeMillis();
             int series = getSeriesCount();
             ChannelValue[] values = new ChannelValue[series];
-
             for (int i = 0; i < series; i++) {
-                ChannelValue value = ChannelValue.empty();
-                try {
+                ChannelValue value = null;
+                try {                    
                     if (config.curves[i].isEnabled()) {
                         if (App.isSimulated()) {
                             double v = Math.random() * (config.curves[i].max - config.curves[i].min) + config.curves[i].min;
@@ -236,13 +252,16 @@ public class PlotFrame extends javax.swing.JFrame {
                             } else {
                                 value = cache.get(channels.get(i));
                             }
-                        }
+                        }                        
                     }
                 } catch (Exception ex) {
+                    Logger.getLogger(PlotFrame.class.getName()).warning("Error adding channel " + channels.get(i).name + " value: " + ex);
                 }
                 values[i] = value;
             }
-
+            if (sparseTime){                
+                cache.clear();
+            }
             synchronized (valueList) {
                 valueList.add(Pair.of(millis, values));
             }
@@ -251,6 +270,7 @@ public class PlotFrame extends javax.swing.JFrame {
             }
         } catch (Exception ex) {
         }
+
     }
 
     int counterSample;
@@ -267,12 +287,11 @@ public class PlotFrame extends javax.swing.JFrame {
                     var localTimestamp = val.getLeft();
                     var channelValues = val.getRight();
                     for (int i = 0; i < channelValues.length; i++) {
-                        var channelValue = channelValues[i];
-                        var timestamp = localTimestamp;
-                        if (iocTime) {
-                            timestamp = channelValue.timestamp();
+                        var channelValue = channelValues[i];                        
+                        if (channelValue!=null){
+                            var timestamp = localTime ? localTimestamp : channelValue.timestamp();
+                            getPlot().add(i, timestamp, channelValue.displayValue());
                         }
-                        getPlot().add(i, timestamp, channelValue.displayValue());
                     }
                 }
                 getPlot().notifyUpdate();
@@ -289,7 +308,7 @@ public class PlotFrame extends javax.swing.JFrame {
 
     void stop() {
         if (plotPanel != null) {
-            plotPanel.stop();
+            plotPanel.pause();
         }
         if (sampleScheduler != null) {
             sampleScheduler.shutdown();
@@ -299,6 +318,11 @@ public class PlotFrame extends javax.swing.JFrame {
             redrawTimer.stop();
             redrawTimer = null;
         }
+        
+        for (Channel channel: channels) {
+            channel.close();
+        }
+        
         synchronized (channels) {
             channels.clear();
         }
@@ -330,12 +354,16 @@ public class PlotFrame extends javax.swing.JFrame {
 
     public void setEnabled(int index, boolean value) {
         if (isStarted() && index < config.getNumberCurves()) {
-            config.curves[index].plotStatus = value;
-            synchronized (channels) {
+            boolean enabled = config.curves[index].isEnabled();
+            if (enabled!=value){
+                if (!value) {
+                    addValue(channels.get(index), ChannelValue.empty()); //TODO: Interrupts line extension
+                }                
+                config.curves[index].plotStatus = value;
+                plotPanel.series.get(index).setLineExtension(value);
                 if (value) {
+                    //addValue(channels.get(index), ChannelValue.empty());                        
                     updateAsync(channels.get(index));
-                } else {
-                    cache.put(channels.get(index), ChannelValue.empty());
                 }
             }
         }
@@ -508,9 +536,9 @@ public class PlotFrame extends javax.swing.JFrame {
                 } else {
                     addSeries(c, config.colors[index].toColor(), index);
                     setActive(plotPanel.getPlotSeries(index));
-                }
+                }                
             }
-        }
+        }        
     }
 
     public void removeChannel(int index) {

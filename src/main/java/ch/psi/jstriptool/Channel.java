@@ -129,7 +129,7 @@ public class Channel implements AutoCloseable {
     public void setMonitor(Consumer<ChannelValue> consumer) {
         try {
             if (channel instanceof PVAChannel ch) {
-                ch.subscribe("field(value,alarm,imeStamp)", (PVAChannel channel1, BitSet changed, BitSet overrun, PVAStructure structure) -> {
+                ch.subscribe("field(value,alarm,timeStamp)", (PVAChannel channel1, BitSet changed, BitSet overrun, PVAStructure structure) -> {
                     ChannelValue value = ChannelValue.fromPva(structure);
                     if (value != null) {
                         consumer.accept(value);

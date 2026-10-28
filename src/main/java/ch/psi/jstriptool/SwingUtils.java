@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import javax.swing.BorderFactory;
@@ -21,6 +23,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
+
 
 public class SwingUtils {
 
@@ -259,4 +262,10 @@ public class SwingUtils {
         int ret = JOptionPane.showOptionDialog(parent, component, (title == null) ? "Input" : title, type.toJOptionPaneType(), JOptionPane.QUESTION_MESSAGE, null, null, null);
         return OptionResult.fromJOptionPaneResult(ret);
     }
+   
+
+    public static void copyToClipboard(String text) {
+        StringSelection selection = new StringSelection(text);
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
+    }    
 }

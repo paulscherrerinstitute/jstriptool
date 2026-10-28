@@ -37,6 +37,25 @@ public class App {
         CA,
         PVA
     }
+    
+    public enum TimeMode {
+        ALIGNED,  // Local timestamps, complete records
+        SPARSE,   // Local timestamps, changed values only
+        IOC;      // IOC timestamps, naturally sparse
+        
+        public boolean isSparse(){
+            return this!=ALIGNED;
+        }
+        public boolean isLocalTime(){
+            return this!=IOC;
+        }
+        public boolean isIocTime(){
+            return this==IOC;
+        }
+    }    
+    
+    
+    
 
     private static String[] arguments;
     private static Properties caProperties;
@@ -44,6 +63,7 @@ public class App {
     static Config defaultConfig;
     static boolean simulated;
     static Protocol defaultProtocol = Protocol.CA;
+    static TimeMode timeMode = TimeMode.ALIGNED;
     static int timeout = 1000;
 
     //Arguments
@@ -162,10 +182,6 @@ public class App {
         return App.hasArgument("hide_invalid");
     }
 
-    public static boolean isIocTime() {
-        return App.hasArgument("ioc_time");
-    }
-
     public static File resolveFile(String name) throws FileNotFoundException {
         name = name.trim();
         File file = new File(expandUserHome(name));
@@ -247,7 +263,6 @@ public class App {
         System.out.println("\t-default=<dir>\tSet default configuration file");
         System.out.println("\t-laf=<name>\tSupported values: nimbus, metal, dark or system");
         System.out.println("\t-clog=<level>\tSet the console logging level");
-        System.out.println("\t-ioc_time  \t\tUses IOC timestamps for plotting");
         System.out.println("\t-aa\t\tEnable anti-aliasing");
         System.out.println("\t-debug\t\tShow debug information");
         System.out.println("\t-cli  \t\tStarts the CLI");
@@ -273,7 +288,8 @@ public class App {
         for (PvaArgument option : PvaArgument.values()) {
             System.out.println("\t-" + option.toString() + "=<value>");
         }
-        System.out.println("\t-protocol=<name>\tSupported values: ca or pva -default: " + defaultProtocol.toString().toLowerCase());
+        System.out.println("\t-protocol=<name>\tSupported values: ca or pva - default: " + defaultProtocol.toString().toLowerCase());
+        System.out.println("\t-time_mode=<mode>  \t\tTime mode: aligned, sparse or ioc - default: " + timeMode.toString().toLowerCase());
         System.out.println("\t-timeout=<value>\tTimeout in milliseconds - default: " + timeout);
 
         System.out.println("\nEnvironmennt variables: ");
@@ -321,6 +337,15 @@ public class App {
             String val = getArgumentValue("protocol");
             if (val != null) {
                 defaultProtocol = Protocol.valueOf(val.toUpperCase());
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(App.class.getName()).warning("parsing argument protocol: " + ex);
+        }
+
+        try {
+            String val = getArgumentValue("time_mode");
+            if (val != null) {
+                timeMode = TimeMode.valueOf(val.toUpperCase());
             }
         } catch (Exception ex) {
             Logger.getLogger(App.class.getName()).warning("parsing argument protocol: " + ex);
@@ -415,7 +440,7 @@ public class App {
             PlotPanel.setBringSelectedToTheTop(true);            
         }
         
-         PlotPanel.setSparse(App.isIocTime()); //Values are not appended together for all series
+        PlotPanel.setSparse(timeMode.isSparse()); //Values are not appended together for all series
         
         
         simulated = hasArgument("simulated");

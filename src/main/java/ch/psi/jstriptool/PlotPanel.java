@@ -4,13 +4,17 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
+import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -39,9 +43,12 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.StandardEntityCollection;
 import org.jfree.chart.labels.StandardXYToolTipGenerator;
+import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.Range;
 import org.jfree.data.time.FixedMillisecond;
@@ -49,6 +56,7 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.xy.XYDataItem;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
 
 public class PlotPanel extends javax.swing.JPanel {
@@ -95,6 +103,13 @@ public class PlotPanel extends javax.swing.JPanel {
         Range getRange() {
             return plotSeries.isFixedRange() ? new Range(plotSeries.getRangeMin(), plotSeries.getRangeMax()) : null;
         }
+        
+        void setLineExtension(boolean value){
+            if (getRenderer() instanceof ExtendedLineAndShapeRenderer renderer){
+                renderer.setLineExtension(value);
+            }
+        }   
+        
     }
     final List<SeriesInfo> series;
 
@@ -175,7 +190,7 @@ public class PlotPanel extends javax.swing.JPanel {
         plot.setRangeMinorGridlineStroke(dotted);
 
         ((NumberAxis) plot.getRangeAxis()).setAutoRangeIncludesZero(false);
-        ((NumberAxis) plot.getRangeAxis()).setAutoRangeMinimumSize(AUTO_RANGE_MINIMUM_SIZE);
+        ((NumberAxis) plot.getRangeAxis()).setAutoRangeMinimumSize(AUTO_RANGE_MINIMUM_SIZE);               
 
         setLayout(new java.awt.BorderLayout());
         boolean userBuffer = !App.isMac();
@@ -214,8 +229,64 @@ public class PlotPanel extends javax.swing.JPanel {
         systemTickLabelPaint = chart.getXYPlot().getDomainAxis().getTickLabelPaint();
         systemTickMarkPaint = chart.getXYPlot().getDomainAxis().getTickMarkPaint();
         systemAxisLinePaint = chart.getXYPlot().getDomainAxis().getAxisLinePaint();
-
     }
+    
+  class ExtendedLineAndShapeRenderer extends XYLineAndShapeRenderer {
+
+      public ExtendedLineAndShapeRenderer() {
+          super(true, false); //lines=true, shapes=false
+      }
+      
+      @Override
+        public void drawItem(Graphics2D g2, 
+                             XYItemRendererState state, 
+                             Rectangle2D dataArea, 
+                             PlotRenderingInfo info, 
+                             XYPlot plot, 
+                             ValueAxis domainAxis, 
+                             ValueAxis rangeAxis, 
+                             XYDataset dataset, 
+                             int series, 
+                             int item, 
+                             CrosshairState crosshairState, 
+                             int pass) {
+            // Draw the usual item
+            super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis, dataset, series, item, crosshairState, pass);
+            if (lineExtension){
+                // If this is the last item in the series, extend the line to the plot's edge
+                int itemCount = dataset.getItemCount(series);
+                if ((item ==  itemCount- 1) && isLinePass(pass)) {
+                    double x1 = dataset.getXValue(series, item);
+                    double y1 = dataset.getYValue(series, item);
+                    double now = System.currentTimeMillis();    //domainAxis.getUpperBound() 
+                    if (now > x1){                    
+                        // Transform the last data point to Java2D space
+                        double xx1 = domainAxis.valueToJava2D(x1, dataArea, plot.getDomainAxisEdge());
+                        double yy1 = rangeAxis.valueToJava2D(y1, dataArea, plot.getRangeAxisEdge());
+                        double xx2 = domainAxis.valueToJava2D(now, dataArea, plot.getDomainAxisEdge());
+                        Paint p = getSeriesPaint(series);
+                        if (p instanceof Color c){
+                            p = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()/4);
+                        }
+                        g2.setPaint(p);
+                        g2.setStroke(getSeriesStroke(series));
+                        g2.draw(new Line2D.Double(xx1, yy1, xx2, yy1));        
+                    }
+                }
+            }
+        }
+        boolean lineExtension;
+
+        public void setLineExtension(boolean value){
+            if (value!=lineExtension){
+                lineExtension = value;
+                if (isShowing()) {
+                    repaint();
+                }
+                
+            }
+        }    
+    }        
 
     XYPlot getPlot() {
         return chart.getXYPlot();
@@ -416,8 +487,9 @@ public class PlotPanel extends javax.swing.JPanel {
     protected void setupMenus() {
         JCheckBoxMenuItem menuMarkers;
         JCheckBoxMenuItem menuLegend;
-        JMenuItem menuStopStart;
+        JMenuItem menuPauseStart;
         JMenuItem menuReset;
+        JMenuItem menuCopyData;
         JMenu menuSeries;
 
         menuMarkers = new JCheckBoxMenuItem("Show Markers");
@@ -425,10 +497,10 @@ public class PlotPanel extends javax.swing.JPanel {
             setMarkersVisible(menuMarkers.isSelected());
         });
 
-        menuStopStart = new JMenuItem("Stop");
-        menuStopStart.addActionListener((ActionEvent e) -> {
+        menuPauseStart = new JMenuItem("Pause");
+        menuPauseStart.addActionListener((ActionEvent e) -> {
             if (isStarted()) {
-                stop();
+                pause();
             } else {
                 start();
             }
@@ -439,6 +511,11 @@ public class PlotPanel extends javax.swing.JPanel {
         });
 
         menuSeries = new JMenu("Series Visibility");
+        
+        menuCopyData= new JMenuItem("Copy Data");
+        menuCopyData.addActionListener((ActionEvent e) -> {
+            copyData();
+        });        
 
         getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
 
@@ -454,7 +531,7 @@ public class PlotPanel extends javax.swing.JPanel {
                     menuSeries.add(item);
                 }
 
-                menuStopStart.setText(isStarted() ? "Stop" : "Start");
+                menuPauseStart.setText(isStarted() ? "Pause" : "Start");
             }
 
             @Override
@@ -468,7 +545,7 @@ public class PlotPanel extends javax.swing.JPanel {
 
         addPopupMenuItem(null);
         addPopupMenuItem(menuMarkers);
-        addPopupMenuItem(menuStopStart);
+        addPopupMenuItem(menuPauseStart);
         addPopupMenuItem(menuReset);
         addPopupMenuItem(menuSeries);
 
@@ -482,11 +559,7 @@ public class PlotPanel extends javax.swing.JPanel {
                 if (!fileName.contains(".")) {
                     fileName += ".txt";
                 }
-                try {
-                    saveData(fileName);
-                } catch (IOException ex) {
-                    SwingUtils.showException(PlotPanel.this, ex);
-                }
+                saveData(fileName);
             }
 
         });
@@ -494,21 +567,40 @@ public class PlotPanel extends javax.swing.JPanel {
             JMenu menuSave = (JMenu) getPopupMenu().getComponent(3);
             menuSave.add(menuSaveTxt);
         } catch (Exception ex) {
-            Logger.getLogger(PlotPanel.class.getName()).log(Level.INFO, null, ex);
+            Logger.getLogger(PlotPanel.class.getName()).log(Level.WARNING, null, ex);
         }
+         getPopupMenu().add(menuCopyData, 3);
     }
 
-    public void saveData(String filename) throws IOException {
-        saveData(filename, isSparse());
-    }
-
-    public void saveData(String filename, boolean sparse) throws IOException {
-        try (FileWriter writer = new FileWriter(filename, false)) {
-            saveData(writer, sparse);
+    public void saveData(String filename) {
+        try (FileWriter writer = new FileWriter(filename, isSparse())) {
+            writeData(writer, sparse);
         } catch (IOException ex) {
             SwingUtils.showException(this, ex);
         }
+    }    
+    
+    protected String getDataAsString() {
+        try (StringWriter writer = new StringWriter()) {
+            writeData(writer, isSparse());           
+            return writer.toString();     
+        } catch (Exception ex){
+            return null;
+        }
+    }    
+    
+    
+    public void copyData() {
+        try (StringWriter writer = new StringWriter()) {
+            writeData(writer, isSparse());           
+            SwingUtils.copyToClipboard(writer.toString());
+        } catch (Exception ex) {
+            Logger.getLogger(PlotPanel.class.getName()).log(Level.WARNING, null, ex);
+        }
     }
+    
+   
+    
 
     static boolean sparse = true;
 
@@ -520,7 +612,7 @@ public class PlotPanel extends javax.swing.JPanel {
         sparse = value;
     }
 
-    protected void saveData(FileWriter writer, boolean sparse) throws IOException {
+    protected void writeData(Writer writer, boolean sparse) throws IOException {
         if (isSparse()) {
             for (int i = 0; i < series.size(); i++) {
                 List<ChannelValue> values = getSeriesData(i);
@@ -692,13 +784,14 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
 
-    public SeriesInfo addSeries(PlotSeries plotSeries) {
+    public SeriesInfo addSeries(PlotSeries plotSeries, boolean enabled) {
         int index = (series.size() == 0) ? 0 : (series.get(series.size() - 1).index + 1);
         TimeSeries timeSeries = new TimeSeries(plotSeries.name);
         XYPlot plot = chart.getXYPlot();
         TimeSeriesCollection data = new TimeSeriesCollection();
         createAxis(index, plotSeries.units, plotSeries.isLogaritimic(), index == 0);
-        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        var renderer = new ExtendedLineAndShapeRenderer();
+        renderer.setLineExtension(enabled);
         renderer.setBaseShapesVisible(isMarkersVisible());
         plot.setRenderer(index, renderer);
         plot.setDataset(index, data);
@@ -720,7 +813,7 @@ public class PlotPanel extends javax.swing.JPanel {
 
         return seriesInfo;
     }
-
+        
     public void setNotify(int index, boolean value) {
         if (index < series.size()) {
             series.get(index).timeSeries.setNotify(value);
@@ -1111,7 +1204,7 @@ public class PlotPanel extends javax.swing.JPanel {
         checkSeriesDuration();
     }
 
-    public void stop() {
+    public void pause() {
         addTerminators();
         started = false;
         selectedRenderer = null;
