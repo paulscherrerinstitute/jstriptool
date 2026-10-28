@@ -95,11 +95,11 @@ public class SeriesPanel extends javax.swing.JPanel {
             if (!series.isConnected()) {
                 displayValue = "Not connected";
             } else {
-                TimestampedValue tval = series.getLastValue();
-                if ((tval == null) || (tval.getValue() == null)) {
+                ChannelValue val = series.getLastValue();
+                if ((val == null) || (val.value() == null)) {
                     displayValue = "";
                 } else {
-                    displayValue = getDisplayValue(tval.getValue().doubleValue());
+                    displayValue = getDisplayValue(val.value());
                 }
             }
             if (!displayValue.equals(currentDisplayValue)) {

@@ -177,7 +177,7 @@ public final class PlotSeries {
         return logarithmic;
     }
 
-    public TimestampedValue getLastValue() {
+    public ChannelValue getLastValue() {
         return getPlot().getLastItem(getIndex());
     }
 

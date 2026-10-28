@@ -45,8 +45,8 @@ public record ChannelValue(Double value, long timestamp, boolean invalid) {
         return new ChannelValue(Double.NaN, System.currentTimeMillis(), false);
     }
 
-    public Double displayValue() {
-        return (hideInvalid && invalid) ? Double.NaN : value;
+    public double displayValue() {
+        return (hideInvalid && invalid) || (value==null)? Double.NaN : value;
     }
 
 }

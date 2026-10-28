@@ -61,6 +61,10 @@ public class PlotPanel extends javax.swing.JPanel {
     protected static final String LINE_SEPARATOR = System.lineSeparator();
     protected static final String FIELD_SEPARATOR = "\t";
     static final double AXIS_MARGIN = 0.005;
+    final static SimpleDateFormat DATE_TIME_FORMAT = new SimpleDateFormat("dd/MM/YY HH:mm:ss.SSS");
+    final static SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss.S");
+    final static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.##########");
+
 
     final JFreeChart chart;
     final ChartPanel chartPanel;
@@ -519,17 +523,18 @@ public class PlotPanel extends javax.swing.JPanel {
     protected void saveData(FileWriter writer, boolean sparse) throws IOException {
         if (isSparse()) {
             for (int i = 0; i < series.size(); i++) {
-                List<TimestampedValue<Double>> values = getSeriesData(i);
+                List<ChannelValue> values = getSeriesData(i);
                 writer.append("#Series: ").append(getSeriesName(i)).append(LINE_SEPARATOR);
                 Double last = null;
-                for (TimestampedValue<Double> item : values) {
-                    Double val = item.getValue();
+                for (ChannelValue item : values) {
+                    Double val = item.value();
                     if (val == null) {
                         val = Double.NaN;
                     }
                     if (!val.equals(last)) {
                         last = val;
-                        writer.append(new SimpleDateFormat("dd/MM/YY HH:mm:ss.SSS ").format(item.getTimestamp()));
+                        writer.append(DATE_TIME_FORMAT.format(item.timestamp()));
+                        writer.append(" ");
                         writer.append(String.valueOf(val));
                         writer.append(LINE_SEPARATOR);
                     }
@@ -547,7 +552,7 @@ public class PlotPanel extends javax.swing.JPanel {
             }
             writer.append(LINE_SEPARATOR);
 
-            List<List<TimestampedValue<Double>>> values = new ArrayList<>();
+            List<List<ChannelValue>> values = new ArrayList<>();
             String[] format = new String[numSeries];
 
             for (int i = 0; i < numSeries; i++) {
@@ -567,13 +572,14 @@ public class PlotPanel extends javax.swing.JPanel {
             for (int i = 0; i < itemCount; i++) {
                 double[] record = new double[values.size()];
                 for (int j = 0; j < values.size(); j++) {
-                    List<TimestampedValue<Double>> data = values.get(j);
+                    List<ChannelValue> data = values.get(j);
                     int index = i - offsets[j];
-                    record[j] = (data.size() > index) && (index > 0) ? data.get(index).value : Double.NaN;
+                    record[j] = (data.size() > index) && (index > 0) ? data.get(index).displayValue() : Double.NaN;
                 }
                 if (!Arrays.equals(last, record)) {
                     last = record;
-                    writer.append(new SimpleDateFormat("dd/MM/YY HH:mm:ss.SSS").format(values.get(0).get(i).getTimestamp()));
+                    String datetime = DATE_TIME_FORMAT.format(values.get(0).get(i).timestamp());
+                    writer.append(datetime);
                     writer.append(FIELD_SEPARATOR);
                     for (int j = 0; j < record.length; j++) {
                         writer.append(series.get(j).plotSeries.toString(record[j], false, false, false)).append(FIELD_SEPARATOR);
@@ -845,9 +851,9 @@ public class PlotPanel extends javax.swing.JPanel {
         return s.getItemCount();
     }
 
-    public List<TimestampedValue<Double>> getSeriesData(int index) {
+    public List<ChannelValue> getSeriesData(int index) {
         TimeSeries s = getTimeSeries(index);
-        List<TimestampedValue<Double>> ret = new ArrayList<>();
+        List<ChannelValue> ret = new ArrayList<>();
         Number last = null;
         for (TimeSeriesDataItem item : (List<TimeSeriesDataItem>) s.getItems()) {
             Double val;
@@ -856,16 +862,15 @@ public class PlotPanel extends javax.swing.JPanel {
             } else {
                 val = Double.NaN;
             }
-
             if (!isSparse() || !val.equals(last)) {
                 last = val;
-                ret.add(new TimestampedValue<Double>(val, item.getPeriod().getMiddleMillisecond()));
+                ret.add(new ChannelValue(val, item.getPeriod().getMiddleMillisecond(), false));
             }
         }
         return ret;
     }
 
-    public TimestampedValue<Double> getItem(int index, int itemIndex) {
+    public ChannelValue getItem(int index, int itemIndex) {
         TimeSeries s = getTimeSeries(index);
         if (itemIndex == -1) {
             itemIndex = s.getItemCount() - 1;
@@ -874,7 +879,7 @@ public class PlotPanel extends javax.swing.JPanel {
             return null;
         }
         TimeSeriesDataItem item = s.getDataItem(itemIndex);
-        return new TimestampedValue<Double>((item.getValue() != null) ? item.getValue().doubleValue() : Double.NaN, item.getPeriod().getMiddleMillisecond());
+        return new ChannelValue((item.getValue() != null) ? item.getValue().doubleValue() : Double.NaN, item.getPeriod().getMiddleMillisecond(), false);
     }
 
     public String getSeriesName(int index) {
@@ -1176,9 +1181,9 @@ public class PlotPanel extends javax.swing.JPanel {
             if ((values != null) && (getNumberOfSeries() == values.length)) {
                 if (scrollMode) {
                     if (!chart.getXYPlot().getDomainAxis().isAutoRange()) {
-                        TimestampedValue<Double> last = getItem(0, -1);
+                        ChannelValue last = getItem(0, -1);
                         if (last != null) {
-                            moveX(time - last.getTimestamp());
+                            moveX(time - last.timestamp());
                         }
                     }
                 }
@@ -1190,18 +1195,18 @@ public class PlotPanel extends javax.swing.JPanel {
     }
 
     //////////////
-    public TimestampedValue<Double> getLastItem(int index) {
+    public ChannelValue getLastItem(int index) {
         return getItem(index, -1);
     }
 
     public Double getLastValue(int index) {
-        TimestampedValue<Double> ret = getLastItem(index);
-        return (ret == null) ? null : ret.getValue();
+        ChannelValue ret = getLastItem(index);
+        return (ret == null) ? null : ret.value();
     }
 
     public Long getLastTimestamp(int index) {
-        TimestampedValue<Double> ret = getLastItem(index);
-        return (ret == null) ? null : ret.getTimestamp();
+        ChannelValue ret = getLastItem(index);
+        return (ret == null) ? null : ret.timestamp();
     }
 
     //Configuration
@@ -1220,9 +1225,7 @@ public class PlotPanel extends javax.swing.JPanel {
         boolean tooltips = markersVisible && !scrollMode;
         for (int i = 0; i < getNumberOfSeries(); i++) {
             if (tooltips) {
-                DecimalFormat vf = new DecimalFormat("0.##########");
-                SimpleDateFormat tf = new SimpleDateFormat("HH:mm:ss.S");
-                getRenderer(i).setBaseToolTipGenerator(new StandardXYToolTipGenerator("{0} {1} {2}", tf, vf));
+                getRenderer(i).setBaseToolTipGenerator(new StandardXYToolTipGenerator("{0} {1} {2}", TIME_FORMAT, DECIMAL_FORMAT));
                 chartPanel.setDisplayToolTips(true);
                 chartPanel.getChartRenderingInfo().setEntityCollection(new StandardEntityCollection());
             } else {

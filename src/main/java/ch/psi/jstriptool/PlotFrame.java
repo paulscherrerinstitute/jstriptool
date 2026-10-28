@@ -142,7 +142,6 @@ public class PlotFrame extends javax.swing.JFrame {
     }
 
     Timer redrawTimer;
-    //java.util.Timer sampleTimer;
     ScheduledExecutorService sampleScheduler;
     final List<Channel> channels = new ArrayList<>();
     final Map<Channel, ChannelValue> cache = new HashMap<>();
@@ -298,12 +297,6 @@ public class PlotFrame extends javax.swing.JFrame {
             sampleScheduler.shutdown();
             sampleScheduler = null;
         }
-        /*
-        if (sampleTimer != null) {
-            sampleTimer.cancel();
-            sampleTimer = null;
-        }     
-         */
         if (redrawTimer != null) {
             redrawTimer.stop();
             redrawTimer = null;
