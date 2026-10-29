@@ -40,6 +40,7 @@ public record ChannelValue(Double value, long timestamp, boolean invalid) {
         return null;
     }
 
+    //Can only be used with local time modes.
     static ChannelValue empty() {
         return new ChannelValue(Double.NaN, System.currentTimeMillis(), true);
     }

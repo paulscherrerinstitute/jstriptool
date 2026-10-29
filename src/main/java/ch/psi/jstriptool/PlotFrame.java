@@ -346,7 +346,7 @@ public class PlotFrame extends javax.swing.JFrame {
     void updateAsync(Channel channel) {
         channel.getAsync().handle((value, ex) -> {
             if (ex == null) {
-                cache.put(channel, value);
+                addValue(channel, value);
             }
             return value;
         });
@@ -356,13 +356,12 @@ public class PlotFrame extends javax.swing.JFrame {
         if (isStarted() && index < config.getNumberCurves()) {
             boolean enabled = config.curves[index].isEnabled();
             if (enabled!=value){
-                if (!value) {
-                    addValue(channels.get(index), ChannelValue.empty()); //TODO: Interrupts line extension
+                if (localTime && !value) {
+                    addValue(channels.get(index), ChannelValue.empty()); 
                 }                
                 config.curves[index].plotStatus = value;
                 plotPanel.series.get(index).setLineExtension(value);
-                if (value) {
-                    //addValue(channels.get(index), ChannelValue.empty());                        
+                if (localTime && value) {
                     updateAsync(channels.get(index));
                 }
             }
