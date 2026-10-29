@@ -70,6 +70,10 @@ public class ConfigFrame extends javax.swing.JFrame {
                     var protocol = Protocol.valueOf(((JMenuItem)e.getSource()).getText().toUpperCase());
                     if (protocol !=  App.defaultProtocol){
                         App.defaultProtocol = protocol;
+                        if (App.plotFrame.isStarted()){
+                            App.plotFrame.start();
+                        }
+                        
                     }
                 } catch (Exception ex){
                     Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);

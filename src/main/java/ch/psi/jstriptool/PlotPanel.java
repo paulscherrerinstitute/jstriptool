@@ -509,7 +509,7 @@ public class PlotPanel extends javax.swing.JPanel {
         });
         menuReset = new JMenuItem("Reset");
         menuReset.addActionListener((ActionEvent e) -> {
-            clear();
+            App.plotFrame.reset();
         });
 
         menuSeries = new JMenu("Series Visibility");
@@ -805,6 +805,7 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
 
+    
     public void clear() {
         for (SeriesInfo s : series) {
             s.timeSeries.clear();

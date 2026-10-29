@@ -177,7 +177,6 @@ public class PlotFrame extends javax.swing.JFrame {
             startRedrawTimer(true);
             plotPanel.repaint();
             SwingUtilities.invokeLater(() -> {
-
                 setActive(plotPanel.getPlotSeries(0));
             });
 
@@ -195,6 +194,20 @@ public class PlotFrame extends javax.swing.JFrame {
     PlotPanel getPlotPanel(){
         return plotPanel;
     }
+    
+    public void reset() {
+        plotPanel.clear();        
+        try{
+            for (int index = 0; index<channels.size(); index++) {
+                if (config.curves[index].isEnabled()){
+                    updateAsync(channels.get(index));
+                }
+            }
+        } catch (Exception ex){
+            Logger.getLogger(PlotFrame.class.getName()).warning(() -> "Error resetting plot: " + ex);
+        }
+    }
+    
 
     void startRedrawTimer(boolean triggerImmediately) {
         if (redrawTimer != null) {
