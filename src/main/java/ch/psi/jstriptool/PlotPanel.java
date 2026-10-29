@@ -71,6 +71,16 @@ public class PlotPanel extends javax.swing.JPanel {
     final static SimpleDateFormat DATE_TIME_FORMAT = new SimpleDateFormat("dd/MM/YY HH:mm:ss.SSS");
     final static SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss.S");
     final static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.##########");
+    
+    static final Color DEFAULT_TEXT_COLOR = Color.DARK_GRAY;
+    static final Color DEFAULT_DARK_TEXT_COLOR = new Color(187, 187, 187);
+    static final Color DEFAULT_BACKGROUND_COLOR = null;
+    static final Color DEFAULT_DARK_BACKGROUND_COLOR = new Color(80, 80, 80);
+    static final Color DEFAULT_GRID_COLOR = Color.LIGHT_GRAY;
+    static final Color DEFAULT_DARK_GRID_COLOR = new Color(187, 187, 187) ;    
+    static final Color TRANSPARENT_COLOR = new Color(1, 0, 0, 0);    
+    static final int LINE_EXTENSION_TRANSPARENCY = 64; 
+    
 
 
     final JFreeChart chart;
@@ -132,11 +142,6 @@ public class PlotPanel extends javax.swing.JPanel {
     private boolean started = false;
     private boolean closed = false;
 
-    private final Paint systemBackgroundPaint;
-    private final Paint systemGridlinePaint;
-    private final Paint systemvOutlinePaint;
-    private final Paint systemLabelPaint;
-    private final Paint systemTickLabelPaint;
     private final Paint systemTickMarkPaint;
     private final Paint systemAxisLinePaint;
 
@@ -166,20 +171,7 @@ public class PlotPanel extends javax.swing.JPanel {
 
         axis = plot.getRangeAxis();
         axis.setAutoRange(true);
-        plot.setBackgroundPaint(getPlotBackground());
-        plot.setDomainGridlinePaint(getGridColor());
-        plot.setRangeGridlinePaint(getGridColor());
-        plot.setOutlinePaint(getOutlineColor());
-        if (chart.getTitle() != null) {
-            chart.getTitle().setPaint(getAxisTextColor());
-        }
-        if (chart.getLegend() != null) {
-            chart.getLegend().setItemPaint(getAxisTextColor());
-        }
-        plot.getDomainAxis().setTickLabelPaint(getAxisTextColor());
-        plot.getDomainAxis().setLabelPaint(getAxisTextColor());
-        plot.getRangeAxis().setLabelPaint(getAxisTextColor());
-        plot.getRangeAxis().setTickLabelPaint(getAxisTextColor());
+        updateLafColors();
         plot.getDomainAxis().setLabelFont(labelFont);
         plot.getRangeAxis().setLabelFont(labelFont);
         plot.getDomainAxis().setTickLabelFont(tickLabelFont);
@@ -221,16 +213,27 @@ public class PlotPanel extends javax.swing.JPanel {
         setLegendVisible(false);
         setTimeAxisLabel(null);
 
-        systemBackgroundPaint = chart.getXYPlot().getBackgroundPaint();
-        systemGridlinePaint = chart.getXYPlot().getDomainGridlinePaint();
-        systemvOutlinePaint = chart.getXYPlot().getOutlinePaint();
-        systemLabelPaint = chart.getXYPlot().getDomainAxis().getLabelPaint();
-        systemTickLabelPaint = chart.getXYPlot().getDomainAxis().getTickLabelPaint();
         systemTickMarkPaint = chart.getXYPlot().getDomainAxis().getTickMarkPaint();
         systemAxisLinePaint = chart.getXYPlot().getDomainAxis().getAxisLinePaint();
     }
     
-  class ExtendedLineAndShapeRenderer extends XYLineAndShapeRenderer {
+    void updateLafColors(){
+        if (chart.getTitle() != null) {
+            chart.getTitle().setPaint(getAxisTextColor());
+        }
+        if (chart.getLegend() != null) {
+            chart.getLegend().setItemPaint(getAxisTextColor());
+        }
+
+        XYPlot plot = chart.getXYPlot();        
+        if (plot!=null){
+            setPlotBackgroundColor(plotBackgroundColor);
+            setPlotGridColor(plotGridColor);
+            setAxisTextColor(axisTextColor);
+        }
+    }
+    
+    class ExtendedLineAndShapeRenderer extends XYLineAndShapeRenderer {
 
       public ExtendedLineAndShapeRenderer() {
           super(true, false); //lines=true, shapes=false
@@ -265,7 +268,7 @@ public class PlotPanel extends javax.swing.JPanel {
                         double xx2 = domainAxis.valueToJava2D(now, dataArea, plot.getDomainAxisEdge());
                         Paint p = getSeriesPaint(series);
                         if (p instanceof Color c){
-                            p = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()/4);
+                            p = new Color(c.getRed(), c.getGreen(), c.getBlue(),  LINE_EXTENSION_TRANSPARENCY);
                         }
                         g2.setPaint(p);
                         g2.setStroke(getSeriesStroke(series)); // new BasicStroke(1f));;
@@ -695,32 +698,68 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
 
+    Color plotBackgroundColor = null;
+    public  Color getPlotBackgroundColor() {
+        if (plotBackgroundColor==null){
+            return App.isDarkLookAndFeel() ? DEFAULT_DARK_BACKGROUND_COLOR : DEFAULT_BACKGROUND_COLOR;
+        }
+        return plotBackgroundColor;
+    }    
+    
     public void setPlotBackgroundColor(Color c) {
-        chart.getXYPlot().setBackgroundPaint(c == null ? systemBackgroundPaint : c);
+        plotBackgroundColor = c;
+        chart.getXYPlot().setBackgroundPaint(getPlotBackgroundColor());
+    }
+    
+    Color plotGridColor = null;
+    public  void setPlotGridColor(Color color) {
+        plotGridColor = color;
+        Color c =  getPlotGridColor();
+        chart.getXYPlot().setDomainGridlinePaint(c);
+        chart.getXYPlot().setRangeGridlinePaint(c);
+        chart.getXYPlot().setDomainMinorGridlinePaint(c);
+        chart.getXYPlot().setRangeMinorGridlinePaint(c);        
+        chart.getXYPlot().setOutlinePaint(c);
+    }
+        
+    public Color getPlotGridColor() {
+        if (plotGridColor==null){
+            return App.isDarkLookAndFeel() ? DEFAULT_DARK_GRID_COLOR : DEFAULT_GRID_COLOR;
+        }
+        return plotGridColor;
+    }
+    
+    
+    Color axisTextColor = null;
+
+    public void setAxisTextColor(Color color) {
+        axisTextColor = color;
+        Color c = getAxisTextColor();
+        chart.getXYPlot().getDomainAxis().setTickLabelPaint(c);
+        chart.getXYPlot().getDomainAxis().setLabelPaint(c);
+        chart.getXYPlot().getRangeAxis().setLabelPaint(c);
+        chart.getXYPlot().getRangeAxis().setTickLabelPaint(c);            
     }
 
-    public void setPlotGridColor(Color c) {
-        chart.getXYPlot().setDomainGridlinePaint(c == null ? systemGridlinePaint : c);
-        chart.getXYPlot().setRangeGridlinePaint(c == null ? systemGridlinePaint : c);
-        chart.getXYPlot().setDomainMinorGridlinePaint(c == null ? systemGridlinePaint : c);
-        chart.getXYPlot().setRangeMinorGridlinePaint(c == null ? systemGridlinePaint : c);
+    public Color getAxisTextColor() {
+        if (axisTextColor == null){
+            return App.isDarkLookAndFeel() ? DEFAULT_DARK_TEXT_COLOR : DEFAULT_TEXT_COLOR;
+        }
+        return axisTextColor;
     }
-
-    public void setPlotOutlineColor(Color c) {
-        chart.getXYPlot().setOutlinePaint(c == null ? systemvOutlinePaint : c);
-    }
-
+        
+    
     public void setDomainAxisColor(Color c) {
-        chart.getXYPlot().getDomainAxis().setLabelPaint(c == null ? systemLabelPaint : c);
-        chart.getXYPlot().getDomainAxis().setTickLabelPaint(c == null ? systemTickLabelPaint : c);
+        chart.getXYPlot().getDomainAxis().setLabelPaint(c == null ? getAxisTextColor() : c);
+        chart.getXYPlot().getDomainAxis().setTickLabelPaint(c == null ? getAxisTextColor() : c);
         chart.getXYPlot().getDomainAxis().setTickMarkPaint(c == null ? systemTickMarkPaint : c);
         chart.getXYPlot().getDomainAxis().setAxisLinePaint(c == null ? systemAxisLinePaint : c);
     }
 
     public void setRangeAxisColor(Color c) {
         for (int i = 0; i < chart.getXYPlot().getRangeAxisCount(); i++) {
-            chart.getXYPlot().getRangeAxis(i).setLabelPaint(c == null ? systemLabelPaint : c);
-            chart.getXYPlot().getRangeAxis(i).setTickLabelPaint(c == null ? systemTickLabelPaint : c);
+            chart.getXYPlot().getRangeAxis(i).setLabelPaint(c == null ? getAxisTextColor() : c);
+            chart.getXYPlot().getRangeAxis(i).setTickLabelPaint(c == null ? getAxisTextColor() : c);
             chart.getXYPlot().getRangeAxis(i).setTickMarkPaint(c == null ? systemTickMarkPaint : c);
             chart.getXYPlot().getRangeAxis(i).setAxisLinePaint(c == null ? systemAxisLinePaint : c);
         }
@@ -728,8 +767,8 @@ public class PlotPanel extends javax.swing.JPanel {
 
     public void setRangeAxisColor(int index, Color c) {
         if (index < chart.getXYPlot().getRangeAxisCount()) {
-            chart.getXYPlot().getRangeAxis(index).setLabelPaint(c == null ? systemLabelPaint : c);
-            chart.getXYPlot().getRangeAxis(index).setTickLabelPaint(c == null ? systemTickLabelPaint : c);
+            chart.getXYPlot().getRangeAxis(index).setLabelPaint(c == null ? getAxisTextColor() : c);
+            chart.getXYPlot().getRangeAxis(index).setTickLabelPaint(c == null ? getAxisTextColor() : c);
             chart.getXYPlot().getRangeAxis(index).setTickMarkPaint(c == null ? systemTickMarkPaint : c);
             chart.getXYPlot().getRangeAxis(index).setAxisLinePaint(c == null ? systemAxisLinePaint : c);
         }
@@ -750,17 +789,16 @@ public class PlotPanel extends javax.swing.JPanel {
     }
 
     public boolean isSeriesHidden(PlotSeries series) {
-        return getSeriesColor(series).equals(TRANSPARENT);
+        return getSeriesColor(series).equals(TRANSPARENT_COLOR);
     }
 
-    Color TRANSPARENT = new Color(1, 0, 0, 0);
     Map<PlotSeries, Color> hiddenPlots = new HashMap<>();
 
     public void setSeriesHidden(PlotSeries series, boolean hidden) {
         if (hidden != isSeriesHidden(series)) {
             if (hidden) {
                 hiddenPlots.put(series, getSeriesColor(series));
-                setSeriesColor(series, TRANSPARENT);
+                setSeriesColor(series, TRANSPARENT_COLOR);
             } else {
                 setSeriesColor(series, hiddenPlots.get(series));
             }
@@ -1010,24 +1048,18 @@ public class PlotPanel extends javax.swing.JPanel {
     }
 
     public void setLogarithmic(int index, boolean value) {
-        ValueAxis cur = chart.getXYPlot().getRangeAxis(index);
-        if (cur != null) {
-            boolean visible = cur.isVisible();
-            if (value != isLogarithmic(index)) {
+        if (value != isLogarithmic(index)) {
+            ValueAxis cur = chart.getXYPlot().getRangeAxis(index);
+            if (cur != null) {
+                boolean visible = cur.isVisible();
+                Paint labelPaint = cur.getLabelPaint();            
                 createAxis(index, cur.getLabel(), value, visible);
-                applyRange(index, cur.isAutoRange() ? null : cur.getRange());
+                applyRange(index, cur.isAutoRange() ? null : cur.getRange());                
+                if (labelPaint instanceof Color c){
+                    setRangeAxisColor(index,c); 
+                }
             }
         }
-    }
-
-    void updateLog(int index) {
-        ValueAxis cur = chart.getXYPlot().getRangeAxis(index);
-        if (cur != null) {
-            boolean visible = cur.isVisible();
-            createAxis(index, cur.getLabel(), isLogarithmic(index), visible);
-            applyRange(index, cur.isAutoRange() ? null : cur.getRange());
-        }
-
     }
 
     XYItemRenderer selectedRenderer;
@@ -1063,7 +1095,13 @@ public class PlotPanel extends javax.swing.JPanel {
                 selectedRenderer.setSeriesPaint(0, selected.plotSeries.getColor());
             }
         }
-        updateLog(index);
+        //Update the scale
+        ValueAxis cur = chart.getXYPlot().getRangeAxis(index);
+        if (cur != null) {
+            boolean visible = cur.isVisible();
+            createAxis(index, cur.getLabel(), isLogarithmic(index), visible);
+            applyRange(index, cur.isAutoRange() ? null : cur.getRange());
+        }        
         selectedIndex = index;
     }
 
@@ -1338,49 +1376,6 @@ public class PlotPanel extends javax.swing.JPanel {
 
     public boolean isLegendVisible() {
         return legendVisible;
-    }
-
-    static Color plotBackground;  //Default is null: transparent
-
-    public static void setPlotBackground(Color color) {
-        plotBackground = color;
-    }
-
-    public static Color getPlotBackground() {
-        return plotBackground;
-    }
-
-    static final Color DEFAULT_GRID_COLOR = App.isDark() ? new Color(187, 187, 187) : Color.LIGHT_GRAY;
-    static Color gridColor = DEFAULT_GRID_COLOR;
-
-    public static void setGridColor(Color color) {
-        gridColor = (color == null) ? DEFAULT_GRID_COLOR : color;
-    }
-
-    public static Color getGridColor() {
-
-        return gridColor;
-    }
-
-    static final Color DEFAULT_OUTLINE_COLOR = Color.GRAY;
-    static Color outlineColor = DEFAULT_OUTLINE_COLOR;
-
-    public static void setOutlineColor(Color color) {
-        outlineColor = (color == null) ? DEFAULT_OUTLINE_COLOR : color;
-    }
-
-    public static Color getOutlineColor() {
-        return outlineColor;
-    }
-
-    static Color axisTextColor = App.isDark() ? new Color(187, 187, 187) : Color.DARK_GRAY;
-
-    public static void setAxisTextColor(Color color) {
-        axisTextColor = color;
-    }
-
-    public static Color getAxisTextColor() {
-        return axisTextColor;
     }
 
     /**

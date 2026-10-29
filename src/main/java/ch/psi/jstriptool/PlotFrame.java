@@ -125,7 +125,6 @@ public class PlotFrame extends javax.swing.JFrame {
     }
 
     void updateAxisColor() {
-
         if (config != null) {
             PlotSeries active = panelSeriesSet.getActiveSeries();
             if ((active != null) && (config.axisYcolorStat == LabelColorAxisY.selectedCurve)) {
@@ -436,7 +435,6 @@ public class PlotFrame extends javax.swing.JFrame {
         if (config != null) {
             config.grid = value == null ? new DeepColor() : new DeepColor(value);
             plotPanel.setPlotGridColor(value);
-            plotPanel.setPlotOutlineColor(value);
         }
     }
 

@@ -33,6 +33,14 @@ import org.epics.ca.impl.ProtocolConfiguration;
  */
 public class App {
 
+    public enum LookAndFeel {
+        NIMBUS,
+        DARK,
+        METAL,
+        SYSTEM
+    }
+    
+    
     public enum Protocol {
         CA,
         PVA
@@ -219,12 +227,6 @@ public class App {
         return userHome;
     }
 
-    static final String DARK_LOOK_AND_FEEL = "com.formdev.flatlaf.FlatDarculaLaf";
-
-    public static boolean isDark() {
-        return UIManager.getLookAndFeel().getClass().getName().equals(DARK_LOOK_AND_FEEL);
-    }
-
     public static boolean isSimulated() {
         return simulated;
     }
@@ -405,34 +407,10 @@ public class App {
         String startupFile = isChannelList ? null : startup;
         String[] startupChannels = (isChannelList && (startup != null)) ? startup.split(" ") : null;
 
+        initLookAndFeel();
         String laf = getArgumentValue("laf");
         if (laf != null) {
-            switch (laf) {
-                case "nimbus":
-                    for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                        if ("Nimbus".equals(info.getName())) {
-                            javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                            break;
-                        }
-                    }
-                    break;
-                case "dark":
-                    UIManager.setLookAndFeel(DARK_LOOK_AND_FEEL);
-                    break;
-                case "metal":
-                    UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-                    break;
-                case "system":
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                    break;
-                default:
-                    try {
-                        UIManager.setLookAndFeel(laf);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                    break;
-            }
+            setLookAndFeel(laf);
         }
 
         if (isBlocking()) {
@@ -683,7 +661,62 @@ public class App {
         }
         if (!System.getProperties().contains("CA_REPEATER_LOG_LEVEL")) {
             System.getProperties().put("CA_REPEATER_LOG_LEVEL", level.toString());
-        }
+        }        
+    }
+    
+    
+    static final String DARK_LOOK_AND_FEEL = "com.formdev.flatlaf.FlatDarculaLaf";
+
+    public static boolean isDarkLookAndFeel() {
+        return UIManager.getLookAndFeel().getClass().getName().equals(DARK_LOOK_AND_FEEL);
+    }
+ 
+    public static void setLookAndFeel(LookAndFeel laf){    
+        setLookAndFeel(laf.toString().toLowerCase());
+    }
         
+    static String lookAndFeel;
+    
+    public static void setLookAndFeel(String laf){    
+        try{
+            switch (laf) {
+                case "nimbus":
+                    for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                        if ("Nimbus".equals(info.getName())) {
+                            UIManager.setLookAndFeel(info.getClassName());
+                            break;
+                        }
+                    }
+                    break;
+                case "dark":
+                    UIManager.setLookAndFeel(DARK_LOOK_AND_FEEL);
+                    break;
+                case "metal":
+                    UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+                    break;
+                case "system":
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    break;
+                default:
+                    UIManager.setLookAndFeel(laf);
+                    break;
+            }
+            lookAndFeel = laf;
+        } catch (Exception ex) {                    
+            Logger.getLogger(App.class.getName()).log(Level.WARNING, () -> "Error seting look and feel " + laf + ": " + ex);                    
+        }
+    }    
+    
+    private static void initLookAndFeel(){    
+        lookAndFeel = UIManager.getLookAndFeel().getClass().getName();
+        if (lookAndFeel.contains("Nimbus")){
+            lookAndFeel = "nimbus";
+        } else if (lookAndFeel.equals(DARK_LOOK_AND_FEEL)){
+            lookAndFeel = "dark";
+        } else if (lookAndFeel.equals(UIManager.getCrossPlatformLookAndFeelClassName())){
+            lookAndFeel = "metal";
+        } else if (lookAndFeel.equals(UIManager.getSystemLookAndFeelClassName())) {
+            lookAndFeel = "system";
+        }
     }
 }

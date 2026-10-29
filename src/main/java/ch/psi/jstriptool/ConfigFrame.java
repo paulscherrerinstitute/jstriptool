@@ -1,5 +1,6 @@
 package ch.psi.jstriptool;
 
+import ch.psi.jstriptool.App.LookAndFeel;
 import ch.psi.jstriptool.App.Protocol;
 import ch.psi.jstriptool.App.TimeMode;
 import ch.psi.jstriptool.Config.Curve;
@@ -17,12 +18,12 @@ import java.util.EventObject;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import javax.swing.AbstractCellEditor;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.event.TableModelEvent;
@@ -64,7 +65,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         modelSeries.addTableModelListener(modelSeriesListener);
         
         for (Protocol p: Protocol.values()){
-            var menu = new JCheckBoxMenuItem(p.toString().toLowerCase());
+            var menu = new JRadioButtonMenuItem(p.toString().toLowerCase());
             menu.addActionListener((e)->{
                 try{
                     var protocol = Protocol.valueOf(((JMenuItem)e.getSource()).getText().toUpperCase());
@@ -79,7 +80,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         }                        
         
         for (TimeMode tm: TimeMode.values()){
-            var menu = new JCheckBoxMenuItem(tm.toString().toLowerCase());
+            var menu = new JRadioButtonMenuItem(tm.toString().toLowerCase());
             menu.addActionListener((e)->{
                 try{
                     var mode = TimeMode.valueOf(((JMenuItem)e.getSource()).getText().toUpperCase());
@@ -94,7 +95,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         }          
         
         for (Level level: new Level[]{Level.OFF, Level.SEVERE, Level.WARNING, Level.INFO, Level.FINE}){
-            var menu = new JCheckBoxMenuItem(level.toString().toLowerCase());
+            var menu = new JRadioButtonMenuItem(level.toString().toLowerCase());
             menu.addActionListener((e)->{
                 try{
                     var logLevel = Level.parse(((JMenuItem)e.getSource()).getText().toUpperCase());
@@ -107,6 +108,22 @@ public class ConfigFrame extends javax.swing.JFrame {
              });            
             menuLogLevel.add(menu);
         }            
+        
+        for (LookAndFeel laf : LookAndFeel.values()) {
+            var menu = new JRadioButtonMenuItem(laf.toString().toLowerCase());
+            menu.addActionListener((e)->{
+                try{
+                    var lookAndFeel = ((JMenuItem)e.getSource()).getText();
+                    App.setLookAndFeel(lookAndFeel);
+                    App.plotFrame.getPlotPanel().updateLafColors();
+                    App.plotFrame.updateAxisColor();
+                    SwingUtils.updateAllFrames();
+                } catch (Exception ex){
+                    Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+             });            
+            menuLookAndFeel.add(menu);
+        }        
                         
         menuAntiAliasing.addActionListener((e)->{
             App.plotFrame.getPlotPanel().setAntiAliasing(menuAntiAliasing.isSelected());
@@ -139,7 +156,14 @@ public class ConfigFrame extends javax.swing.JFrame {
                     if (item instanceof JMenuItem menuItem){
                       menuItem.setSelected(menuItem.getText().equalsIgnoreCase(App.logLevel.toString()));
                     }
-                }                
+                }      
+                
+                for (Component item : menuLookAndFeel.getMenuComponents()) {            
+                    if (item instanceof JRadioButtonMenuItem radioButtonMenuItem){
+                        radioButtonMenuItem.setSelected(radioButtonMenuItem.getText().equalsIgnoreCase(App.lookAndFeel));
+                    }
+                }
+                
             }
         });        
         
@@ -217,7 +241,7 @@ public class ConfigFrame extends javax.swing.JFrame {
 
     void initializeTable() {
         //Fix bug of nimbus rendering Boolean in table
-        ((JComponent) tableSeries.getDefaultRenderer(Boolean.class)).setOpaque(true);
+        //((JComponent) tableSeries.getDefaultRenderer(Boolean.class)).setOpaque(true);
 
         TableColumn colName = tableSeries.getColumnModel().getColumn(COLUMN_NAME);
         colName.setPreferredWidth(PREFERRED_WIDTHS[COLUMN_NAME]);
@@ -609,6 +633,7 @@ public class ConfigFrame extends javax.swing.JFrame {
         menuDefaultProtocol = new javax.swing.JMenu();
         menuTimeMode = new javax.swing.JMenu();
         menuLogLevel = new javax.swing.JMenu();
+        menuLookAndFeel = new javax.swing.JMenu();
         menuAntiAliasing = new javax.swing.JCheckBoxMenuItem();
         menuMarkers = new javax.swing.JCheckBoxMenuItem();
         menuHideInvalid = new javax.swing.JCheckBoxMenuItem();
@@ -1121,12 +1146,15 @@ public class ConfigFrame extends javax.swing.JFrame {
         menuLogLevel.setText("Log Level");
         menuProperties.add(menuLogLevel);
 
+        menuLookAndFeel.setText("Look & Feel");
+        menuProperties.add(menuLookAndFeel);
+
         menuAntiAliasing.setSelected(true);
         menuAntiAliasing.setText("Anti-aliasing");
         menuProperties.add(menuAntiAliasing);
 
         menuMarkers.setSelected(true);
-        menuMarkers.setText("Markers");
+        menuMarkers.setText("Show Markers");
         menuProperties.add(menuMarkers);
 
         menuHideInvalid.setSelected(true);
@@ -1461,29 +1489,6 @@ public class ConfigFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -1537,6 +1542,7 @@ public class ConfigFrame extends javax.swing.JFrame {
     private javax.swing.JCheckBoxMenuItem menuHideInvalid;
     private javax.swing.JMenuItem menuLoad;
     private javax.swing.JMenu menuLogLevel;
+    private javax.swing.JMenu menuLookAndFeel;
     private javax.swing.JCheckBoxMenuItem menuMarkers;
     private javax.swing.JMenu menuProperties;
     private javax.swing.JMenuItem menuSave;
