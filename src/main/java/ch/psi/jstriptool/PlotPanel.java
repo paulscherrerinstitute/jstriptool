@@ -61,7 +61,6 @@ import org.jfree.ui.RectangleInsets;
 
 public class PlotPanel extends javax.swing.JPanel {
 
-    static final Logger logger = Logger.getLogger(PlotPanel.class.getName());
     static final double AUTO_RANGE_MINIMUM_SIZE = 1e-12; //TODO: if smaller there are plot repainting problem in scans in JFreeChart > 1.0.18
     static final double AUTO_RANGE_LOG_MINIMUM_SIZE = 1e-32;
     static final int PREFERRED_WIDTH = 600;
@@ -218,7 +217,7 @@ public class PlotPanel extends javax.swing.JPanel {
         setBackground(getBackground());
         setAxisSize(axisSize);
         setupMenus();
-        setMarkersVisible(false);
+        setMarkersVisible(App.isMarkersVisible());
         setLegendVisible(false);
         setTimeAxisLabel(null);
 
@@ -269,7 +268,7 @@ public class PlotPanel extends javax.swing.JPanel {
                             p = new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()/4);
                         }
                         g2.setPaint(p);
-                        g2.setStroke(getSeriesStroke(series));
+                        g2.setStroke(getSeriesStroke(series)); // new BasicStroke(1f));;
                         g2.draw(new Line2D.Double(xx1, yy1, xx2, yy1));        
                     }
                 }
@@ -449,7 +448,7 @@ public class PlotPanel extends javax.swing.JPanel {
         return (XYLineAndShapeRenderer) plot.getRenderer(index);
     }
 
-    public void setAntiAlias(boolean value) {
+    public void setAntiAliasing(boolean value) {
         if (chart != null) {
             chart.setAntiAlias(value);
         }
@@ -574,7 +573,7 @@ public class PlotPanel extends javax.swing.JPanel {
 
     public void saveData(String filename) {
         try (FileWriter writer = new FileWriter(filename, isSparse())) {
-            writeData(writer, sparse);
+            writeData(writer, isSparse());
         } catch (IOException ex) {
             SwingUtils.showException(this, ex);
         }
@@ -599,18 +598,11 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
     
-   
-    
-
-    static boolean sparse = true;
 
     public static boolean isSparse() {
-        return sparse;
+        return App.timeMode.isSparse();
     }
 
-    public static void setSparse(boolean value) {
-        sparse = value;
-    }
 
     protected void writeData(Writer writer, boolean sparse) throws IOException {
         if (isSparse()) {
@@ -883,7 +875,7 @@ public class PlotPanel extends javax.swing.JPanel {
             try {
                 setAxisScale(index, range);
             } catch (IllegalArgumentException ex) {
-                logger.warning("Invalid range for series " + index + ": setting auto-scale");
+                Logger.getLogger(PlotPanel.class.getName()).warning(() -> "Invalid range for series " + index + ": setting auto-scale");
                 setAxisAutoScale(index);
             }
         }

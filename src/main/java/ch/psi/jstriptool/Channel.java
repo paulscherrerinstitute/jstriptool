@@ -63,7 +63,7 @@ public class Channel implements AutoCloseable {
             pv.waitConnected();
             return pv.metadata();
         } catch (Exception ex) {
-            Logger.getLogger(PlotFrame.class.getName()).warning("Error reading metadata of " + channelName + ": " + ex);
+            Logger.getLogger(PlotFrame.class.getName()).warning(() -> "Error reading metadata of " + channelName + ": " + ex);
             return ChannelMetadata.empty();
         }
     }
@@ -101,18 +101,18 @@ public class Channel implements AutoCloseable {
                 ch = channel;
             }
         } catch (Exception ex) {
-            Logger.getLogger(PlotFrame.class.getName()).warning("Error creating channel " + name + ": " + ex);
+            Logger.getLogger(PlotFrame.class.getName()).warning(() -> "Error creating channel " + name + ": " + ex);
         }
         this.channel = ch;
     }
 
     private void connected(Throwable ex) {
         if (ex == null) {
-            Logger.getLogger(PlotFrame.class.getName()).fine("Connected to channel: " + name);
+            Logger.getLogger(PlotFrame.class.getName()).fine(() -> "Connected to channel: " + name);
             connected = true;
             onConnection();
         } else {
-            Logger.getLogger(PlotFrame.class.getName()).warning("Error connecting to channel " + name + ": " + ex);
+            Logger.getLogger(PlotFrame.class.getName()).warning(() -> "Error connecting to channel " + name + ": " + ex);
         }
     }
 
@@ -181,7 +181,7 @@ public class Channel implements AutoCloseable {
                 }
             }
         } catch (Exception ex) {
-            Logger.getLogger(Channel.class.getName()).warning("Error reading channel " + channel + " value: " + ex);
+            Logger.getLogger(Channel.class.getName()).warning(() -> "Error reading channel " + channel + " value: " + ex);
         }
         return ChannelValue.empty();
     }
@@ -215,7 +215,7 @@ public class Channel implements AutoCloseable {
                 return ChannelMetadata.fromPva(ch.read("field(display)").get(App.timeout, TimeUnit.MILLISECONDS));
             }
         } catch (Exception ex) {
-            Logger.getLogger(Channel.class.getName()).warning("Error reading channel " + name + " metadata: " + ex);
+            Logger.getLogger(Channel.class.getName()).warning(() -> "Error reading channel " + name + " metadata: " + ex);
         }
         return ChannelMetadata.empty();
     }
@@ -226,7 +226,7 @@ public class Channel implements AutoCloseable {
 
     public void close() {
         try {
-            Logger.getLogger(Channel.class.getName()).fine("Disconnected channel: " + name);
+            Logger.getLogger(Channel.class.getName()).fine(() -> "Disconnected channel: " + name);
             channel.close();
         } catch (Exception ex) {
             System.getLogger(Channel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);

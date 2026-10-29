@@ -27,8 +27,6 @@ public class PlotFrame extends javax.swing.JFrame {
 
     static PlotFrame instance;
     final boolean blocking;
-    final boolean localTime;    
-    final boolean sparseTime;   
 
     /**
      * Creates new form MainFrame
@@ -39,15 +37,14 @@ public class PlotFrame extends javax.swing.JFrame {
         instance = this;
         plotPanel.setDurationMillis(60000);
         plotPanel.addPopupMenuItem(null);
+        plotPanel.setAntiAliasing(App.isAntiAliasing());
+        plotPanel.setMarkersVisible(App.isMarkersVisible());
         JMenuItem menuShowConfig = new JMenuItem("Show Config Window");
         menuShowConfig.addActionListener((ActionEvent e) -> {
             App.configFrame.setVisible(true);
         });
         plotPanel.addPopupMenuItem(menuShowConfig);
         blocking = App.isBlocking();
-        localTime = App.timeMode.isLocalTime();
-        sparseTime = App.timeMode.isSparse();
-
         //Not implemented
         buttonRedraw.setVisible(false);
     }
@@ -163,9 +160,8 @@ public class PlotFrame extends javax.swing.JFrame {
     void start() {
         stop();
         config = App.configFrame.config;
-        numberOfSeries = 0;
-        //Anti-aliasing
-        plotPanel.setAntiAlias(App.isAntiAliasing());
+        numberOfSeries = 0;        
+        //Anti-aliasing        
         int series = (config == null) ? 0 : config.getNumberCurves();
         if (series > 0) {
             plotPanel.start();
@@ -195,6 +191,10 @@ public class PlotFrame extends javax.swing.JFrame {
     
     boolean started(){
         return config!=null;
+    }
+    
+    PlotPanel getPlotPanel(){
+        return plotPanel;
     }
 
     void startRedrawTimer(boolean triggerImmediately) {
@@ -255,11 +255,12 @@ public class PlotFrame extends javax.swing.JFrame {
                         }                        
                     }
                 } catch (Exception ex) {
-                    Logger.getLogger(PlotFrame.class.getName()).warning("Error adding channel " + channels.get(i).name + " value: " + ex);
+                    String channelName = (i<channels.size()) ? channels.get(i).name : "UNDEFINED";
+                    Logger.getLogger(PlotFrame.class.getName()).warning(() -> "Error adding channel: " + channelName + " value: " + ex);
                 }
                 values[i] = value;
             }
-            if (sparseTime){                
+            if (App.timeMode.isSparse()){                
                 cache.clear();
             }
             synchronized (valueList) {
@@ -289,7 +290,7 @@ public class PlotFrame extends javax.swing.JFrame {
                     for (int i = 0; i < channelValues.length; i++) {
                         var channelValue = channelValues[i];                        
                         if (channelValue!=null){
-                            var timestamp = localTime ? localTimestamp : channelValue.timestamp();
+                            var timestamp = App.timeMode.isLocalTime() ? localTimestamp : channelValue.timestamp();
                             getPlot().add(i, timestamp, channelValue.displayValue());
                         }
                     }
@@ -356,12 +357,12 @@ public class PlotFrame extends javax.swing.JFrame {
         if (isStarted() && index < config.getNumberCurves()) {
             boolean enabled = config.curves[index].isEnabled();
             if (enabled!=value){
-                if (localTime && !value) {
+                if (App.timeMode.isLocalTime() && !value) {
                     addValue(channels.get(index), ChannelValue.empty()); 
                 }                
                 config.curves[index].plotStatus = value;
                 plotPanel.series.get(index).setLineExtension(value);
-                if (localTime && value) {
+                if (App.timeMode.isLocalTime() && value) {
                     updateAsync(channels.get(index));
                 }
             }

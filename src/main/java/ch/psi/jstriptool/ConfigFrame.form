@@ -75,6 +75,46 @@
             </MenuItem>
           </SubComponents>
         </Menu>
+        <Menu class="javax.swing.JMenu" name="menuProperties">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Properties"/>
+          </Properties>
+          <SubComponents>
+            <Menu class="javax.swing.JMenu" name="menuDefaultProtocol">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Default Protocol"/>
+              </Properties>
+            </Menu>
+            <Menu class="javax.swing.JMenu" name="menuTimeMode">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Time Mode"/>
+              </Properties>
+            </Menu>
+            <Menu class="javax.swing.JMenu" name="menuLogLevel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Log Level"/>
+              </Properties>
+            </Menu>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="menuAntiAliasing">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Anti-aliasing"/>
+              </Properties>
+            </MenuItem>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="menuMarkers">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Markers"/>
+              </Properties>
+            </MenuItem>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="menuHideInvalid">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Hide Invalid Values"/>
+              </Properties>
+            </MenuItem>
+          </SubComponents>
+        </Menu>
         <Menu class="javax.swing.JMenu" name="menuWindow">
           <Properties>
             <Property name="text" type="java.lang.String" value="Window"/>

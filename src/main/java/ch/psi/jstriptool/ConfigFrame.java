@@ -1,5 +1,7 @@
 package ch.psi.jstriptool;
 
+import ch.psi.jstriptool.App.Protocol;
+import ch.psi.jstriptool.App.TimeMode;
 import ch.psi.jstriptool.Config.Curve;
 import ch.psi.jstriptool.Config.GridVisibility;
 import ch.psi.jstriptool.Config.LabelColorAxisY;
@@ -12,11 +14,15 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.EventObject;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import javax.swing.AbstractCellEditor;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.event.TableModelEvent;
@@ -56,6 +62,87 @@ public class ConfigFrame extends javax.swing.JFrame {
         initComponents();
         modelSeries = (DefaultTableModel) tableSeries.getModel();
         modelSeries.addTableModelListener(modelSeriesListener);
+        
+        for (Protocol p: Protocol.values()){
+            var menu = new JCheckBoxMenuItem(p.toString().toLowerCase());
+            menu.addActionListener((e)->{
+                try{
+                    var protocol = Protocol.valueOf(((JMenuItem)e.getSource()).getText().toUpperCase());
+                    if (protocol !=  App.defaultProtocol){
+                        App.defaultProtocol = protocol;
+                    }
+                } catch (Exception ex){
+                    Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+             });            
+            menuDefaultProtocol.add(menu);
+        }                        
+        
+        for (TimeMode tm: TimeMode.values()){
+            var menu = new JCheckBoxMenuItem(tm.toString().toLowerCase());
+            menu.addActionListener((e)->{
+                try{
+                    var mode = TimeMode.valueOf(((JMenuItem)e.getSource()).getText().toUpperCase());
+                    if (mode !=  App.timeMode){
+                        App.timeMode = mode;
+                    }
+                } catch (Exception ex){
+                    Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+             });            
+            menuTimeMode.add(menu);
+        }          
+        
+        for (Level level: new Level[]{Level.OFF, Level.SEVERE, Level.WARNING, Level.INFO, Level.FINE}){
+            var menu = new JCheckBoxMenuItem(level.toString().toLowerCase());
+            menu.addActionListener((e)->{
+                try{
+                    var logLevel = Level.parse(((JMenuItem)e.getSource()).getText().toUpperCase());
+                    if (logLevel !=  App.logLevel){
+                        App.setLogLevel(logLevel);
+                    }
+                } catch (Exception ex){
+                    Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+             });            
+            menuLogLevel.add(menu);
+        }            
+                        
+        menuAntiAliasing.addActionListener((e)->{
+            App.plotFrame.getPlotPanel().setAntiAliasing(menuAntiAliasing.isSelected());
+        });
+        
+        menuMarkers.addActionListener((e)->{
+            App.plotFrame.getPlotPanel().setMarkersVisible(menuMarkers.isSelected());
+        });
+        
+        menuHideInvalid.addActionListener((e)->{
+            ChannelValue.hideInvalid = menuHideInvalid.isSelected();
+        });
+        
+        menuProperties.addChangeListener((e)->{
+            if (menuProperties.isSelected()) {        
+                menuAntiAliasing.setSelected(App.plotFrame.getPlotPanel().isAntiAlias());
+                menuMarkers.setSelected(App.plotFrame.getPlotPanel().isMarkersVisible());
+                menuHideInvalid.setSelected(ChannelValue.hideInvalid);
+                for (var item : menuDefaultProtocol.getMenuComponents()){                
+                    if (item instanceof JMenuItem menuItem){
+                      menuItem.setSelected(menuItem.getText().equalsIgnoreCase(App.defaultProtocol.toString()));
+                    }
+                }                
+                for (var item : menuTimeMode.getMenuComponents()){                
+                    if (item instanceof JMenuItem menuItem){
+                      menuItem.setSelected(menuItem.getText().equalsIgnoreCase(App.timeMode.toString()));
+                    }
+                }
+                for (var item : menuLogLevel.getMenuComponents()){                
+                    if (item instanceof JMenuItem menuItem){
+                      menuItem.setSelected(menuItem.getText().equalsIgnoreCase(App.logLevel.toString()));
+                    }
+                }                
+            }
+        });        
+        
         clear();
 
     }
@@ -518,6 +605,13 @@ public class ConfigFrame extends javax.swing.JFrame {
         menuClear = new javax.swing.JMenuItem();
         jSeparator3 = new javax.swing.JPopupMenu.Separator();
         menuExit = new javax.swing.JMenuItem();
+        menuProperties = new javax.swing.JMenu();
+        menuDefaultProtocol = new javax.swing.JMenu();
+        menuTimeMode = new javax.swing.JMenu();
+        menuLogLevel = new javax.swing.JMenu();
+        menuAntiAliasing = new javax.swing.JCheckBoxMenuItem();
+        menuMarkers = new javax.swing.JCheckBoxMenuItem();
+        menuHideInvalid = new javax.swing.JCheckBoxMenuItem();
         menuWindow = new javax.swing.JMenu();
         menuShowGraph = new javax.swing.JMenuItem();
         jSeparator4 = new javax.swing.JPopupMenu.Separator();
@@ -1016,6 +1110,31 @@ public class ConfigFrame extends javax.swing.JFrame {
 
         jMenuBar2.add(menuFile);
 
+        menuProperties.setText("Properties");
+
+        menuDefaultProtocol.setText("Default Protocol");
+        menuProperties.add(menuDefaultProtocol);
+
+        menuTimeMode.setText("Time Mode");
+        menuProperties.add(menuTimeMode);
+
+        menuLogLevel.setText("Log Level");
+        menuProperties.add(menuLogLevel);
+
+        menuAntiAliasing.setSelected(true);
+        menuAntiAliasing.setText("Anti-aliasing");
+        menuProperties.add(menuAntiAliasing);
+
+        menuMarkers.setSelected(true);
+        menuMarkers.setText("Markers");
+        menuProperties.add(menuMarkers);
+
+        menuHideInvalid.setSelected(true);
+        menuHideInvalid.setText("Hide Invalid Values");
+        menuProperties.add(menuHideInvalid);
+
+        jMenuBar2.add(menuProperties);
+
         menuWindow.setText("Window");
 
         menuShowGraph.setText("Show Graph Window");
@@ -1355,13 +1474,13 @@ public class ConfigFrame extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ConfigFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ConfigFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ConfigFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ConfigFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
@@ -1408,15 +1527,22 @@ public class ConfigFrame extends javax.swing.JFrame {
     private javax.swing.JPopupMenu.Separator jSeparator3;
     private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JMenuItem menuAbout;
+    private javax.swing.JCheckBoxMenuItem menuAntiAliasing;
     private javax.swing.JMenuItem menuClear;
+    private javax.swing.JMenu menuDefaultProtocol;
     private javax.swing.JMenuItem menuExit;
     private javax.swing.JMenu menuFile;
     private javax.swing.JMenu menuHelp;
     private javax.swing.JMenuItem menuHideConfig;
+    private javax.swing.JCheckBoxMenuItem menuHideInvalid;
     private javax.swing.JMenuItem menuLoad;
+    private javax.swing.JMenu menuLogLevel;
+    private javax.swing.JCheckBoxMenuItem menuMarkers;
+    private javax.swing.JMenu menuProperties;
     private javax.swing.JMenuItem menuSave;
     private javax.swing.JMenuItem menuSaveAs;
     private javax.swing.JMenuItem menuShowGraph;
+    private javax.swing.JMenu menuTimeMode;
     private javax.swing.JMenu menuWindow;
     private javax.swing.JPanel panelColorBackground;
     private javax.swing.JPanel panelColorForeground;

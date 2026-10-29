@@ -62,8 +62,8 @@ public class App {
     private static List<String> path = new ArrayList<>();
     static Config defaultConfig;
     static boolean simulated;
-    static Protocol defaultProtocol = Protocol.CA;
-    static TimeMode timeMode = TimeMode.ALIGNED;
+    static volatile Protocol defaultProtocol = Protocol.CA;
+    static volatile TimeMode timeMode = TimeMode.ALIGNED;    
     static int timeout = 1000;
 
     //Arguments
@@ -181,6 +181,14 @@ public class App {
     public static boolean getHideInvalid() {
         return App.hasArgument("hide_invalid");
     }
+    
+    public static boolean isAntiAliasing() {
+        return hasArgument("anti_aliasing") || hasArgument("aa");
+    }
+    
+    public static boolean isMarkersVisible() {
+        return hasArgument("markers");
+    }
 
     public static File resolveFile(String name) throws FileNotFoundException {
         name = name.trim();
@@ -221,10 +229,6 @@ public class App {
         return simulated;
     }
 
-    public static boolean isAntiAliasing() {
-        return hasArgument("aa");
-    }
-
     public static boolean isMac() {
         return System.getProperty("os.name").toLowerCase().contains("mac");
     }
@@ -261,12 +265,8 @@ public class App {
         System.out.println("\t-config\t\tShow config dialog even if filename is provided");
         System.out.println("\t-home=<dir>\tSet home folder");
         System.out.println("\t-default=<dir>\tSet default configuration file");
-        System.out.println("\t-laf=<name>\tSupported values: nimbus, metal, dark or system");
-        System.out.println("\t-clog=<level>\tSet the console logging level");
-        System.out.println("\t-aa\t\tEnable anti-aliasing");
         System.out.println("\t-debug\t\tShow debug information");
         System.out.println("\t-cli  \t\tStarts the CLI");
-        System.out.println("\t-hide_invalid\tDo not display invalid values");
         System.out.println("\t-xrm=\"...\"\tSet graphical resources in the format: <name>:<value>");
         System.out.println("\t-cmd=\"...\"\tList of commands for changing the plot configuration (';' separated):");
         System.out.println("\t\t\t  add <channel>                    (add a plot)");
@@ -290,8 +290,13 @@ public class App {
         }
         System.out.println("\t-protocol=<name>\tSupported values: ca or pva - default: " + defaultProtocol.toString().toLowerCase());
         System.out.println("\t-time_mode=<mode>  \t\tTime mode: aligned, sparse or ioc - default: " + timeMode.toString().toLowerCase());
+        System.out.println("\t-markers\t\tEnable plot markers by default (higher CPU usage)");
+        System.out.println("\t-anti_aliasing\t\tEnabling anti-aliasing smooths the plot (higher CPU usage)");
         System.out.println("\t-timeout=<value>\tTimeout in milliseconds - default: " + timeout);
-
+        System.out.println("\t-laf=<name>\tSupported values: nimbus, metal, dark or system");
+        System.out.println("\t-log_level=<level>\tSet the console logging level");
+        System.out.println("\t-hide_invalid\tDo not display invalid values");
+        
         System.out.println("\nEnvironmennt variables: ");
         System.out.println("\tSTRIP_SITE_DEFAULTS");
         System.out.println("\tSTRIP_FILE_SEARCH_PATH");
@@ -314,32 +319,29 @@ public class App {
         }
 
         //Console log level is warning, unless otherwise specified
-        Level consoleLogLevel = Level.WARNING;
+        
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %4$s %3$s - %5$s%6$s%n");
-        try {
-            consoleLogLevel = Level.parse(getArgumentValue("clog"));
-        } catch (Exception ex) {
-            Logger.getLogger(App.class.getName()).warning("parsing argument clog: " + ex);
-        }
-        for (Handler handler : Logger.getLogger("").getHandlers()) {
-            if (handler instanceof ConsoleHandler) {
-                handler.setLevel(consoleLogLevel);
+        
+        Level level = Level.WARNING;
+        for (String arg : new String[]{"log_level", "clog"}){
+            if (hasArgument(arg)){
+                try {
+                    level = Level.parse(getArgumentValue(arg));
+                    break;
+                } catch (Exception ex) {
+                    Logger.getLogger(App.class.getName()).log(Level.WARNING, () -> "Error parsing argument " + arg + ": " + ex);
+                }
             }
         }
-        if (!System.getProperties().contains("CA_LIBRARY_LOG_LEVEL")) {
-            System.getProperties().put("CA_LIBRARY_LOG_LEVEL", consoleLogLevel.toString());
-        }
-        if (!System.getProperties().contains("CA_REPEATER_LOG_LEVEL")) {
-            System.getProperties().put("CA_REPEATER_LOG_LEVEL", consoleLogLevel.toString());
-        }
-
+        setLogLevel(level);
+        
         try {
             String val = getArgumentValue("protocol");
-            if (val != null) {
+            if (val != null) { 
                 defaultProtocol = Protocol.valueOf(val.toUpperCase());
             }
         } catch (Exception ex) {
-            Logger.getLogger(App.class.getName()).warning("parsing argument protocol: " + ex);
+            Logger.getLogger(App.class.getName()).warning(() -> "Error parsing argument protocol: " + ex);
         }
 
         try {
@@ -348,16 +350,16 @@ public class App {
                 timeMode = TimeMode.valueOf(val.toUpperCase());
             }
         } catch (Exception ex) {
-            Logger.getLogger(App.class.getName()).warning("parsing argument protocol: " + ex);
+            Logger.getLogger(App.class.getName()).warning(() -> "Error parsing argument time_mode: " + ex);
         }
-
+               
         try {
             String val = getArgumentValue("timeout");
             if (val != null) {
                 timeout = Integer.parseInt(val);
             }
         } catch (Exception ex) {
-            Logger.getLogger(App.class.getName()).warning("parsing argument timeout: " + ex);
+            Logger.getLogger(App.class.getName()).warning(() -> "Error parsing argument timeout: " + ex);
         }
 
         caProperties = new Properties();
@@ -438,10 +440,12 @@ public class App {
         }
         if (!hasArgument("noraise")) {
             PlotPanel.setBringSelectedToTheTop(true);            
-        }
-        
-        PlotPanel.setSparse(timeMode.isSparse()); //Values are not appended together for all series
-        
+        }               
+
+        if (hasArgument("hide_invalid")) {
+            ChannelValue.hideInvalid = true;            
+        }               
+                
         
         simulated = hasArgument("simulated");
 
@@ -547,7 +551,6 @@ public class App {
                             configFrame.load(startupChannels);
                         }
                     } catch (Exception ex) {
-                        ex.printStackTrace();
                         Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
                         if (startupFile != null) {
                             forceConfig = true;
@@ -665,5 +668,22 @@ public class App {
             }
         }
         return null;
+    }
+    
+    static Level logLevel;
+    public static void setLogLevel(Level level){
+        logLevel = level;
+        for (Handler handler : Logger.getLogger("").getHandlers()) {
+            if (handler instanceof ConsoleHandler) {
+                handler.setLevel(level);
+            }
+        }
+        if (!System.getProperties().contains("CA_LIBRARY_LOG_LEVEL")) {
+            System.getProperties().put("CA_LIBRARY_LOG_LEVEL", level.toString());
+        }
+        if (!System.getProperties().contains("CA_REPEATER_LOG_LEVEL")) {
+            System.getProperties().put("CA_REPEATER_LOG_LEVEL", level.toString());
+        }
+        
     }
 }

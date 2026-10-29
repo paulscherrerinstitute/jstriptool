@@ -14,7 +14,7 @@ import org.epics.pva.data.nt.PVATimeStamp;
  */
 public record ChannelValue(Double value, long timestamp, boolean invalid) {
 
-    static boolean hideInvalid = App.hasArgument("hide_invalid");
+    static boolean hideInvalid = false;
 
     static ChannelValue fromCa(Timestamped timestamped) {
         if (timestamped != null) {
