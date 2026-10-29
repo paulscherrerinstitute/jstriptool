@@ -326,6 +326,9 @@ public class PlotFrame extends javax.swing.JFrame {
         synchronized (channels) {
             channels.clear();
         }
+        synchronized (valueList) {
+            valueList.clear();
+        }        
         numberOfSeries = 0;
         cache.clear();
         config = null;

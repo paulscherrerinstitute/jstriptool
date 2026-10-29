@@ -789,7 +789,7 @@ public class PlotPanel extends javax.swing.JPanel {
     }
 
     public boolean isSeriesHidden(PlotSeries series) {
-        return getSeriesColor(series).equals(TRANSPARENT_COLOR);
+        return TRANSPARENT_COLOR.equals(getSeriesColor(series));
     }
 
     Map<PlotSeries, Color> hiddenPlots = new HashMap<>();

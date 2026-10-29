@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JColorChooser;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -86,6 +85,9 @@ public class ConfigFrame extends javax.swing.JFrame {
                     var mode = TimeMode.valueOf(((JMenuItem)e.getSource()).getText().toUpperCase());
                     if (mode !=  App.timeMode){
                         App.timeMode = mode;
+                        if (App.plotFrame.isStarted()){
+                            App.plotFrame.start();
+                        }
                     }
                 } catch (Exception ex){
                     Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
