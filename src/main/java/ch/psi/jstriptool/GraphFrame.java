@@ -51,6 +51,7 @@ public class GraphFrame extends javax.swing.JFrame {
         buttonAutoScale = new javax.swing.JToggleButton();
         buttonMode = new javax.swing.JToggleButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
+        buttonToggleMarkers = new javax.swing.JButton();
         buttonResetGraph = new javax.swing.JButton();
         jSeparator7 = new javax.swing.JToolBar.Separator();
 
@@ -200,6 +201,18 @@ public class GraphFrame extends javax.swing.JFrame {
         toolBar.add(buttonMode);
         toolBar.add(jSeparator4);
 
+        buttonToggleMarkers.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/Markers.png"))); // NOI18N
+        buttonToggleMarkers.setText(" ");
+        buttonToggleMarkers.setToolTipText("Toggle Markers");
+        buttonToggleMarkers.setFocusable(false);
+        buttonToggleMarkers.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonToggleMarkers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonToggleMarkersActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonToggleMarkers);
+
         buttonResetGraph.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/Restart.png"))); // NOI18N
         buttonResetGraph.setText(" ");
         buttonResetGraph.setToolTipText("Reset Plot");
@@ -327,6 +340,14 @@ public class GraphFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_buttonModeActionPerformed
 
+    private void buttonToggleMarkersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonToggleMarkersActionPerformed
+        try {
+            plotPanel.setMarkersVisible(!plotPanel.isMarkersVisible());
+        } catch (Exception ex) {
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonToggleMarkersActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JToggleButton buttonAutoScale;
     private javax.swing.JToggleButton buttonMode;
@@ -336,6 +357,7 @@ public class GraphFrame extends javax.swing.JFrame {
     private javax.swing.JButton buttonPanUp;
     private javax.swing.JButton buttonResetGraph;
     private javax.swing.JButton buttonResetZoom;
+    private javax.swing.JButton buttonToggleMarkers;
     private javax.swing.JButton buttonZoomInX;
     private javax.swing.JButton buttonZoomInY;
     private javax.swing.JButton buttonZoomOutX;

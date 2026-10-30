@@ -122,7 +122,6 @@ public class PlotPanel extends javax.swing.JPanel {
     }
     final List<SeriesInfo> series;
 
-    final Shape marker;
     Font tickLabelFont = new Font(Font.SANS_SERIF, 0, 10);
     Font labelFont = new Font(Font.SANS_SERIF, 0, 11);
 
@@ -149,7 +148,6 @@ public class PlotPanel extends javax.swing.JPanel {
         initComponents();
 
         series = new ArrayList<>();
-        marker = new Rectangle2D.Double(-1, -1, 2, 2);
         chart = ChartFactory.createTimeSeriesChart(null,
                 "Time",
                 null,
@@ -831,13 +829,13 @@ public class PlotPanel extends javax.swing.JPanel {
 
         checkSeriesDuration();
         data.addSeries(timeSeries);
-        seriesInfo.getRenderer().setSeriesShape(0, marker);
         if (seriesInfo.plotSeries.getColor() != null) {
             seriesInfo.getRenderer().setSeriesPaint(0, seriesInfo.plotSeries.getColor());
         }
-        setLineWidth(getNumberOfSeries() - 1, plotSeries.lineWidth);
-        setNotify(getNumberOfSeries() - 1, false);
-        setMaximumItemCount(getNumberOfSeries() - 1, plotSeries.numSamples);
+        index = getNumberOfSeries() - 1;
+        setLineWidth(index, plotSeries.lineWidth);
+        setNotify(index, false);
+        setMaximumItemCount(index, plotSeries.numSamples);
 
         return seriesInfo;
     }
@@ -861,11 +859,22 @@ public class PlotPanel extends javax.swing.JPanel {
             plot.configureRangeAxes();
             chartPanel.chartChanged(null);
         }
-    }
-
-    public void setLineWidth(int index, int width) {
+    }        
+    
+    public void setLineWidth(int width) {    
+        for (int i = 0; i < getNumberOfSeries(); i++) {
+            setLineWidth(i, width);            
+        }
+    }    
+    
+    void setLineWidth(int index, int width) {
         if (index < series.size()) {
-            series.get(index).getRenderer().setSeriesStroke(0, new BasicStroke(width));
+            XYItemRenderer renderer = series.get(index).getRenderer();
+            renderer.setSeriesStroke(0, new BasicStroke(width));
+            double size = (double)Math.max(1, width+1);
+            Shape marker = new Rectangle2D.Double(-size/2, -size/2, size, size);
+            renderer.setSeriesShape(0, marker);
+            
         }
     }
 

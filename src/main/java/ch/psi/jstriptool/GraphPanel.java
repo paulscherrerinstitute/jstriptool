@@ -474,9 +474,7 @@ public class GraphPanel extends javax.swing.JPanel {
     public void setLineWidth(int value) {
         if (config != null) {
             config.graphLineWidth = value;
-            for (int i = 0; i < plotPanel.getNumberOfSeries(); i++) {
-                plotPanel.setLineWidth(i, value);
-            }
+            plotPanel.setLineWidth(value);
         }
     }
 
