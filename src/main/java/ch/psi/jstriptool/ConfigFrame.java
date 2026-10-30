@@ -29,8 +29,8 @@ public class ConfigFrame extends javax.swing.JFrame {
                     var protocol = Protocol.valueOf(((JMenuItem)e.getSource()).getText().toUpperCase());
                     if (protocol !=  App.defaultProtocol){
                         App.defaultProtocol = protocol;
-                        if (App.plotFrame.isStarted()){
-                            App.plotFrame.start();
+                        if (App.getGraphPanel().isStarted()){
+                            App.getGraphPanel().start();
                         }
                         
                     }
@@ -48,8 +48,8 @@ public class ConfigFrame extends javax.swing.JFrame {
                     var mode = TimeMode.valueOf(((JMenuItem)e.getSource()).getText().toUpperCase());
                     if (mode !=  App.timeMode){
                         App.timeMode = mode;
-                        if (App.plotFrame.isStarted()){
-                            App.plotFrame.start();
+                        if (App.getGraphPanel().isStarted()){
+                            App.getGraphPanel().start();
                         }
                     }
                 } catch (Exception ex){
@@ -80,8 +80,8 @@ public class ConfigFrame extends javax.swing.JFrame {
                 try{
                     var lookAndFeel = ((JMenuItem)e.getSource()).getText();
                     App.setLookAndFeel(lookAndFeel);
-                    App.plotFrame.getPlotPanel().updateLafColors();
-                    App.plotFrame.updateAxisColor();
+                    App.getPlotPanel().updateLafColors();
+                    App.getGraphPanel().updateAxisColor();
                     SwingUtils.updateAllFrames();
                 } catch (Exception ex){
                     Logger.getLogger(ConfigFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -91,11 +91,11 @@ public class ConfigFrame extends javax.swing.JFrame {
         }        
                         
         menuAntiAliasing.addActionListener((e)->{
-            App.plotFrame.getPlotPanel().setAntiAliasing(menuAntiAliasing.isSelected());
+            App.getPlotPanel().setAntiAliasing(menuAntiAliasing.isSelected());
         });
         
         menuMarkers.addActionListener((e)->{
-            App.plotFrame.getPlotPanel().setMarkersVisible(menuMarkers.isSelected());
+            App.getPlotPanel().setMarkersVisible(menuMarkers.isSelected());
         });
         
         menuHideInvalid.addActionListener((e)->{
@@ -104,8 +104,8 @@ public class ConfigFrame extends javax.swing.JFrame {
         
         menuProperties.addChangeListener((e)->{
             if (menuProperties.isSelected()) {        
-                menuAntiAliasing.setSelected(App.plotFrame.getPlotPanel().isAntiAlias());
-                menuMarkers.setSelected(App.plotFrame.getPlotPanel().isMarkersVisible());
+                menuAntiAliasing.setSelected(App.getPlotPanel().isAntiAlias());
+                menuMarkers.setSelected(App.getPlotPanel().isMarkersVisible());
                 menuHideInvalid.setSelected(ChannelValue.hideInvalid);
                 for (var item : menuDefaultProtocol.getMenuComponents()){                
                     if (item instanceof JMenuItem menuItem){
@@ -144,26 +144,25 @@ public class ConfigFrame extends javax.swing.JFrame {
     void open(File file) throws IOException {
         configPanel.open(file);
         this.setTitle(file.getName());
-        showPlotFrame();
+        startGraphFrame();
     }
 
     void save(File file) throws IOException {
         configPanel.save(file);
         this.setTitle(file.getName());
-        App.plotFrame.setTitle(getTitle());
+        App.graphFrame.setTitle(getTitle());
     }
 
     void load(String[] channels) throws Exception {
         configPanel.load(channels);
         this.setTitle("Channels");
-        showPlotFrame();
+        startGraphFrame();
     }
 
-    void showPlotFrame() {
-        App.plotFrame.setVisible(true);
-        App.plotFrame.setTitle(getTitle());
-        App.plotFrame.setVisible(true);
-        App.plotFrame.start();
+    void startGraphFrame() {
+        App.graphFrame.setVisible(true);
+        App.graphFrame.setTitle(getTitle());
+        App.getGraphPanel().start();
     }
     
     public Config getConfig(){
@@ -360,7 +359,7 @@ public class ConfigFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_menuClearActionPerformed
 
     private void menuHideConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuHideConfigActionPerformed
-        App.plotFrame.setVisible(true);
+        App.graphFrame.setVisible(true);
         setVisible(false);
     }//GEN-LAST:event_menuHideConfigActionPerformed
 
@@ -401,7 +400,7 @@ public class ConfigFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_menuExitActionPerformed
 
     private void menuShowGraphActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuShowGraphActionPerformed
-        App.plotFrame.setVisible(true);
+        App.graphFrame.setVisible(true);
     }//GEN-LAST:event_menuShowGraphActionPerformed
 
     private void menuAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuAboutActionPerformed

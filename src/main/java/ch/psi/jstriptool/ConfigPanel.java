@@ -65,7 +65,7 @@ public class ConfigPanel extends javax.swing.JPanel {
     }
 
     boolean isPlotting() {
-        return (App.plotFrame.isStarted());
+        return (App.getGraphPanel().isStarted());
     }
 
     TableModelListener modelSeriesListener = new TableModelListener() {
@@ -81,28 +81,28 @@ public class ConfigPanel extends javax.swing.JPanel {
 
                             switch (col) {
                                 case COLUMN_ENABLED:
-                                    App.plotFrame.setEnabled(index, (value == null) ? false : (Boolean) value);
+                                    App.getGraphPanel().setEnabled(index, (value == null) ? false : (Boolean) value);
                                     break;
                                 case COLUMN_LOG:
-                                    App.plotFrame.setLog(index, (value == null) ? false : (Boolean) value);
+                                    App.getGraphPanel().setLog(index, (value == null) ? false : (Boolean) value);
                                     break;
                                 case COLUMN_PREC:
-                                    App.plotFrame.setPrec(index, (value == null) ? 0 : (Integer) value);
+                                    App.getGraphPanel().setPrec(index, (value == null) ? 0 : (Integer) value);
                                     break;
                                 case COLUMN_MIN:
-                                    App.plotFrame.setMin(index, (value == null) ? Double.NaN : (Double) value);
+                                    App.getGraphPanel().setMin(index, (value == null) ? Double.NaN : (Double) value);
                                     break;
                                 case COLUMN_MAX:
-                                    App.plotFrame.setMax(index, (value == null) ? Double.NaN : (Double) value);
+                                    App.getGraphPanel().setMax(index, (value == null) ? Double.NaN : (Double) value);
                                     break;
                                 case COLUMN_UNITS:
-                                    App.plotFrame.setUnits(index, (value == null) ? "" : (String) value);
+                                    App.getGraphPanel().setUnits(index, (value == null) ? "" : (String) value);
                                     break;
                                 case COLUMN_DESC:
-                                    App.plotFrame.setDesc(index, (value == null) ? "" : (String) value);
+                                    App.getGraphPanel().setDesc(index, (value == null) ? "" : (String) value);
                                     break;
                                 case COLUMN_COLORS:
-                                    App.plotFrame.setColor(index, (value == null) ? Color.BLACK : Config.getColorFromString((String) value));
+                                    App.getGraphPanel().setColor(index, (value == null) ? Color.BLACK : Config.getColorFromString((String) value));
                                     break;
                             }
                         }
@@ -302,11 +302,11 @@ public class ConfigPanel extends javax.swing.JPanel {
         modelSeries.fireTableDataChanged();
         updateButtons();
         updateColors();
-        if (!App.plotFrame.isStarted()) {
-            App.plotFrame.start();
+        if (!App.getGraphPanel().isStarted()) {
+            App.getGraphPanel().start();
         }
 
-        App.plotFrame.addChannel(index, channelName, true, false,
+        App.getGraphPanel().addChannel(index, channelName, true, false,
                 metadata.precision(), metadata.low(), metadata.high(), metadata.units(), metadata.description());
     }
 
@@ -315,7 +315,7 @@ public class ConfigPanel extends javax.swing.JPanel {
             throw new Exception("Invalid channel index");
         }
         modelSeries.removeRow(Math.max(index, 0));
-        App.plotFrame.removeChannel(index);
+        App.getGraphPanel().removeChannel(index);
         updateButtons();
         updateColors();
     }
@@ -326,8 +326,8 @@ public class ConfigPanel extends javax.swing.JPanel {
         }
         modelSeries.setValueAt(min, index, COLUMN_MIN);
         modelSeries.setValueAt(max, index, COLUMN_MAX);
-        //App.plotFrame.setMin(index, min);    
-        //App.plotFrame.setMax(index, max);    
+        //App.getGraphPanel().setMin(index, min);    
+        //App.getGraphPanel().setMax(index, max);    
     }
 
     public void setChannelMin(int index, double value) throws Exception {
@@ -335,7 +335,7 @@ public class ConfigPanel extends javax.swing.JPanel {
             throw new Exception("Invalid channel index");
         }
         modelSeries.setValueAt(value, index, COLUMN_MIN);
-        //App.plotFrame.setMin(index, value); 
+        //App.getGraphPanel().setMin(index, value); 
     }
 
     public void setChannelMax(int index, double value) throws Exception {
@@ -343,7 +343,7 @@ public class ConfigPanel extends javax.swing.JPanel {
             throw new Exception("Invalid channel index");
         }
         modelSeries.setValueAt(value, index, COLUMN_MAX);
-        //App.plotFrame.setMax(index, value);    
+        //App.getGraphPanel().setMax(index, value);    
     }
 
     public void setChannelLog(int index, boolean value) throws Exception {
@@ -383,7 +383,7 @@ public class ConfigPanel extends javax.swing.JPanel {
         if (value <= 0) {
             throw new Exception("Invalid value");
         }
-        App.plotFrame.setTimespan(value);
+        App.getGraphPanel().setTimespan(value);
         updateWindow();
     }
 
@@ -391,7 +391,7 @@ public class ConfigPanel extends javax.swing.JPanel {
         if (value < 0) {
             throw new Exception("Invalid value");
         }
-        App.plotFrame.setSampleInterval(value);
+        App.getGraphPanel().setSampleInterval(value);
         updateWindow();
     }
 
@@ -399,7 +399,7 @@ public class ConfigPanel extends javax.swing.JPanel {
         if (value <= 0) {
             throw new Exception("Invalid value");
         }
-        App.plotFrame.setRedrawInterval(value);
+        App.getGraphPanel().setRedrawInterval(value);
         updateWindow();
     }
 
@@ -410,9 +410,8 @@ public class ConfigPanel extends javax.swing.JPanel {
         updateWindow();
         initializeTable();
         modelSeries.setRowCount(0);
-        if (App.plotFrame != null) {
-            App.plotFrame.setTitle("JStripTool");
-            App.plotFrame.stop();
+        if (App.getGraphPanel() != null) {
+            App.getGraphPanel().stop();
         }
         //Channel.dispose();
     }
@@ -895,7 +894,7 @@ public class ConfigPanel extends javax.swing.JPanel {
         try {
             int rows = modelSeries.getRowCount();
             int cur = tableSeries.getSelectedRow();
-            App.plotFrame.stop();
+            App.getGraphPanel().stop();
             //modelSeries.moveRow(cur, cur, cur - 1);
             Curve curve = config.curves[cur - 1];
             config.curves[cur - 1] = config.curves[cur];
@@ -906,7 +905,7 @@ public class ConfigPanel extends javax.swing.JPanel {
             updateColors();
 
             updateWindow();
-            App.plotFrame.start();
+            App.getGraphPanel().start();
 
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
@@ -939,7 +938,7 @@ public class ConfigPanel extends javax.swing.JPanel {
 
             updateButtons();
 
-            App.plotFrame.stop();
+            App.getGraphPanel().stop();
             //modelSeries.moveRow(cur, cur, cur + 1);
             Curve curve = config.curves[cur + 1];
             config.curves[cur + 1] = config.curves[cur];
@@ -950,7 +949,7 @@ public class ConfigPanel extends javax.swing.JPanel {
             updateColors();
 
             updateWindow();
-            App.plotFrame.start();
+            App.getGraphPanel().start();
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
@@ -958,8 +957,8 @@ public class ConfigPanel extends javax.swing.JPanel {
 
     private void spinnerRedrawIntervalStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerRedrawIntervalStateChanged
         try {
-            if (App.plotFrame!=null){
-                App.plotFrame.setRedrawInterval((Double) spinnerRedrawInterval.getValue());
+            if (App.getGraphPanel()!=null){
+               App.getGraphPanel().setRedrawInterval((Double) spinnerRedrawInterval.getValue());
             }
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
@@ -968,8 +967,8 @@ public class ConfigPanel extends javax.swing.JPanel {
 
     private void spinnerBufferSizeStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerBufferSizeStateChanged
         try {
-            if (App.plotFrame!=null){
-                App.plotFrame.setNumSamples((Integer) spinnerBufferSize.getValue());
+            if (App.getGraphPanel()!=null){
+                App.getGraphPanel().setNumSamples((Integer) spinnerBufferSize.getValue());
             }
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
@@ -978,8 +977,8 @@ public class ConfigPanel extends javax.swing.JPanel {
 
     private void spinnerSampleIntervalStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerSampleIntervalStateChanged
         try {
-            if (App.plotFrame!=null){
-                App.plotFrame.setSampleInterval((Double) spinnerSampleInterval.getValue());
+            if (App.getGraphPanel()!=null){
+                App.getGraphPanel().setSampleInterval((Double) spinnerSampleInterval.getValue());
             }
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
@@ -992,7 +991,7 @@ public class ConfigPanel extends javax.swing.JPanel {
                 int timespan = (Integer) spinnerSec.getValue();
                 timespan += ((Integer) spinnerMin.getValue()) * 60;
                 timespan += ((Integer) spinnerHour.getValue()) * 3600;
-                App.plotFrame.setTimespan(timespan);
+                App.getGraphPanel().setTimespan(timespan);
             }
 
         } catch (Exception ex) {
@@ -1006,7 +1005,7 @@ public class ConfigPanel extends javax.swing.JPanel {
                 int timespan = (Integer) spinnerSec.getValue();
                 timespan += ((Integer) spinnerMin.getValue()) * 60;
                 timespan += ((Integer) spinnerHour.getValue()) * 3600;
-                App.plotFrame.setTimespan(timespan);
+                App.getGraphPanel().setTimespan(timespan);
             }
 
         } catch (Exception ex) {
@@ -1020,7 +1019,7 @@ public class ConfigPanel extends javax.swing.JPanel {
                 int timespan = (Integer) spinnerSec.getValue();
                 timespan += ((Integer) spinnerMin.getValue()) * 60;
                 timespan += ((Integer) spinnerHour.getValue()) * 3600;
-                App.plotFrame.setTimespan(timespan);
+                App.getGraphPanel().setTimespan(timespan);
             }
 
         } catch (Exception ex) {
@@ -1032,7 +1031,7 @@ public class ConfigPanel extends javax.swing.JPanel {
         Color c = JColorChooser.showDialog(this, "Choose a Color", getConfig().grid.toColor());
         if (c != null) {
             panelColorGrid.setBackground(c);
-            App.plotFrame.setGridColor(c);
+            App.getGraphPanel().setGridColor(c);
         }
     }//GEN-LAST:event_panelColorGridMouseClicked
 
@@ -1040,7 +1039,7 @@ public class ConfigPanel extends javax.swing.JPanel {
         Color c = JColorChooser.showDialog(this, "Choose a Color", getConfig().foreground.toColor());
         if (c != null) {
             panelColorForeground.setBackground(c);
-            App.plotFrame.setForegroundColor(c);
+            App.getGraphPanel().setForegroundColor(c);
         }
     }//GEN-LAST:event_panelColorForegroundMouseClicked
 
@@ -1048,18 +1047,18 @@ public class ConfigPanel extends javax.swing.JPanel {
         Color c = JColorChooser.showDialog(this, "Choose a Color", getConfig().background.toColor());
         if (c != null) {
             panelColorBackground.setBackground(c);
-            App.plotFrame.setBackgroundColor(c);
+            App.getGraphPanel().setBackgroundColor(c);
         }
     }//GEN-LAST:event_panelColorBackgroundMouseClicked
 
     private void buttonSystemColorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSystemColorsActionPerformed
         try {
             panelColorForeground.setBackground(null);
-            App.plotFrame.setForegroundColor(null);
+            App.getGraphPanel().setForegroundColor(null);
             panelColorBackground.setBackground(null);
-            App.plotFrame.setBackgroundColor(null);
+            App.getGraphPanel().setBackgroundColor(null);
             panelColorGrid.setBackground(null);
-            App.plotFrame.setGridColor(null);
+            App.getGraphPanel().setGridColor(null);
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
@@ -1067,8 +1066,8 @@ public class ConfigPanel extends javax.swing.JPanel {
 
     private void comboColorYActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboColorYActionPerformed
         try {
-            if (App.plotFrame != null) {
-                App.plotFrame.setLabelColorAxisY(LabelColorAxisY.values()[comboColorY.getSelectedIndex()]);
+            if (App.getGraphPanel() != null) {
+                App.getGraphPanel().setLabelColorAxisY(LabelColorAxisY.values()[comboColorY.getSelectedIndex()]);
             }
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
@@ -1077,8 +1076,8 @@ public class ConfigPanel extends javax.swing.JPanel {
 
     private void comboGridXActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboGridXActionPerformed
         try {
-            if (App.plotFrame != null) {
-                App.plotFrame.setGridX(GridVisibility.values()[comboGridX.getSelectedIndex()]);
+            if (App.getGraphPanel() != null) {
+                App.getGraphPanel().setGridX(GridVisibility.values()[comboGridX.getSelectedIndex()]);
             }
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
@@ -1087,7 +1086,7 @@ public class ConfigPanel extends javax.swing.JPanel {
 
     private void spinnerLineWidthStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerLineWidthStateChanged
         try {
-            App.plotFrame.setLineWidth((Integer) spinnerLineWidth.getValue());
+            App.getGraphPanel().setLineWidth((Integer) spinnerLineWidth.getValue());
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }
@@ -1095,8 +1094,8 @@ public class ConfigPanel extends javax.swing.JPanel {
 
     private void comboGridYActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboGridYActionPerformed
         try {
-            if (App.plotFrame != null) {
-                App.plotFrame.setGridY(GridVisibility.values()[comboGridY.getSelectedIndex()]);
+            if (App.getGraphPanel() != null) {
+                App.getGraphPanel().setGridY(GridVisibility.values()[comboGridY.getSelectedIndex()]);
             }
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);

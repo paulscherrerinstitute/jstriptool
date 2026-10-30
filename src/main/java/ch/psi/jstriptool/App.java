@@ -144,16 +144,35 @@ public class App {
     }
 
     static ConfigFrame configFrame;
-    static PlotFrame plotFrame;
+    static GraphFrame graphFrame;
 
     public static Config getConfig() {
+        if (configFrame==null){
+            return null;
+        }        
         return configFrame.getConfig();
     }
     
     public static ConfigPanel getConfigPanel() {
+        if (configFrame==null){
+            return null;
+        }        
         return configFrame.getConfigPanel();
     }
     
+    public static PlotPanel getPlotPanel() {
+        if (graphFrame==null) {
+            return null;
+        }
+        return graphFrame.getPlotPanel();
+    }    
+
+    public static GraphPanel getGraphPanel() {
+        if (graphFrame==null) {
+            return null;
+        }
+        return graphFrame.getGraphPanel();
+    }        
 
     public static Config getDefaultConfig() {
         return defaultConfig;
@@ -495,13 +514,13 @@ public class App {
 
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                plotFrame = new PlotFrame();
+                graphFrame = new GraphFrame();
                 configFrame = new ConfigFrame();
 
                 WindowListener windowListener = new WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
-                        JFrame other = ((JFrame) e.getWindow()) == plotFrame ? configFrame : plotFrame;
+                        JFrame other = ((JFrame) e.getWindow()) == graphFrame ? configFrame : graphFrame;
                         if (!other.isShowing()) {
                             if (SwingUtils.showOption(e.getWindow(), "Close",
                                     "Do you want to close the application?", OptionType.YesNo) == OptionResult.Yes) {
@@ -514,19 +533,19 @@ public class App {
                         }
                     }
                 };
-                plotFrame.addWindowListener(windowListener);
+                graphFrame.addWindowListener(windowListener);
                 configFrame.addWindowListener(windowListener);
 
                 if (frameSize.width > 0) {
-                    plotFrame.setSize(new Dimension(frameSize.width, plotFrame.getHeight()));
+                    graphFrame.setSize(new Dimension(frameSize.width, graphFrame.getHeight()));
                 }
                 if (frameSize.height > 0) {
-                    plotFrame.setSize(new Dimension(plotFrame.getWidth(), frameSize.height));
+                    graphFrame.setSize(new Dimension(graphFrame.getWidth(), frameSize.height));
                 }
 
                 boolean forceConfig = hasArgument("config");
                 if (startup != null) {
-                    plotFrame.setVisible(true);
+                    graphFrame.setVisible(true);
                     try {
                         if (startupFile != null) {
                             configFrame.open(resolveFile(startupFile));

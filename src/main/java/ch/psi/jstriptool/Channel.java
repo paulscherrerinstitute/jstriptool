@@ -26,7 +26,7 @@ public class Channel implements AutoCloseable {
     public static PVAClient getPva() throws Exception {
         if (!App.isSimulated()) {
             if (pva == null) {
-                Logger.getLogger(PlotFrame.class.getName()).fine("Creating EPICS PVA client");
+                Logger.getLogger(GraphFrame.class.getName()).fine("Creating EPICS PVA client");
                 pva = new PVAClient();
             }
         }
@@ -37,7 +37,7 @@ public class Channel implements AutoCloseable {
 
     public static Context getCa() {
         if (!App.isSimulated()) {
-            Logger.getLogger(PlotFrame.class.getName()).fine("Creating EPICS CA context");
+            Logger.getLogger(GraphFrame.class.getName()).fine("Creating EPICS CA context");
             if (ca == null) {
                 ca = new Context(App.getCaProperties());
             }
@@ -48,12 +48,12 @@ public class Channel implements AutoCloseable {
     public static void dispose() {
         if (ca != null) {
             ca.close();
-            Logger.getLogger(PlotFrame.class.getName()).fine("Closed EPICS CA context");
+            Logger.getLogger(GraphFrame.class.getName()).fine("Closed EPICS CA context");
             ca = null;
         }
         if (pva != null) {
             pva.close();
-            Logger.getLogger(PlotFrame.class.getName()).fine("Closed EPICS PVA client");
+            Logger.getLogger(GraphFrame.class.getName()).fine("Closed EPICS PVA client");
             pva = null;
         }
     }
@@ -63,7 +63,7 @@ public class Channel implements AutoCloseable {
             pv.waitConnected();
             return pv.metadata();
         } catch (Exception ex) {
-            Logger.getLogger(PlotFrame.class.getName()).warning(() -> "Error reading metadata of " + channelName + ": " + ex);
+            Logger.getLogger(GraphFrame.class.getName()).warning(() -> "Error reading metadata of " + channelName + ": " + ex);
             return ChannelMetadata.empty();
         }
     }
@@ -101,18 +101,18 @@ public class Channel implements AutoCloseable {
                 ch = channel;
             }
         } catch (Exception ex) {
-            Logger.getLogger(PlotFrame.class.getName()).warning(() -> "Error creating channel " + name + ": " + ex);
+            Logger.getLogger(GraphFrame.class.getName()).warning(() -> "Error creating channel " + name + ": " + ex);
         }
         this.channel = ch;
     }
 
     private void connected(Throwable ex) {
         if (ex == null) {
-            Logger.getLogger(PlotFrame.class.getName()).fine(() -> "Connected to channel: " + name);
+            Logger.getLogger(GraphFrame.class.getName()).fine(() -> "Connected to channel: " + name);
             connected = true;
             onConnection();
         } else {
-            Logger.getLogger(PlotFrame.class.getName()).warning(() -> "Error connecting to channel " + name + ": " + ex);
+            Logger.getLogger(GraphFrame.class.getName()).warning(() -> "Error connecting to channel " + name + ": " + ex);
         }
     }
 

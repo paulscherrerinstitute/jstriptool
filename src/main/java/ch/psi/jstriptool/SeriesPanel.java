@@ -187,7 +187,7 @@ public class SeriesPanel extends javax.swing.JPanel {
 
     private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
         setActive();
-        PlotFrame.instance.setActive(series);
+        App.getGraphPanel().setActive(series);
     }//GEN-LAST:event_formMousePressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

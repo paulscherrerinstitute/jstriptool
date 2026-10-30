@@ -212,8 +212,7 @@ public final class PlotSeries {
     }
 
     PlotPanel getPlot() {
-        //TODO
-        return PlotFrame.instance.getPlot();
+        return App.getGraphPanel().getPlot();
     }
 
     String toString(double value, boolean allowExponential, boolean showUnits, boolean truncate) {

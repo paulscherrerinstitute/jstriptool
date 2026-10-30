@@ -75,7 +75,7 @@ public class PlotPanel extends javax.swing.JPanel {
     static final Color DEFAULT_TEXT_COLOR = Color.DARK_GRAY;
     static final Color DEFAULT_DARK_TEXT_COLOR = new Color(187, 187, 187);
     static final Color DEFAULT_BACKGROUND_COLOR = null;
-    static final Color DEFAULT_DARK_BACKGROUND_COLOR = new Color(80, 80, 80);
+    static final Color DEFAULT_DARK_BACKGROUND_COLOR = new Color(43, 43, 43);
     static final Color DEFAULT_GRID_COLOR = Color.LIGHT_GRAY;
     static final Color DEFAULT_DARK_GRID_COLOR = new Color(187, 187, 187) ;    
     static final Color TRANSPARENT_COLOR = new Color(1, 0, 0, 0);    
@@ -388,13 +388,10 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
 
-    void setScrollMode(boolean value) {
-        scrollMode = value;
-        if (!value) {
-            if (chart.getXYPlot().getDomainAxis().isAutoRange()) {
-                chart.getXYPlot().getDomainAxis().setAutoRange(value);
-
-            }
+    void setScrollMode(boolean value) {       
+        if (scrollMode != value) {
+            scrollMode = value;
+            chart.getXYPlot().getDomainAxis().setAutoRange(value);
         }
         updateTooltips();
     }
@@ -509,7 +506,7 @@ public class PlotPanel extends javax.swing.JPanel {
         });
         menuReset = new JMenuItem("Reset");
         menuReset.addActionListener((ActionEvent e) -> {
-            App.plotFrame.reset();
+            App.getGraphPanel().reset();
         });
 
         menuSeries = new JMenu("Series Visibility");
