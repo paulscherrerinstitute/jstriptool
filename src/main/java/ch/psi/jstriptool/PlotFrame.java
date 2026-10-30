@@ -158,7 +158,7 @@ public class PlotFrame extends javax.swing.JFrame {
 
     void start() {
         stop();
-        config = App.configFrame.config;
+        config = App.getConfig();
         numberOfSeries = 0;        
         //Anti-aliasing        
         int series = (config == null) ? 0 : config.getNumberCurves();
@@ -374,6 +374,7 @@ public class PlotFrame extends javax.swing.JFrame {
             if (enabled!=value){
                 if (App.timeMode.isLocalTime() && !value) {
                     addValue(channels.get(index), ChannelValue.empty()); 
+                    updateValues();
                 }                
                 config.curves[index].plotStatus = value;
                 plotPanel.series.get(index).setLineExtension(value);
@@ -536,7 +537,7 @@ public class PlotFrame extends javax.swing.JFrame {
                 if (isStarted() && (index < config.getNumberCurves())) {
                     stop();
                 }
-                Curve c = App.configFrame.config.insertCurve(index);
+                Curve c = config.insertCurve(index);
                 c.name = channelName;
                 c.plotStatus = enabled;
                 c.scale = log ? Scale.logarithmic : Scale.linear;
@@ -563,9 +564,9 @@ public class PlotFrame extends javax.swing.JFrame {
                 } else {
                     removeSeries(index);
                 }
-                App.configFrame.config.removeCurve(index);
+                config.removeCurve(index);
 
-                if (!isStarted() && (App.configFrame.config.getNumberCurves() > 0)) {
+                if (!isStarted() && (config.getNumberCurves() > 0)) {
                     start();
                 }
             }

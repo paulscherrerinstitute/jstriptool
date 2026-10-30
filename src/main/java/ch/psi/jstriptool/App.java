@@ -146,11 +146,16 @@ public class App {
     static ConfigFrame configFrame;
     static PlotFrame plotFrame;
 
-    public Config getConfig() {
-        return configFrame.config;
+    public static Config getConfig() {
+        return configFrame.getConfig();
     }
+    
+    public static ConfigPanel getConfigPanel() {
+        return configFrame.getConfigPanel();
+    }
+    
 
-    public Config getDefaultConfig() {
+    public static Config getDefaultConfig() {
         return defaultConfig;
     }
 
@@ -600,46 +605,47 @@ public class App {
         if (!statement.isBlank()) {
             String[] tokens = statement.split(" ");
             String op = tokens[0];
+            ConfigPanel configPanel = getConfigPanel();
             switch (op) {
                 case "add":
-                    configFrame.addChannel(tokens[1]);
+                    configPanel.addChannel(tokens[1]);
                     return "Ok";
                 case "del":
-                    configFrame.removeChannel(configFrame.getIndex(tokens[1]));
+                    configPanel.removeChannel(configPanel.getIndex(tokens[1]));
                     return "Ok";
                 case "range":
-                    configFrame.setChannelMin(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
-                    configFrame.setChannelMax(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[3]));
+                    configPanel.setChannelMin(configPanel.getIndex(tokens[1]), Double.valueOf(tokens[2]));
+                    configPanel.setChannelMax(configPanel.getIndex(tokens[1]), Double.valueOf(tokens[3]));
                     return "Ok";
                 case "min":
-                    configFrame.setChannelMin(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
+                    configPanel.setChannelMin(configPanel.getIndex(tokens[1]), Double.valueOf(tokens[2]));
                     return "Ok";
                 case "max":
-                    configFrame.setChannelMax(configFrame.getIndex(tokens[1]), Double.valueOf(tokens[2]));
+                    configPanel.setChannelMax(configPanel.getIndex(tokens[1]), Double.valueOf(tokens[2]));
                     return "Ok";
                 case "log":
-                    configFrame.setChannelLog(configFrame.getIndex(tokens[1]), Boolean.valueOf(tokens[2]));
+                    configPanel.setChannelLog(configPanel.getIndex(tokens[1]), Boolean.valueOf(tokens[2]));
                     return "Ok";
                 case "color":
-                    configFrame.setChannelColor(configFrame.getIndex(tokens[1]), tokens[2]);
+                    configPanel.setChannelColor(configPanel.getIndex(tokens[1]), tokens[2]);
                     return "Ok";
                 case "channels":
-                    return String.join("\n", configFrame.config.getCurvesNames().toArray(new String[0]));
+                    return String.join("\n", configPanel.getConfig().getCurvesNames().toArray(new String[0]));
                 case "indexes":
-                    List<Integer> indexes = configFrame.config.getCurvesIndexes();
+                    List<Integer> indexes = configPanel.getConfig().getCurvesIndexes();
                     String[] names = new String[indexes.size()];
                     for (int i = 0; i < names.length; i++) {
                         names[i] = String.valueOf(indexes.get(i));
                     }
                     return String.join("\n", names);
                 case "span":
-                    configFrame.setTimespan(Integer.valueOf(tokens[1]));
+                    configPanel.setTimespan(Integer.valueOf(tokens[1]));
                     return "Ok";
                 case "poll":
-                    configFrame.setSampleInterval(Double.valueOf(tokens[1]));
+                    configPanel.setSampleInterval(Double.valueOf(tokens[1]));
                     return "Ok";
                 case "redraw":
-                    configFrame.setRedrawInterval(Double.valueOf(tokens[1]));
+                    configPanel.setRedrawInterval(Double.valueOf(tokens[1]));
                     return "Ok";
                 default:
                     return "Invalid command";
