@@ -52,6 +52,7 @@ public class GraphFrame extends javax.swing.JFrame {
         buttonMode = new javax.swing.JToggleButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
         buttonResetGraph = new javax.swing.JButton();
+        jSeparator7 = new javax.swing.JToolBar.Separator();
 
         jToolBar1.setRollover(true);
 
@@ -212,6 +213,8 @@ public class GraphFrame extends javax.swing.JFrame {
         toolBar.add(buttonResetGraph);
         buttonResetGraph.getAccessibleContext().setAccessibleDescription("Restart Plot");
 
+        toolBar.add(jSeparator7);
+
         getContentPane().add(toolBar, java.awt.BorderLayout.SOUTH);
 
         pack();
@@ -343,6 +346,7 @@ public class GraphFrame extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar.Separator jSeparator7;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JToolBar toolBar;
