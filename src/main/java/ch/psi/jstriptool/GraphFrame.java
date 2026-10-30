@@ -54,6 +54,10 @@ public class GraphFrame extends javax.swing.JFrame {
         buttonToggleMarkers = new javax.swing.JButton();
         buttonResetGraph = new javax.swing.JButton();
         jSeparator7 = new javax.swing.JToolBar.Separator();
+        buttonSave = new javax.swing.JButton();
+        buttonCopy = new javax.swing.JButton();
+        buttonConfig = new javax.swing.JButton();
+        jSeparator8 = new javax.swing.JToolBar.Separator();
 
         jToolBar1.setRollover(true);
 
@@ -228,6 +232,43 @@ public class GraphFrame extends javax.swing.JFrame {
 
         toolBar.add(jSeparator7);
 
+        buttonSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/Save.png"))); // NOI18N
+        buttonSave.setText(" ");
+        buttonSave.setToolTipText("Save Data or Image");
+        buttonSave.setFocusable(false);
+        buttonSave.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSaveActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonSave);
+
+        buttonCopy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/Copy.png"))); // NOI18N
+        buttonCopy.setText(" ");
+        buttonCopy.setToolTipText("Copy Data");
+        buttonCopy.setFocusable(false);
+        buttonCopy.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonCopy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCopyActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonCopy);
+
+        buttonConfig.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/Config.png"))); // NOI18N
+        buttonConfig.setText(" ");
+        buttonConfig.setToolTipText("Show Config Window");
+        buttonConfig.setFocusable(false);
+        buttonConfig.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonConfig.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonConfigActionPerformed(evt);
+            }
+        });
+        toolBar.add(buttonConfig);
+        toolBar.add(jSeparator8);
+
         getContentPane().add(toolBar, java.awt.BorderLayout.SOUTH);
 
         pack();
@@ -348,8 +389,34 @@ public class GraphFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_buttonToggleMarkersActionPerformed
 
+    private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSaveActionPerformed
+        try {
+            plotPanel.save();
+        } catch (Exception ex) {
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonSaveActionPerformed
+
+    private void buttonCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCopyActionPerformed
+        try {
+            plotPanel.copyData();
+        } catch (Exception ex) {
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonCopyActionPerformed
+
+    private void buttonConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonConfigActionPerformed
+        try {
+            App.configFrame.setVisible(true);
+        } catch (Exception ex) {
+            SwingUtils.showException(this, ex);
+        }
+    }//GEN-LAST:event_buttonConfigActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JToggleButton buttonAutoScale;
+    private javax.swing.JButton buttonConfig;
+    private javax.swing.JButton buttonCopy;
     private javax.swing.JToggleButton buttonMode;
     private javax.swing.JButton buttonPanDown;
     private javax.swing.JButton buttonPanLeft;
@@ -357,6 +424,7 @@ public class GraphFrame extends javax.swing.JFrame {
     private javax.swing.JButton buttonPanUp;
     private javax.swing.JButton buttonResetGraph;
     private javax.swing.JButton buttonResetZoom;
+    private javax.swing.JButton buttonSave;
     private javax.swing.JButton buttonToggleMarkers;
     private javax.swing.JButton buttonZoomInX;
     private javax.swing.JButton buttonZoomInY;
@@ -369,6 +437,7 @@ public class GraphFrame extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
     private javax.swing.JToolBar.Separator jSeparator7;
+    private javax.swing.JToolBar.Separator jSeparator8;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JToolBar toolBar;

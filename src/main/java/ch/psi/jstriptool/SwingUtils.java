@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import javax.swing.BorderFactory;
@@ -25,6 +26,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
+import javax.swing.filechooser.FileFilter;
 
 
 public class SwingUtils {
@@ -286,5 +288,54 @@ public class SwingUtils {
             window.validate();
         }
     }
+    
+    public static class ExtensionFileFilter extends FileFilter {
+
+        final String description;
+        final String extensions[];
+
+        public ExtensionFileFilter(String description, String extension) {
+            this(description, new String[]{extension});
+        }
+
+        public ExtensionFileFilter(String description, String extensions[]) {
+            if (description == null) {
+                this.description = extensions[0];
+            } else {
+                this.description = description;
+            }
+            this.extensions = (String[]) extensions.clone();
+            for (int i = 0, n = extensions.length; i < n; i++) {
+                extensions[i] = extensions[i].toLowerCase();
+            }
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        public String[] getExtensions() {
+            return extensions;
+        }
+        
+        @Override
+        public boolean accept(File file) {
+            if (file.isDirectory()) {
+                return true;
+            } else {
+                String path = file.getAbsolutePath().toLowerCase();
+                for (int i = 0, n = extensions.length; i < n; i++) {
+                    String extension = extensions[i];
+                    if ((path.endsWith(extension) && (path.charAt(path.length() - extension.length() - 1)) == '.')) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+    }
+    
     
 }

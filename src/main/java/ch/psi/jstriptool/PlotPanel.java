@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -35,6 +36,7 @@ import javax.swing.event.PopupMenuListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.DateAxis;
@@ -58,6 +60,7 @@ import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
+import ch.psi.jstriptool.SwingUtils.ExtensionFileFilter;
 
 public class PlotPanel extends javax.swing.JPanel {
 
@@ -548,17 +551,11 @@ public class PlotPanel extends javax.swing.JPanel {
 
         JMenuItem menuSaveTxt = new JMenuItem("TXT...");
         menuSaveTxt.addActionListener((ActionEvent e) -> {
-            JFileChooser chooser = new JFileChooser();
-            FileNameExtensionFilter filter = new FileNameExtensionFilter("Text files", "txt");
-            chooser.setFileFilter(filter);
-            if (chooser.showSaveDialog(PlotPanel.this) == JFileChooser.APPROVE_OPTION) {
-                String fileName = chooser.getSelectedFile().getAbsolutePath();
-                if (!fileName.contains(".")) {
-                    fileName += ".txt";
-                }
-                saveData(fileName);
-            }
-
+            try{
+                saveData();
+            } catch (IOException ex) {
+                    SwingUtils.showException(this, ex);
+            }                
         });
         try {
             JMenu menuSave = (JMenu) getPopupMenu().getComponent(3);
@@ -569,12 +566,29 @@ public class PlotPanel extends javax.swing.JPanel {
          getPopupMenu().add(menuCopyData, 3);
     }
 
-    public void saveData(String filename) {
-        try (FileWriter writer = new FileWriter(filename, isSparse())) {
-            writeData(writer, isSparse());
-        } catch (IOException ex) {
-            SwingUtils.showException(this, ex);
+    public void saveData()  throws IOException {
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Text files", "txt");
+        chooser.setFileFilter(filter);
+        if (chooser.showSaveDialog(PlotPanel.this) == JFileChooser.APPROVE_OPTION) {
+            String fileName = chooser.getSelectedFile().getAbsolutePath();
+            if (chooser.getSelectedFile().getName().contains(".")) {
+                fileName += ".txt";
+            }
+            saveData(fileName);
+        }        
+    }
+
+    public void saveData(String filename) throws IOException {
+        if (new File(filename).isFile()){
+            if (SwingUtils.showOption(this, "Overwrite", "File " + filename + " already exists.\nDo you want to overwrite it?", 
+                    SwingUtils.OptionType.YesNo) == SwingUtils.OptionResult.No) {
+                return;
+            }
         }
+        try (FileWriter writer = new FileWriter(filename, false)) {
+            writeData(writer, isSparse());
+        } 
     }    
     
     protected String getDataAsString() {
@@ -585,8 +599,7 @@ public class PlotPanel extends javax.swing.JPanel {
             return null;
         }
     }    
-    
-    
+        
     public void copyData() {
         try (StringWriter writer = new StringWriter()) {
             writeData(writer, isSparse());           
@@ -596,7 +609,44 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
     
+    
+    public BufferedImage copyImage(Dimension size) {
+        return chart.createBufferedImage(size.width, size.height);
+    }    
+    
+    public void saveImageAsPng(String filename, Dimension size) throws IOException {
+        if (new File(filename).isFile()){
+            if (SwingUtils.showOption(this, "Overwrite", "File " + filename + " already exists.\nDo you want to overwrite it?", 
+                    SwingUtils.OptionType.YesNo) == SwingUtils.OptionResult.No) {
+                return;
+            }
+        }        
+        ChartUtilities.saveChartAsPNG(new File(filename), chart, size.width, size.height);
+    }    
 
+    public void save() throws IOException {
+        JFileChooser chooser = new JFileChooser();
+        var filterTxt = new ExtensionFileFilter("Text file (.txt)", new String[]{"txt"});
+        var filterPng = new ExtensionFileFilter("Image file (.png)", new String[]{"png"});
+        chooser.addChoosableFileFilter(filterTxt);
+        chooser.addChoosableFileFilter(filterPng);
+        chooser.setAcceptAllFileFilterUsed(false);
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+        int rVal = chooser.showSaveDialog(this);
+        if (rVal == JFileChooser.APPROVE_OPTION) {
+            String fileName = chooser.getSelectedFile().getAbsolutePath();
+            if (!chooser.getSelectedFile().getName().contains(".")) {
+                fileName += "."+((ExtensionFileFilter)chooser.getFileFilter()).getExtensions()[0];
+            }
+            if (chooser.getFileFilter() == filterTxt){                           
+                saveData(fileName);
+            } else if (chooser.getFileFilter() == filterPng){
+                saveImageAsPng(fileName, new Dimension(getWidth(),getHeight()));
+            }            
+        }
+    }
+    
     public static boolean isSparse() {
         return App.timeMode.isSparse();
     }
@@ -1027,7 +1077,7 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
 
-    protected JPopupMenu getPopupMenu() {
+    protected JPopupMenu getPopupMenu() {        
         return chartPanel.getPopupMenu();
     }
 
