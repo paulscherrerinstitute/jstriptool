@@ -287,7 +287,6 @@ public class App {
         System.out.println("\t-config\t\tShow config dialog even if filename is provided");
         System.out.println("\t-home=<dir>\tSet home folder");
         System.out.println("\t-default=<dir>\tSet default configuration file");
-        System.out.println("\t-debug\t\tShow debug information");
         System.out.println("\t-cli  \t\tStarts the CLI");
         System.out.println("\t-xrm=\"...\"\tSet graphical resources in the format: <name>:<value>");
         System.out.println("\t-cmd=\"...\"\tList of commands for changing the plot configuration (';' separated):");
@@ -310,19 +309,21 @@ public class App {
         for (PvaArgument option : PvaArgument.values()) {
             System.out.println("\t-" + option.toString() + "=<value>");
         }
+        
+        System.out.println("\nEnvironment variables: ");
+        System.out.println("\tSTRIP_SITE_DEFAULTS");
+        System.out.println("\tSTRIP_FILE_SEARCH_PATH");     
+        
+        System.out.println("\nAditional properties: ");        
         System.out.println("\t-protocol=<name>\tSupported values: ca or pva - default: " + defaultProtocol.toString().toLowerCase());
-        System.out.println("\t-time_mode=<mode>  \t\tTime mode: aligned, sparse or ioc - default: " + timeMode.toString().toLowerCase());
+        System.out.println("\t-time_mode=<mode>  \tTime mode: aligned, sparse or ioc - default: " + timeMode.toString().toLowerCase());
         System.out.println("\t-markers\t\tEnable plot markers by default (higher CPU usage)");
         System.out.println("\t-anti_aliasing\t\tEnabling anti-aliasing smooths the plot (higher CPU usage)");
         System.out.println("\t-timeout=<value>\tTimeout in milliseconds - default: " + timeout);
-        System.out.println("\t-laf=<name>\tSupported values: nimbus, metal, dark or system");
+        System.out.println("\t-laf=<name>\t\tSupported values: nimbus, metal, dark or system");
         System.out.println("\t-log_level=<level>\tSet the console logging level");
-        System.out.println("\t-hide_invalid\tDo not display invalid values");
-        
-        System.out.println("\nEnvironmennt variables: ");
-        System.out.println("\tSTRIP_SITE_DEFAULTS");
-        System.out.println("\tSTRIP_FILE_SEARCH_PATH");
-        System.out.println("\n");
+        System.out.println("\t-debug\t\t\tPrint debug information");        
+        System.out.println("\t-hide_invalid\t\tDo not display invalid values");
     }
 
     public static void main(String args[]) throws Exception {
