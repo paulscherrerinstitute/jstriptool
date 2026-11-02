@@ -12,13 +12,13 @@ import static javax.swing.border.TitledBorder.LEADING;
  */
 public class SeriesPanel extends javax.swing.JPanel {
 
-    final PlotSeries series;
+    final Series series;
     final Color textBackground;
     final Color panelBackground;
     final Font font;
     String currentDisplayValue;
 
-    public SeriesPanel(PlotSeries series) {
+    public SeriesPanel(Series series) {
         initComponents();
         this.series = series;
         textBackground = textInfo.getBackground();
@@ -34,7 +34,7 @@ public class SeriesPanel extends javax.swing.JPanel {
     String desc;
     String name;
 
-    public PlotSeries getSeries() {
+    public Series getSeries() {
         return series;
     }
 

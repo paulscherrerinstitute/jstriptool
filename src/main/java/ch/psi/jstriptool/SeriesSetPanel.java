@@ -37,7 +37,7 @@ public class SeriesSetPanel extends javax.swing.JPanel {
         }
     }
 
-    public void addSeries(PlotSeries series) {
+    public void addSeries(Series series) {
         if (getComponents().length == 0) {
             scrollPane = new javax.swing.JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             scrollPanel = new JPanel();
@@ -79,7 +79,7 @@ public class SeriesSetPanel extends javax.swing.JPanel {
         getSeriesPanels()[index].initialize();
     }
 
-    public void setSeriesActive(PlotSeries series) {
+    public void setSeriesActive(Series series) {
         SeriesPanel panel = SeriesSetPanel.this.getSeriesPanel(series);
         if (panel != null) {
             panel.setActive();
@@ -87,7 +87,7 @@ public class SeriesSetPanel extends javax.swing.JPanel {
         repaint();
     }
 
-    public PlotSeries getActiveSeries() {
+    public Series getActiveSeries() {
         return (active != null) ? active.getSeries() : null;
     }
 
@@ -147,7 +147,7 @@ public class SeriesSetPanel extends javax.swing.JPanel {
         return ret.toArray(new SeriesPanel[0]);
     }
 
-    SeriesPanel getSeriesPanel(PlotSeries series) {
+    SeriesPanel getSeriesPanel(Series series) {
         for (SeriesPanel panel : getSeriesPanels()) {
             if (panel.getSeries() == series) {
                 return panel;

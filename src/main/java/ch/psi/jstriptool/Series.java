@@ -7,7 +7,7 @@ import java.awt.Color;
 /**
  *
  */
-public final class PlotSeries {
+public final class Series {
 
     public Color color = null;
     String name;
@@ -24,40 +24,40 @@ public final class PlotSeries {
     int precision;
     boolean logarithmic;
 
-    public PlotSeries(String name) {
+    public Series(String name) {
         setName((name == null) ? "" : name);
     }
 
-    public PlotSeries(String name, Color color) {
+    public Series(String name, Color color) {
         this(name);
         this.color = color;
     }
 
-    public PlotSeries(String name, Color color, int precision, double min, double max) {
+    public Series(String name, Color color, int precision, double min, double max) {
         this(name, color);
         setPrecision(precision);
         setRange(min, max);
     }
 
-    public PlotSeries(String name, Color color, int precision, double min, double max, String units) {
+    public Series(String name, Color color, int precision, double min, double max, String units) {
         this(name, color, precision, min, max);
         this.units = units;
     }
 
-    public PlotSeries(String name, Color color, int precision, double min, double max, String units, String desc) {
+    public Series(String name, Color color, int precision, double min, double max, String units, String desc) {
         this(name, color, precision, min, max, units);
         this.desc = desc;
     }
 
-    public PlotSeries(String name, Color color, int precision, double min, double max, String units, String desc, boolean logarithmic, int lineWidth, int numSamples) {
+    public Series(String name, Color color, int precision, double min, double max, String units, String desc, boolean logarithmic, int lineWidth, int numSamples) {
         this(name, color, precision, min, max, units, desc);
         this.logarithmic = logarithmic;
         this.lineWidth = lineWidth;
         this.numSamples = numSamples;
     }
 
-    public static PlotSeries create(Curve c, Color color, int lineWidth, int numSamples) {
-        return new PlotSeries(c.name, color,
+    public static Series create(Curve c, Color color, int lineWidth, int numSamples) {
+        return new Series(c.name, color,
                 c.precision, c.min, c.max, c.units, c.comment, c.scale == Config.Scale.logarithmic, lineWidth, numSamples);
     }
 

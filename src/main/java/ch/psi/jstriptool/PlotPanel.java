@@ -94,14 +94,14 @@ public class PlotPanel extends javax.swing.JPanel {
 
     class SeriesInfo {
 
-        SeriesInfo(int index, PlotSeries plotSeries, TimeSeries timeSeries, TimeSeriesCollection data) {
+        SeriesInfo(int index, Series plotSeries, TimeSeries timeSeries, TimeSeriesCollection data) {
             this.index = index;
             this.plotSeries = plotSeries;
             this.timeSeries = timeSeries;
             this.data = data;
         }
         final int index;
-        final PlotSeries plotSeries;
+        final Series plotSeries;
         final TimeSeries timeSeries;
         final TimeSeriesCollection data;
 
@@ -422,7 +422,7 @@ public class PlotPanel extends javax.swing.JPanel {
         return null;
     }
 
-    SeriesInfo getSeriesInfo(PlotSeries plotSeries) {
+    SeriesInfo getSeriesInfo(Series plotSeries) {
         for (SeriesInfo info : series) {
             if (info.plotSeries == plotSeries) {
                 return info;
@@ -848,13 +848,13 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
 
-    public boolean isSeriesHidden(PlotSeries series) {
+    public boolean isSeriesHidden(Series series) {
         return TRANSPARENT_COLOR.equals(getSeriesColor(series));
     }
 
-    Map<PlotSeries, Color> hiddenPlots = new HashMap<>();
+    Map<Series, Color> hiddenPlots = new HashMap<>();
 
-    public void setSeriesHidden(PlotSeries series, boolean hidden) {
+    public void setSeriesHidden(Series series, boolean hidden) {
         if (hidden != isSeriesHidden(series)) {
             if (hidden) {
                 hiddenPlots.put(series, getSeriesColor(series));
@@ -875,7 +875,7 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
 
-    public SeriesInfo addSeries(PlotSeries plotSeries, boolean enabled) {
+    public SeriesInfo addSeries(Series plotSeries, boolean enabled) {
         int index = (series.size() == 0) ? 0 : (series.get(series.size() - 1).index + 1);
         TimeSeries timeSeries = new TimeSeries(plotSeries.name);
         XYPlot plot = chart.getXYPlot();
@@ -999,7 +999,7 @@ public class PlotPanel extends javax.swing.JPanel {
         selectedIndex = -1;
     }
 
-    protected void removeSeries(PlotSeries plotSeries) {
+    protected void removeSeries(Series plotSeries) {
         SeriesInfo removed = getSeriesInfo(plotSeries);
         if (removed != null) {
             removed.data.removeAllSeries();
@@ -1023,7 +1023,7 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }
 
-    public void updateSeries(PlotSeries series) {
+    public void updateSeries(Series series) {
         if (isShowing()) {
             repaint();
         }
@@ -1185,7 +1185,7 @@ public class PlotPanel extends javax.swing.JPanel {
         return null;
     }
 
-    public PlotSeries getPlotSeries(int index) {
+    public Series getPlotSeries(int index) {
         if (index < series.size()) {
             return series.get(index).plotSeries;
         }
@@ -1254,7 +1254,7 @@ public class PlotPanel extends javax.swing.JPanel {
         return axis.getLabel();
     }
 
-    protected Color getSeriesColor(PlotSeries plotSeries) {
+    protected Color getSeriesColor(Series plotSeries) {
         XYItemRenderer renderer = getSeriesInfo(plotSeries).getRenderer();
         if (renderer == null) {
             return null;
@@ -1263,7 +1263,7 @@ public class PlotPanel extends javax.swing.JPanel {
         return p instanceof Color color ? color : null;
     }
 
-    protected void setSeriesColor(PlotSeries plotSeries, Color color) {
+    protected void setSeriesColor(Series plotSeries, Color color) {
         XYLineAndShapeRenderer renderer = getSeriesInfo(plotSeries).getRenderer();
         renderer.setSeriesPaint(0, color);
     }
@@ -1278,7 +1278,7 @@ public class PlotPanel extends javax.swing.JPanel {
         return new Range(r.getLowerBound(), r.getUpperBound());
     }
 
-    TimeSeries getTimeSeries(PlotSeries plotSeries) {
+    TimeSeries getTimeSeries(Series plotSeries) {
         for (SeriesInfo s : series) {
             if (s.plotSeries == plotSeries) {
                 return s.timeSeries;

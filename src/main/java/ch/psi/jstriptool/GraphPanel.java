@@ -43,7 +43,7 @@ public class GraphPanel extends javax.swing.JPanel {
 
     void addSeries(Config.Curve c, Color color, int index) {
         numberOfSeries++;
-        PlotSeries series = PlotSeries.create(c, color, config.graphLineWidth, config.numSamples);
+        Series series = Series.create(c, color, config.graphLineWidth, config.numSamples);
         series.setActive();
         plotPanel.addSeries(series, c.isEnabled());
         panelSeriesSet.addSeries(series);
@@ -104,7 +104,7 @@ public class GraphPanel extends javax.swing.JPanel {
         }
     }
 
-    public void setActive(PlotSeries series) {
+    public void setActive(Series series) {
         if (!series.isActive()) {
             series.setActive();
             panelSeriesSet.setSeriesActive(series);
@@ -114,7 +114,7 @@ public class GraphPanel extends javax.swing.JPanel {
 
     void updateAxisColor() {
         if (config != null) {
-            PlotSeries active = panelSeriesSet.getActiveSeries();
+            Series active = panelSeriesSet.getActiveSeries();
             if ((active != null) && (config.axisYcolorStat == Config.LabelColorAxisY.selectedCurve)) {
                 plotPanel.setRangeAxisColor(plotPanel.getActiveSeriesIndex(), active.getColor());
             } else {
