@@ -72,7 +72,7 @@ public class GraphPanel extends javax.swing.JPanel {
     }
     
     void addValue(Channel pv, ChannelValue value){
-        if (started() && (value!=null)) {
+        if (isStarted() && (value!=null)) {
             if (config.getSamplingMode() == Config.SamplingMode.MONITOR) {
                 synchronized (cache){
                     cache.put(pv, value);
@@ -175,20 +175,21 @@ public class GraphPanel extends javax.swing.JPanel {
         }
     }
     
-    boolean started(){
-        return config!=null;
-    }
-    
     PlotPanel getPlotPanel(){
         return plotPanel;
     }
     
     public void reset() {
+        var started = plotPanel.isStarted();
         plotPanel.clear();        
         try{
-            for (int index = 0; index<channels.size(); index++) {
-                if (config.curves[index].isEnabled()){
-                    updateAsync(channels.get(index));
+            if (!started){
+                start();
+            } else {
+                for (int index = 0; index<channels.size(); index++) {
+                    if (config.curves[index].isEnabled()){
+                        updateAsync(channels.get(index));
+                    }
                 }
             }
         } catch (Exception ex){

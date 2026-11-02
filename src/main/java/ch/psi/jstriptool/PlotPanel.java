@@ -490,7 +490,7 @@ public class PlotPanel extends javax.swing.JPanel {
     protected void setupMenus() {
         JCheckBoxMenuItem menuMarkers;
         JCheckBoxMenuItem menuAntiAliasing;
-        JMenuItem menuPauseStart;
+        JMenuItem menuPauseResume;
         JMenuItem menuReset;
         JMenuItem menuCopy;
         JMenuItem menuSave;
@@ -501,8 +501,8 @@ public class PlotPanel extends javax.swing.JPanel {
             setMarkersVisible(menuMarkers.isSelected());
         });
 
-        menuPauseStart = new JMenuItem("Pause");
-        menuPauseStart.addActionListener((ActionEvent e) -> {
+        menuPauseResume = new JMenuItem("Pause");
+        menuPauseResume.addActionListener((ActionEvent e) -> {
             if (isStarted()) {
                 pause();
             } else {
@@ -559,7 +559,7 @@ public class PlotPanel extends javax.swing.JPanel {
                     menuSeries.add(item);
                 }
 
-                menuPauseStart.setText(isStarted() ? "Pause" : "Start");
+                menuPauseResume.setText(isStarted() ? "Pause" : "Resume");
             }
 
             @Override
@@ -573,7 +573,7 @@ public class PlotPanel extends javax.swing.JPanel {
 
         addPopupMenuItem(null);
         addPopupMenuItem(menuMarkers);
-        addPopupMenuItem(menuPauseStart);
+        addPopupMenuItem(menuPauseResume);
         addPopupMenuItem(menuReset);
         addPopupMenuItem(menuSeries);
         addPopupMenuItem(menuAntiAliasing);
