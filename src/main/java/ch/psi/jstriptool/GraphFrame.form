@@ -265,7 +265,7 @@
               <Image iconType="3" name="/ch/psi/jstriptool/Save.png"/>
             </Property>
             <Property name="text" type="java.lang.String" value=" "/>
-            <Property name="toolTipText" type="java.lang.String" value="Save Data or Image"/>
+            <Property name="toolTipText" type="java.lang.String" value="Save"/>
             <Property name="focusable" type="boolean" value="false"/>
             <Property name="horizontalTextPosition" type="int" value="0"/>
           </Properties>
@@ -279,7 +279,7 @@
               <Image iconType="3" name="/ch/psi/jstriptool/Copy.png"/>
             </Property>
             <Property name="text" type="java.lang.String" value=" "/>
-            <Property name="toolTipText" type="java.lang.String" value="Copy Data"/>
+            <Property name="toolTipText" type="java.lang.String" value="Copy"/>
             <Property name="focusable" type="boolean" value="false"/>
             <Property name="horizontalTextPosition" type="int" value="0"/>
           </Properties>

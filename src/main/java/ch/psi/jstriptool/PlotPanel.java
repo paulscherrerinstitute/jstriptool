@@ -61,6 +61,8 @@ import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
 import ch.psi.jstriptool.SwingUtils.ExtensionFileFilter;
+import java.awt.Image;
+import static java.nio.file.Files.size;
 
 public class PlotPanel extends javax.swing.JPanel {
 
@@ -490,7 +492,8 @@ public class PlotPanel extends javax.swing.JPanel {
         JCheckBoxMenuItem menuAntiAliasing;
         JMenuItem menuPauseStart;
         JMenuItem menuReset;
-        JMenuItem menuCopyData;
+        JMenuItem menuCopy;
+        JMenuItem menuSave;
         JMenu menuSeries;
 
         menuMarkers = new JCheckBoxMenuItem("Show Markers");
@@ -513,10 +516,28 @@ public class PlotPanel extends javax.swing.JPanel {
 
         menuSeries = new JMenu("Series Visibility");
         
-        menuCopyData= new JMenuItem("Copy Data");
-        menuCopyData.addActionListener((ActionEvent e) -> {
-            copyData();
-        });        
+        menuCopy= new JMenuItem("Copy");
+        menuCopy.addActionListener((ActionEvent e) -> {
+            try {
+                copy();
+            } catch (Exception ex) {
+                SwingUtils.showException(this, ex);
+            }            
+        });    
+        
+        menuSave= new JMenuItem("Save...");
+        menuSave.addActionListener((ActionEvent e) -> {
+            try {
+                save();
+            } catch (Exception ex) {
+                SwingUtils.showException(this, ex);
+            }
+        });            
+        
+         getPopupMenu().remove(3);//Save
+         getPopupMenu().remove(2);//Copy
+         getPopupMenu().add(menuCopy, 2);   
+         getPopupMenu().add(menuSave, 3);   
         
         menuAntiAliasing = new JCheckBoxMenuItem("Anti-Aliasing");
         menuAntiAliasing.addActionListener((ActionEvent e) -> {
@@ -556,22 +577,7 @@ public class PlotPanel extends javax.swing.JPanel {
         addPopupMenuItem(menuReset);
         addPopupMenuItem(menuSeries);
         addPopupMenuItem(menuAntiAliasing);
-
-        JMenuItem menuSaveTxt = new JMenuItem("TXT...");
-        menuSaveTxt.addActionListener((ActionEvent e) -> {
-            try{
-                saveData();
-            } catch (IOException ex) {
-                    SwingUtils.showException(this, ex);
-            }                
-        });
-        try {
-            JMenu menuSave = (JMenu) getPopupMenu().getComponent(3);
-            menuSave.add(menuSaveTxt);
-        } catch (Exception ex) {
-            Logger.getLogger(PlotPanel.class.getName()).log(Level.WARNING, null, ex);
-        }
-         getPopupMenu().add(menuCopyData, 3);
+        
     }
 
     public void saveData()  throws IOException {
@@ -608,19 +614,15 @@ public class PlotPanel extends javax.swing.JPanel {
         }
     }    
         
-    public void copyData() {
+    public void copy() throws IOException {
         try (StringWriter writer = new StringWriter()) {
-            writeData(writer, isSparse());           
-            SwingUtils.copyToClipboard(writer.toString());
-        } catch (Exception ex) {
-            Logger.getLogger(PlotPanel.class.getName()).log(Level.WARNING, null, ex);
+            writeData(writer, isSparse());  
+            var dim = new Dimension (Math.max(getWidth(), chartPanel.getMinimumDrawWidth()), 
+                                     Math.max(getHeight(), chartPanel.getMinimumDrawHeight()));
+            Image image = getSnapshot(dim);
+            SwingUtils.copyToClipboard(image, writer.toString());
         }
-    }
-    
-    
-    public BufferedImage copyImage(Dimension size) {
-        return chart.createBufferedImage(size.width, size.height);
-    }    
+    }  
     
     public void saveImageAsPng(String filename, Dimension size) throws IOException {
         if (new File(filename).isFile()){

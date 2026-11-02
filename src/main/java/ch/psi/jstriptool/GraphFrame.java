@@ -234,7 +234,7 @@ public class GraphFrame extends javax.swing.JFrame {
 
         buttonSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/Save.png"))); // NOI18N
         buttonSave.setText(" ");
-        buttonSave.setToolTipText("Save Data or Image");
+        buttonSave.setToolTipText("Save");
         buttonSave.setFocusable(false);
         buttonSave.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         buttonSave.addActionListener(new java.awt.event.ActionListener() {
@@ -246,7 +246,7 @@ public class GraphFrame extends javax.swing.JFrame {
 
         buttonCopy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ch/psi/jstriptool/Copy.png"))); // NOI18N
         buttonCopy.setText(" ");
-        buttonCopy.setToolTipText("Copy Data");
+        buttonCopy.setToolTipText("Copy");
         buttonCopy.setFocusable(false);
         buttonCopy.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         buttonCopy.addActionListener(new java.awt.event.ActionListener() {
@@ -399,7 +399,7 @@ public class GraphFrame extends javax.swing.JFrame {
 
     private void buttonCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCopyActionPerformed
         try {
-            plotPanel.copyData();
+            plotPanel.copy();
         } catch (Exception ex) {
             SwingUtils.showException(this, ex);
         }

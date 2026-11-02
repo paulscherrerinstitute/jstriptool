@@ -4,18 +4,27 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -25,6 +34,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.TransferHandler;
 import javax.swing.border.Border;
 import javax.swing.filechooser.FileFilter;
 
@@ -267,11 +277,6 @@ public class SwingUtils {
         return OptionResult.fromJOptionPaneResult(ret);
     }
    
-
-    public static void copyToClipboard(String text) {
-        StringSelection selection = new StringSelection(text);
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
-    }    
     
     public static void updateAllFrames() {
         if (!SwingUtilities.isEventDispatchThread()) {
@@ -338,4 +343,92 @@ public class SwingUtils {
     }
     
     
+static class ImageTextTransferHandler extends TransferHandler implements Transferable {
+
+    private final DataFlavor[] dataFlavors;
+    private final Image image;
+    private final String text;
+
+    public ImageTextTransferHandler(Image image) {
+        this(image, null);
+    }
+    
+    public ImageTextTransferHandler(String text) {
+        this(null, text);
+    }    
+
+    public ImageTextTransferHandler(Image image, String text) {
+        this.image = image;
+        this.text = text;
+        var flavors = new ArrayList<DataFlavor>();
+        if (image!=null){
+            flavors.add(DataFlavor.imageFlavor);
+        }
+        if (text!=null){
+            flavors.add(DataFlavor.stringFlavor);
+        }
+        dataFlavors = flavors.toArray(new DataFlavor[0]);
+    }
+
+    @Override
+    public Object getTransferData(DataFlavor flavor) {
+        if (isDataFlavorSupported(flavor)) {
+            if (flavor.equals(DataFlavor.imageFlavor)) {
+                return image;
+            } else if (flavor.equals(DataFlavor.stringFlavor)) {
+                return text;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public DataFlavor[] getTransferDataFlavors() {
+        return dataFlavors;
+    }
+
+    @Override
+    public int getSourceActions(JComponent c) {
+        return TransferHandler.COPY;
+    }
+
+    @Override
+    public boolean canImport(JComponent comp, DataFlavor flavor[]) {
+        if (!(comp instanceof JLabel)) {
+            return false;
+        }
+        for (DataFlavor f : flavor) {
+            if (isDataFlavorSupported(f)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isDataFlavorSupported(DataFlavor flavor) {
+        for (var dataFlavor:dataFlavors){
+            if (dataFlavor.equals(flavor)){
+                return true;
+            }
+        }
+        return false;
+    }
+    }
+
+    public static void copyToClipboard(Image image, String text) {
+        try {
+            ImageTextTransferHandler imageSelection = new ImageTextTransferHandler(image, text);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(imageSelection, (Clipboard clipboard1, Transferable contents) -> {
+            });
+        } catch (Exception ex) {
+            Logger.getLogger(SwingUtils.class.getName()).log(Level.INFO, null, ex);
+        }
+    }  
+    
+    public static void copyToClipboard(String text) {
+        StringSelection selection = new StringSelection(text);
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
+    }       
 }
