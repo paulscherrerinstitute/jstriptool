@@ -100,22 +100,10 @@
                 <Property name="text" type="java.lang.String" value="Look &amp; Feel"/>
               </Properties>
             </Menu>
-            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="menuAntiAliasing">
-              <Properties>
-                <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Anti-aliasing"/>
-              </Properties>
-            </MenuItem>
-            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="menuMarkers">
-              <Properties>
-                <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Show Markers"/>
-              </Properties>
-            </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="menuHideInvalid">
               <Properties>
                 <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Hide Invalid Values"/>
+                <Property name="text" type="java.lang.String" value="Reject Invalid Values"/>
               </Properties>
             </MenuItem>
           </SubComponents>

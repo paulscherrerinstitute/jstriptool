@@ -209,10 +209,6 @@ public class App {
     public static boolean isDebug() {
         return App.hasArgument("debug");
     }
-
-    public static boolean getHideInvalid() {
-        return App.hasArgument("hide_invalid");
-    }
     
     public static boolean isAntiAliasing() {
         return hasArgument("anti_aliasing") || hasArgument("aa");

@@ -70,6 +70,7 @@ public class PlotPanel extends javax.swing.JPanel {
     static final int PREFERRED_HEIGHT = 400;
     protected static final String LINE_SEPARATOR = System.lineSeparator();
     protected static final String FIELD_SEPARATOR = "\t";
+    protected static final String SERIES_SEPARATOR = LINE_SEPARATOR;
     static final double AXIS_MARGIN = 0.005;
     final static SimpleDateFormat DATE_TIME_FORMAT = new SimpleDateFormat("dd/MM/YY HH:mm:ss.SSS");
     final static SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss.S");
@@ -450,12 +451,12 @@ public class PlotPanel extends javax.swing.JPanel {
     }
 
     public void setAntiAliasing(boolean value) {
-        if (chart != null) {
+        if ((chart != null) && (value!=getAntiAliasing())) {
             chart.setAntiAlias(value);
         }
     }
 
-    public boolean isAntiAlias() {
+    public boolean getAntiAliasing() {
         if (chart != null) {
             return chart.getAntiAlias();
         }
@@ -486,7 +487,7 @@ public class PlotPanel extends javax.swing.JPanel {
 
     protected void setupMenus() {
         JCheckBoxMenuItem menuMarkers;
-        JCheckBoxMenuItem menuLegend;
+        JCheckBoxMenuItem menuAntiAliasing;
         JMenuItem menuPauseStart;
         JMenuItem menuReset;
         JMenuItem menuCopyData;
@@ -516,12 +517,18 @@ public class PlotPanel extends javax.swing.JPanel {
         menuCopyData.addActionListener((ActionEvent e) -> {
             copyData();
         });        
+        
+        menuAntiAliasing = new JCheckBoxMenuItem("Anti-Aliasing");
+        menuAntiAliasing.addActionListener((ActionEvent e) -> {
+            setAntiAliasing(menuAntiAliasing.isSelected());
+        });        
 
         getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
 
             @Override
             public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
                 menuMarkers.setSelected(isMarkersVisible());
+                menuAntiAliasing.setSelected(getAntiAliasing());
                 menuSeries.removeAll();
                 for (SeriesInfo s : series) {
                     JCheckBoxMenuItem item = new JCheckBoxMenuItem(s.plotSeries.getName(), !isSeriesHidden(s.plotSeries));
@@ -548,6 +555,7 @@ public class PlotPanel extends javax.swing.JPanel {
         addPopupMenuItem(menuPauseStart);
         addPopupMenuItem(menuReset);
         addPopupMenuItem(menuSeries);
+        addPopupMenuItem(menuAntiAliasing);
 
         JMenuItem menuSaveTxt = new JMenuItem("TXT...");
         menuSaveTxt.addActionListener((ActionEvent e) -> {
@@ -656,7 +664,12 @@ public class PlotPanel extends javax.swing.JPanel {
         if (isSparse()) {
             for (int i = 0; i < series.size(); i++) {
                 List<ChannelValue> values = getSeriesData(i);
-                writer.append("#Series: ").append(getSeriesName(i)).append(LINE_SEPARATOR);
+                writer.append("#Time").append(FIELD_SEPARATOR);
+                writer.append(series.get(i).plotSeries.name);
+                if ((series.get(i).plotSeries.units!=null) &&(!series.get(i).plotSeries.units.isBlank())){
+                        writer.append(" [").append(series.get(i).plotSeries.units).append("]");
+                }       
+                writer.append(FIELD_SEPARATOR).append(LINE_SEPARATOR);
                 Double last = null;
                 for (ChannelValue item : values) {
                     Double val = item.value();
@@ -671,16 +684,18 @@ public class PlotPanel extends javax.swing.JPanel {
                         writer.append(LINE_SEPARATOR);
                     }
                 }
-                writer.append(LINE_SEPARATOR);
+                writer.append(SERIES_SEPARATOR);
             }
         } else {
             //Header
             int numSeries = series.size();
-            writer.append("Time").append(FIELD_SEPARATOR);
+            writer.append("#Time").append(FIELD_SEPARATOR);
             for (int i = 0; i < numSeries; i++) {
-                writer.append(series.get(i).plotSeries.name)
-                        .append(" [").append(series.get(i).plotSeries.units).append("]").
-                        append(FIELD_SEPARATOR);
+                writer.append(series.get(i).plotSeries.name);
+                if ((series.get(i).plotSeries.units!=null) &&(!series.get(i).plotSeries.units.isBlank())){
+                        writer.append(" [").append(series.get(i).plotSeries.units).append("]");
+                }                   
+                writer.append(FIELD_SEPARATOR);
             }
             writer.append(LINE_SEPARATOR);
 

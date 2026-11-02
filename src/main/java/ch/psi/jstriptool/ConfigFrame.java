@@ -89,23 +89,13 @@ public class ConfigFrame extends javax.swing.JFrame {
              });            
             menuLookAndFeel.add(menu);
         }        
-                        
-        menuAntiAliasing.addActionListener((e)->{
-            App.getPlotPanel().setAntiAliasing(menuAntiAliasing.isSelected());
-        });
-        
-        menuMarkers.addActionListener((e)->{
-            App.getPlotPanel().setMarkersVisible(menuMarkers.isSelected());
-        });
-        
+                     
         menuHideInvalid.addActionListener((e)->{
             ChannelValue.hideInvalid = menuHideInvalid.isSelected();
         });
         
         menuProperties.addChangeListener((e)->{
             if (menuProperties.isSelected()) {        
-                menuAntiAliasing.setSelected(App.getPlotPanel().isAntiAlias());
-                menuMarkers.setSelected(App.getPlotPanel().isMarkersVisible());
                 menuHideInvalid.setSelected(ChannelValue.hideInvalid);
                 for (var item : menuDefaultProtocol.getMenuComponents()){                
                     if (item instanceof JMenuItem menuItem){
@@ -200,8 +190,6 @@ public class ConfigFrame extends javax.swing.JFrame {
         menuTimeMode = new javax.swing.JMenu();
         menuLogLevel = new javax.swing.JMenu();
         menuLookAndFeel = new javax.swing.JMenu();
-        menuAntiAliasing = new javax.swing.JCheckBoxMenuItem();
-        menuMarkers = new javax.swing.JCheckBoxMenuItem();
         menuHideInvalid = new javax.swing.JCheckBoxMenuItem();
         menuWindow = new javax.swing.JMenu();
         menuShowGraph = new javax.swing.JMenuItem();
@@ -277,16 +265,8 @@ public class ConfigFrame extends javax.swing.JFrame {
         menuLookAndFeel.setText("Look & Feel");
         menuProperties.add(menuLookAndFeel);
 
-        menuAntiAliasing.setSelected(true);
-        menuAntiAliasing.setText("Anti-aliasing");
-        menuProperties.add(menuAntiAliasing);
-
-        menuMarkers.setSelected(true);
-        menuMarkers.setText("Show Markers");
-        menuProperties.add(menuMarkers);
-
         menuHideInvalid.setSelected(true);
-        menuHideInvalid.setText("Hide Invalid Values");
+        menuHideInvalid.setText("Reject Invalid Values");
         menuProperties.add(menuHideInvalid);
 
         jMenuBar2.add(menuProperties);
@@ -433,7 +413,6 @@ public class ConfigFrame extends javax.swing.JFrame {
     private javax.swing.JPopupMenu.Separator jSeparator3;
     private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JMenuItem menuAbout;
-    private javax.swing.JCheckBoxMenuItem menuAntiAliasing;
     private javax.swing.JMenuItem menuClear;
     private javax.swing.JMenu menuDefaultProtocol;
     private javax.swing.JMenuItem menuExit;
@@ -444,7 +423,6 @@ public class ConfigFrame extends javax.swing.JFrame {
     private javax.swing.JMenuItem menuLoad;
     private javax.swing.JMenu menuLogLevel;
     private javax.swing.JMenu menuLookAndFeel;
-    private javax.swing.JCheckBoxMenuItem menuMarkers;
     private javax.swing.JMenu menuProperties;
     private javax.swing.JMenuItem menuSave;
     private javax.swing.JMenuItem menuSaveAs;
