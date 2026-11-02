@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
@@ -36,7 +35,7 @@ import javax.swing.event.PopupMenuListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
-import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.DateAxis;
@@ -59,10 +58,9 @@ import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.ui.RectangleInsets;
+import org.jfree.chart.ui.RectangleInsets;
 import ch.psi.jstriptool.SwingUtils.ExtensionFileFilter;
 import java.awt.Image;
-import static java.nio.file.Files.size;
 
 public class PlotPanel extends javax.swing.JPanel {
 
@@ -631,7 +629,7 @@ public class PlotPanel extends javax.swing.JPanel {
                 return;
             }
         }        
-        ChartUtilities.saveChartAsPNG(new File(filename), chart, size.width, size.height);
+        ChartUtils.saveChartAsPNG(new File(filename), chart, size.width, size.height);
     }    
 
     public void save() throws IOException {
@@ -885,7 +883,7 @@ public class PlotPanel extends javax.swing.JPanel {
         createAxis(index, plotSeries.units, plotSeries.isLogaritimic(), index == 0);
         var renderer = new ExtendedLineAndShapeRenderer();
         renderer.setLineExtension(enabled);
-        renderer.setBaseShapesVisible(isMarkersVisible());
+        renderer.setDefaultShapesVisible(isMarkersVisible());
         plot.setRenderer(index, renderer);
         plot.setDataset(index, data);
         plot.mapDatasetToRangeAxis(index, index);
@@ -893,7 +891,6 @@ public class PlotPanel extends javax.swing.JPanel {
         SeriesInfo seriesInfo = new SeriesInfo(index, plotSeries, timeSeries, data);
         applyRange(index, seriesInfo.getRange());
         series.add(seriesInfo);
-
         checkSeriesDuration();
         data.addSeries(timeSeries);
         if (seriesInfo.plotSeries.getColor() != null) {
@@ -1410,7 +1407,7 @@ public class PlotPanel extends javax.swing.JPanel {
     public void setMarkersVisible(boolean visible) {
         markersVisible = visible;
         for (int i = 0; i < getNumberOfSeries(); i++) {
-            getRenderer(i).setBaseShapesVisible(visible);
+            getRenderer(i).setDefaultShapesVisible(visible);
         }
         updateTooltips();
         if (isShowing()) {
@@ -1422,13 +1419,13 @@ public class PlotPanel extends javax.swing.JPanel {
         boolean tooltips = markersVisible && !scrollMode;
         for (int i = 0; i < getNumberOfSeries(); i++) {
             if (tooltips) {
-                getRenderer(i).setBaseToolTipGenerator(new StandardXYToolTipGenerator("{0} {1} {2}", TIME_FORMAT, DECIMAL_FORMAT));
+                getRenderer(i).setDefaultToolTipGenerator(new StandardXYToolTipGenerator("{0} {1} {2}", TIME_FORMAT, DECIMAL_FORMAT));
                 chartPanel.setDisplayToolTips(true);
                 chartPanel.getChartRenderingInfo().setEntityCollection(new StandardEntityCollection());
             } else {
                 chartPanel.getChartRenderingInfo().setEntityCollection(null);
                 chartPanel.setDisplayToolTips(false);
-                getRenderer(i).setBaseToolTipGenerator(null);
+                getRenderer(i).setDefaultToolTipGenerator(null);
             }
         }
 

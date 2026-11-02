@@ -25,6 +25,9 @@ public record ChannelMetadata(String units, int precision, double low, double hi
 
     static ChannelMetadata fromPva(PVAStructure value) {
         PVADisplay display = PVADisplay.fromStructure(value);
+        if (display==null) {
+            return null;
+        }
         String units = display.get("units").toString();
         int precision = ((PVAInt) display.get("precision")).get();
         double low = ((PVADouble) display.get("limitLow")).get();

@@ -212,7 +212,10 @@ public class Channel implements AutoCloseable {
                 String desc = channelDesc.getAsync().get(App.timeout, TimeUnit.MILLISECONDS);
                 return ChannelMetadata.fromCa(g, desc);
             } else if (channel instanceof PVAChannel ch) {
-                return ChannelMetadata.fromPva(ch.read("field(display)").get(App.timeout, TimeUnit.MILLISECONDS));
+                ChannelMetadata ret =  ChannelMetadata.fromPva(ch.read("field(value,display)").get(App.timeout, TimeUnit.MILLISECONDS));
+                if (ret==null){
+                    throw new Exception("No display info in PVA structure");
+                }
             }
         } catch (Exception ex) {
             Logger.getLogger(Channel.class.getName()).warning(() -> "Error reading channel " + name + " metadata: " + ex);
