@@ -29,6 +29,11 @@ public record ChannelMetadata(String units, int precision, double low, double hi
             return null;
         }
         String units = display.get("units").toString();
+        //Sometimes pva returns this prefix in front of the units...
+        String bug_prefix = "string units ";
+        if (units.startsWith(bug_prefix)){
+            units = units.substring(bug_prefix.length());
+        }
         int precision = ((PVAInt) display.get("precision")).get();
         double low = ((PVADouble) display.get("limitLow")).get();
         double high = ((PVADouble) display.get("limitHigh")).get();
