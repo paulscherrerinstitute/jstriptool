@@ -23,8 +23,8 @@ public record ChannelMetadata(String units, int precision, double low, double hi
         return new ChannelMetadata(units, precision, low, high, desc);
     }
 
-    static ChannelMetadata fromPva(PVAStructure value) {
-        PVADisplay display = PVADisplay.fromStructure(value);
+    static ChannelMetadata fromPva(PVAStructure value) {        
+        PVADisplay display = PVADisplay.getDisplay(value);
         if (display==null) {
             return null;
         }
