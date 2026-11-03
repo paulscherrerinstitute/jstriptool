@@ -56,12 +56,12 @@ public class SeriesPanel extends javax.swing.JPanel {
             setVisible(false);
         } else {
             setVisible(true);
-            if (series.isFixedRange()) {
+            if (series.isAutoRange()) {
+                range = "";
+            } else {
                 range = String.format(("(%s, %s)"),
                         getDisplayRange(series.getRangeMin()),
-                        getDisplayRange(series.getRangeMax()));
-            } else {
-                range = "";
+                        getDisplayRange(series.getRangeMax()));                
             }
             desc = series.desc == null ? "" : series.desc;
             if (desc.isEmpty()) {

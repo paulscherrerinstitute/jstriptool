@@ -330,7 +330,7 @@ public class GraphPanel extends javax.swing.JPanel {
         }
         synchronized (valueList) {
             valueList.clear();
-        }        
+        }                
         numberOfSeries = 0;
         cache.clear();
         config = null;
@@ -390,18 +390,11 @@ public class GraphPanel extends javax.swing.JPanel {
         }
     }
 
-    public void setMin(int index, double value) {
-        if (isStarted() && index < config.getNumberCurves()) {
-            config.curves[index].min = value;
-            plotPanel.series.get(index).plotSeries.setRangeMin(value);
-            panelSeriesSet.updateSeries(index);
-        }
-    }
-
-    public void setMax(int index, double value) {
-        if (isStarted() && index < config.getNumberCurves()) {
-            config.curves[index].max = value;
-            plotPanel.series.get(index).plotSeries.setRangeMax(value);
+    public void setRange(int index, double min,  double max) {
+        if (isStarted() && index < config.getNumberCurves()) {            
+            plotPanel.series.get(index).plotSeries.setRange(min, max);
+            config.curves[index].min = min;
+            config.curves[index].max = max;
             panelSeriesSet.updateSeries(index);
         }
     }
@@ -519,6 +512,7 @@ public class GraphPanel extends javax.swing.JPanel {
 
     public void addChannel(int index, String channelName, boolean enabled, boolean log,
             int precision, double min, double max, String units, String desc) {
+        Config config = App.getConfig();
         if (config != null) {
             if ((index >= 0) && (index <= config.getNumberCurves())) {
                 if (isStarted() && (index < config.getNumberCurves())) {
@@ -544,6 +538,7 @@ public class GraphPanel extends javax.swing.JPanel {
     }
 
     public void removeChannel(int index) {
+        Config config = App.getConfig();
         if (config != null) {
             if ((index >= 0) && (index < config.getNumberCurves())) {
                 if (((index < config.getNumberCurves() - 1)) || (config.getNumberCurves() == 1)) {

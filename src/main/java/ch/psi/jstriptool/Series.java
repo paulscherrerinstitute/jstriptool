@@ -111,33 +111,37 @@ public final class Series {
         return rangeMax;
     }
 
-    public void setRangeMin(double value) {
-        setRange(value, rangeMax);
-    }
 
-    public void setRangeMax(double value) {
-        setRange(rangeMin, value);
-    }
-
-    public void setRange(double min, double max) {
-        boolean fixed = isFixedRange(min, max);
-        rangeMin = fixed ? Math.min(min, max) : min;
-        rangeMax = fixed ? Math.max(min, max) : max;
+    public void setRange(double min, double max) {                
+        assertValidRange(min,max);            
+        rangeMin = min;
+        rangeMax = max;
         if (getIndex() >= 0) {
-            if (isFixedRange()) {
-                getPlot().setAxisScale(getIndex(), getRangeMin(), getRangeMax());
+            if (isAutoRange(min ,max)) {
+                getPlot().setAxisAutoScale(getIndex());                
             } else {
-                getPlot().setAxisAutoScale(getIndex());
+                getPlot().setAxisScale(getIndex(), getRangeMin(), getRangeMax());
             }
         }
     }
-
-    public boolean isFixedRange() {
-        return isFixedRange(rangeMin, rangeMax);
+    
+    public boolean isAutoRange() {
+        return isAutoRange(rangeMin, rangeMax);
     }
 
-    public static boolean isFixedRange(double min, double max) {
-        return (!Double.isNaN(min) && !Double.isNaN(max));
+    public static boolean isAutoRange(double min, double max) {
+        return Double.isNaN(min) || Double.isNaN(max) ||
+                ((min==0) && (max==0));
+    }
+    
+    public static boolean isValidRange(double min, double max) {
+        return (max>min) || isAutoRange(min, max);
+    }    
+    
+    public static void assertValidRange(double min, double max) {
+        if (!isValidRange(min, max)){
+            throw new RuntimeException("Invalid range: [" + min + ", " + max + "]");
+        }
     }
 
     public void setUnits(String value) {

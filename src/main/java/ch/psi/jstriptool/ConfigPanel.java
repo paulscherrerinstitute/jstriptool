@@ -90,10 +90,12 @@ public class ConfigPanel extends javax.swing.JPanel {
                                     App.getGraphPanel().setPrec(index, (value == null) ? 0 : (Integer) value);
                                     break;
                                 case COLUMN_MIN:
-                                    App.getGraphPanel().setMin(index, (value == null) ? Double.NaN : (Double) value);
+                                    Object max  = modelSeries.getValueAt(index, COLUMN_MAX);
+                                    App.getGraphPanel().setRange(index, (value == null) ? Double.NaN : (Double) value, (max == null) ? Double.NaN : (Double) max);
                                     break;
                                 case COLUMN_MAX:
-                                    App.getGraphPanel().setMax(index, (value == null) ? Double.NaN : (Double) value);
+                                    Object min  = modelSeries.getValueAt(index, COLUMN_MIN);
+                                    App.getGraphPanel().setRange(index, (min == null) ? Double.NaN : (Double) min, (value == null) ? Double.NaN : (Double) value);
                                     break;
                                 case COLUMN_UNITS:
                                     App.getGraphPanel().setUnits(index, (value == null) ? "" : (String) value);

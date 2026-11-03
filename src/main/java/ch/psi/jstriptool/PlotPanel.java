@@ -114,7 +114,7 @@ public class PlotPanel extends javax.swing.JPanel {
         }
 
         Range getRange() {
-            return plotSeries.isFixedRange() ? new Range(plotSeries.getRangeMin(), plotSeries.getRangeMax()) : null;
+            return plotSeries.isAutoRange() ? null : new Range(plotSeries.getRangeMin(), plotSeries.getRangeMax());
         }
         
         void setLineExtension(boolean value){
@@ -993,7 +993,8 @@ public class PlotPanel extends javax.swing.JPanel {
     protected void removeAllSeries() {
         for (SeriesInfo s : series) {
             s.data.removeAllSeries();
-        }
+        }                
+        chart.getXYPlot().clearRangeAxes();        
         series.clear();
         selectedRenderer = null;
         selectedIndex = -1;
@@ -1228,7 +1229,12 @@ public class PlotPanel extends javax.swing.JPanel {
     public void setAxisScale(int index, Range range) {
         ValueAxis axis = chart.getXYPlot().getRangeAxis(index);
         if (axis != null) {
-            axis.setRangeWithMargins(range, true, true);
+            
+            if ((range.getLowerBound()==0 && range.getUpperBound()==0) || range.isNaNRange()) {
+                axis.setAutoRange(true);
+            } else {
+                axis.setRangeWithMargins(range, true, true);
+            }
         }
     }
 
