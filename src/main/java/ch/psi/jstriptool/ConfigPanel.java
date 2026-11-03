@@ -121,12 +121,13 @@ public class ConfigPanel extends javax.swing.JPanel {
     }
 
     protected void updateButtons() {
-        boolean editing = true;
+        boolean editing = true;        
         int rows = modelSeries.getRowCount();
         int cur = tableSeries.getSelectedRow();
         buttonUp.setEnabled((rows > 0) && (cur > 0) && editing);
         buttonDown.setEnabled((rows > 0) && (cur >= 0) && (cur < (rows - 1)) && editing);
         buttonDelete.setEnabled((rows > 0) && (cur >= 0) && editing);
+        buttonUpdate.setEnabled(buttonDelete.isEnabled());
         buttonInsert.setEnabled((modelSeries.getRowCount() < Config.MAX_NUMBER_PLOTS) && editing);
     }
 
@@ -465,6 +466,7 @@ public class ConfigPanel extends javax.swing.JPanel {
         buttonUp = new javax.swing.JButton();
         buttonInsert = new javax.swing.JButton();
         buttonDown = new javax.swing.JButton();
+        buttonUpdate = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -536,16 +538,24 @@ public class ConfigPanel extends javax.swing.JPanel {
         jScrollPane1.setViewportView(tableSeries);
 
         buttonDelete.setText("Delete");
+        buttonDelete.setToolTipText("Remove Selected Channel");
         buttonDelete.addActionListener(this::buttonDeleteActionPerformed);
 
         buttonUp.setText("Move Up");
+        buttonUp.setToolTipText("Move Selected Channel Up");
         buttonUp.addActionListener(this::buttonUpActionPerformed);
 
         buttonInsert.setText("Insert");
+        buttonInsert.setToolTipText("Insert Channel");
         buttonInsert.addActionListener(this::buttonInsertActionPerformed);
 
         buttonDown.setText("Move Down");
+        buttonDown.setToolTipText("Move Selected Channel Down");
         buttonDown.addActionListener(this::buttonDownActionPerformed);
+
+        buttonUpdate.setText("Update");
+        buttonUpdate.setToolTipText("Update Channel Metadata");
+        buttonUpdate.addActionListener(this::buttonUpdateActionPerformed);
 
         javax.swing.GroupLayout panelSeriesLayout = new javax.swing.GroupLayout(panelSeries);
         panelSeries.setLayout(panelSeriesLayout);
@@ -560,7 +570,9 @@ public class ConfigPanel extends javax.swing.JPanel {
                         .addComponent(buttonUp)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonDown)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(18, 18, 18)
+                        .addComponent(buttonUpdate)
+                        .addGap(18, 18, 18)
                         .addComponent(buttonInsert)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonDelete)
@@ -577,7 +589,8 @@ public class ConfigPanel extends javax.swing.JPanel {
                     .addComponent(buttonDelete)
                     .addComponent(buttonInsert)
                     .addComponent(buttonDown)
-                    .addComponent(buttonUp))
+                    .addComponent(buttonUp)
+                    .addComponent(buttonUpdate))
                 .addContainerGap())
         );
 
@@ -594,25 +607,31 @@ public class ConfigPanel extends javax.swing.JPanel {
         jLabel4.setText("Sample Interval (s):");
 
         spinnerRedrawInterval.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.0d, 100.0d, 0.1d));
+        spinnerRedrawInterval.setToolTipText("Plot Redraw Interval (0 for Immediate)");
         spinnerRedrawInterval.addChangeListener(this::spinnerRedrawIntervalStateChanged);
 
         spinnerBufferSize.setModel(new javax.swing.SpinnerNumberModel(65535, 0, 1000000, 1));
+        spinnerBufferSize.setToolTipText("Maximum Number of Samples per Channel");
         spinnerBufferSize.addChangeListener(this::spinnerBufferSizeStateChanged);
 
         spinnerSampleInterval.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.0d, 100.0d, 0.1d));
+        spinnerSampleInterval.setToolTipText("Channel Polling Interval (0 for Monitor)");
         spinnerSampleInterval.addChangeListener(this::spinnerSampleIntervalStateChanged);
 
         spinnerHour.setModel(new javax.swing.SpinnerNumberModel(0, 0, 99, 1));
+        spinnerHour.setToolTipText("Hours");
         spinnerHour.addChangeListener(this::spinnerHourStateChanged);
 
         jLabel5.setText(":");
 
         spinnerMin.setModel(new javax.swing.SpinnerNumberModel(5, 0, 59, 1));
+        spinnerMin.setToolTipText("Minutes");
         spinnerMin.addChangeListener(this::spinnerMinspinnerHourStateChanged);
 
         jLabel6.setText(":");
 
         spinnerSec.setModel(new javax.swing.SpinnerNumberModel(0, 0, 59, 1));
+        spinnerSec.setToolTipText("Seconds");
         spinnerSec.addChangeListener(this::spinnerSecspinnerHourStateChanged);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -745,12 +764,14 @@ public class ConfigPanel extends javax.swing.JPanel {
         jLabel18.setText("Foreground:");
 
         buttonSystemColors.setText("System Colors");
+        buttonSystemColors.setToolTipText("Set Plot Colors to System Defaults ");
         buttonSystemColors.addActionListener(this::buttonSystemColorsActionPerformed);
 
         jLabel20.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         jLabel20.setText("Y-grid lines:");
 
         comboColorY.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Foreground", "Selected curve" }));
+        comboColorY.setToolTipText("");
         comboColorY.addActionListener(this::comboColorYActionPerformed);
 
         comboGridX.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "None", "Some", "All" }));
@@ -760,6 +781,7 @@ public class ConfigPanel extends javax.swing.JPanel {
         jLabel21.setText("Line width:");
 
         spinnerLineWidth.setModel(new javax.swing.SpinnerNumberModel(2, 0, 10, 1));
+        spinnerLineWidth.setToolTipText("Plot Line Width");
         spinnerLineWidth.addChangeListener(this::spinnerLineWidthStateChanged);
 
         jLabel19.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
@@ -1104,6 +1126,21 @@ public class ConfigPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_comboGridYActionPerformed
 
+    private void buttonUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonUpdateActionPerformed
+        try {
+            int row= tableSeries.getSelectedRow();
+            var metadata = Channel.readMetadata((String)modelSeries.getValueAt(row, 0));
+            modelSeries.setValueAt(metadata.precision(), row, 3);
+            modelSeries.setValueAt(metadata.low(), row, 4);
+            modelSeries.setValueAt(metadata.high(), row, 5);
+            modelSeries.setValueAt(metadata.units(), row, 6);
+            modelSeries.setValueAt(metadata.description(), row, 7);
+        } catch (Exception ex) {
+            SwingUtils.showException(this, ex);
+        }    
+                
+    }//GEN-LAST:event_buttonUpdateActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonDelete;
@@ -1111,6 +1148,7 @@ public class ConfigPanel extends javax.swing.JPanel {
     private javax.swing.JButton buttonInsert;
     private javax.swing.JButton buttonSystemColors;
     private javax.swing.JButton buttonUp;
+    private javax.swing.JButton buttonUpdate;
     private javax.swing.JComboBox<String> comboColorY;
     private javax.swing.JComboBox<String> comboGridX;
     private javax.swing.JComboBox<String> comboGridY;
